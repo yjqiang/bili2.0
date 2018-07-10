@@ -110,29 +110,9 @@ class Task(Messenger):
             sleeptime = max(wanted_time - CurrentTime(), 0)
             print('智能睡眠', sleeptime)
             await asyncio.sleep(sleeptime)
-            list_raffle0 = []
-            for i in range(self.queue.qsize()):
-                job = self.queue.get_nowait()
-                if job[0] > CurrentTime() + 2:
-                    await self.put2queue(job[1], job[0]-CurrentTime(), job[2])
-                    break
-                else:
-                    list_raffle0.append(job)
-            list_raffle0.append(raffle)
-            list_raffle = list(set(list_raffle0))
-                
-            # print('过滤完毕')
-            # if len(list_raffle) != len(list_raffle0):
-            print(list_raffle)
             
+            await self.notify(raffle[1], (), raffle[2])
             
-            
-            
-            tasklist = []
-            for i in list_raffle:
-                task = asyncio.ensure_future(self.notify(i[1], (), i[2]))
-                tasklist.append(task)
-            await asyncio.wait(tasklist, return_when=asyncio.ALL_COMPLETED)
             print('ffffdjjjdcgcdhtdtdchtrhtcrcrthctrhhctrctrhctrhcrhtctrhcrthchtrhct')
                 
     async def put2queue(self, func, delay, id=None):
