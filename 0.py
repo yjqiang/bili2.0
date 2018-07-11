@@ -7,6 +7,7 @@ from printer import Printer
 import connect
 import bili_console
 import threading
+from cdn import Host
 
 fileDir = os.path.dirname(os.path.realpath('__file__'))
 file_color = f'{fileDir}/config/color.toml'
@@ -21,7 +22,10 @@ Printer(dict_color, dict_user['print_control']['danmu'], dict_user['platform']['
 
 
 task_control = dict_user['task_control']
-users = [User(i, user_info, dict_bili, task_control) for i, user_info in enumerate(dict_user['users'])]
+if len(dict_user['users']) < 100:
+    users = [User(i, user_info, dict_bili, task_control, False) for i, user_info in enumerate(dict_user['users'])]
+else:
+    users = [User(i, user_info, dict_bili, task_control, True) for i, user_info in enumerate(dict_user['users'])]
 
 
 danmu_connection = connect.connect(dict_user['other_control']['default_monitor_roomid'])
@@ -39,6 +43,13 @@ queue = asyncio.Queue()
 bili_console.Biliconsole(loop, queue, users)
 console_thread = threading.Thread(target=bili_console.controler)
 console_thread.start()
+
+async def run():
+    host = Host()
+    await host.proxies_filter()
+    print(Host().get_host())
+    
+loop.run_until_complete(run())
 
 tasks = [
     raffle.join_raffle(),

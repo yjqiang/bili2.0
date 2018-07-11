@@ -1,4 +1,4 @@
-from web_hub import WebHub
+from web_hub import WebHub, HostWebHub
 from task import DelayRaffleHandler, RaffleHandler, Task
 from config_loader import ConfigLoader
 import asyncio
@@ -23,8 +23,11 @@ def CurrentTime():
 
 
 class User():
-    def __init__(self, user_id, dict_user, dict_bili, task_control):
-        self.webhub = WebHub(user_id, dict_user, dict_bili)
+    def __init__(self, user_id, dict_user, dict_bili, task_control, high_concurency):
+        if high_concurency:
+            self.webhub = HostWebHub(user_id, dict_user, dict_bili)
+        else:
+            self.webhub = WebHub(user_id, dict_user, dict_bili)
         self.statistics = Statistics()
         self.user_id = user_id
         self.task_control = task_control
