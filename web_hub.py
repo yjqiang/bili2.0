@@ -716,8 +716,8 @@ class HostWebHub(WebHub):
                 elif response.status == 403:
                     print('403频繁')
             except:
-                print('当前网络不好，正在重试，请反馈开发者!!!!')
-                print(sys.exc_info()[0], sys.exc_info()[1], url, self.user_id)
+                # print('当前网络不好，正在重试，请反馈开发者!!!!')
+                # print(sys.exc_info()[0], sys.exc_info()[1], url, self.user_id)
                 continue
 
     async def bili_section_get(self, url, headers={}, data=None):
@@ -742,8 +742,8 @@ class HostWebHub(WebHub):
                 elif response.status == 403:
                     print('403频繁')
             except:
-                print('当前网络不好，正在重试，请反馈开发者!!!!')
-                print(sys.exc_info()[0], sys.exc_info()[1], url, self.user_id)
+                # print('当前网络不好，正在重试，请反馈开发者!!!!')
+                # print(sys.exc_info()[0], sys.exc_info()[1], url, self.user_id)
                 continue
                 
     

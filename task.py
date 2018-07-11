@@ -28,8 +28,16 @@ class Messenger():
 
     async def notify(self, func, value, id=None):
         if id is None:
-            tasks = [asyncio.ensure_future(ob.update(func, value)) for ob in self._observers]
-            await asyncio.wait(tasks, return_when=asyncio.ALL_COMPLETED)
+            list_tasks = []
+            for i, user in enumerate(self._observers):
+                task = asyncio.ensure_future(user.update(func, value))
+                list_tasks.append(task)
+                if not ((i+1) % 30):
+                    await asyncio.wait(list_tasks, return_when=asyncio.ALL_COMPLETED)
+                    await asyncio.sleep(1)
+                    list_tasks = []
+            if list_tasks:
+                await asyncio.wait(list_tasks, return_when=asyncio.ALL_COMPLETED)
         else:
             await self._observers[id].update(func, value)
             
