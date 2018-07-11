@@ -76,7 +76,12 @@ class User():
             print("[{}] 登录失败,错误信息为:{}".format(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), json_rsp))
             return False
             
-    
+    def fall_in_jail(self):
+        DelayRaffleHandler().remove(self.user_id)
+        RaffleHandler().remove(self.user_id)
+        Task().remove(self.user_id)
+        printer.info([f'抽奖脚本检测{self.user_id}为小黑屋'], True)
+        
         
     def write_user(self, dict_new):
         self.webhub.set_status(dict_new)
@@ -150,6 +155,9 @@ class User():
             elif code == -405:
                 print('没抢到。。。。。')
                 printer.warn(raffleid)
+                return False
+            elif code == 400:
+                self.fall_in_jail()
                 return False
             elif code != -401 and code != -403:
                 print('00', json_response2)

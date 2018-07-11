@@ -23,15 +23,17 @@ class Messenger():
         print('register', ob)
         self._observers.append(ob)
 
-    def remove(self, ob):
-        self._observers.remove(ob)
+    def remove(self, user_id):
+        self._observers[user_id] = None
 
     async def notify(self, func, value, id=None):
+        print(self._observers)
         if id is None:
             list_tasks = []
             for i, user in enumerate(self._observers):
-                task = asyncio.ensure_future(user.update(func, value))
-                list_tasks.append(task)
+                if user is not None:
+                    task = asyncio.ensure_future(user.update(func, value))
+                    list_tasks.append(task)
                 if not ((i+1) % 30):
                     await asyncio.wait(list_tasks, return_when=asyncio.ALL_COMPLETED)
                     await asyncio.sleep(1)
@@ -39,7 +41,9 @@ class Messenger():
             if list_tasks:
                 await asyncio.wait(list_tasks, return_when=asyncio.ALL_COMPLETED)
         else:
-            await self._observers[id].update(func, value)
+            user = self._observers[id]
+            if user is not None:
+                await user.update(func, value)
             
 
 # 被观测的
