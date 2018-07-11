@@ -33,6 +33,10 @@ class User():
         self.task_control = task_control
         if not dict_user['cookie']:
             self.login(dict_user['username'], dict_user['password'])
+            
+    def printer_with_id(self, list_msg, tag_time=False):
+        list_msg[0] += f'(用户{self.user_id})'
+        printer.info(list_msg, tag_time)
         
     def login(self, username, password):
         response = self.webhub.fetch_key()
@@ -78,7 +82,7 @@ class User():
         DelayRaffleHandler().remove(self.user_id)
         RaffleHandler().remove(self.user_id)
         Task().remove(self.user_id)
-        printer.info([f'抽奖脚本检测{self.user_id}为小黑屋'], True)
+        self.printer_with_id([f'抽奖脚本检测{self.user_id}为小黑屋'], True)
         
         
     def write_user(self, dict_new):
@@ -91,7 +95,7 @@ class User():
         self.statistics.getresult()
          
     async def heartbeat(self):
-        printer.info([f'心跳'], True)
+        self.printer_with_id([f'心跳'], True)
         json_response = await self.webhub.apppost_heartbeat()
         # print(json_response)
         json_response = await self.webhub.pcpost_heartbeat()
@@ -124,6 +128,37 @@ class User():
                         else:
                             pass
             else:
+                break    
+
+    async def open_silver_box(self):
+        while True:
+            self.printer_with_id(["检查宝箱状态"], True)
+            temp = await self.webhub.get_time_about_silver()
+            # print (temp['code'])    #宝箱领完返回的code为-10017
+            if temp['code'] == -10017:
+                self.printer_with_id(["# 今日宝箱领取完毕"])
+                json_rsp = None
+            else:
+                time_start = temp['data']['time_start']
+                time_end = temp['data']['time_end']
+                json_rsp = await self.webhub.get_silver(time_start, time_end)
+            if json_rsp is None or json_rsp['code'] == -10017:
+                sleeptime = (utils.seconds_until_tomorrow() + 300)
+                await Task().put2queue('open_silver_box', sleeptime, self.user_id)
+                break
+                # await asyncio.sleep(sleeptime)
+            elif not json_rsp['code']:
+                self.printer_with_id(["# 打开了宝箱"])
+            elif json_rsp['code'] == 400:
+                self.printer_with_id(["# 宝箱开启中返回了小黑屋提示"])
+                self.fall_in_jail()
+                break
+            else:
+                self.printer_with_id(["# 继续等待宝箱冷却..."])
+                # 未来如果取消了这个东西就睡眠185s，否则精确睡眠
+                # surplus里面是min，float格式
+                sleeptime = (json_rsp['data'].get('surplus', 3)) * 60 + 5
+                await Task().put2queue('open_silver_box', sleeptime, self.user_id)
                 break
                 
     async def enter_room(self, roomid):
@@ -135,11 +170,10 @@ class User():
             param2 = data['is_locked']
             param3 = data['encrypted']
             if any((param1, param2, param3)):
-                printer.info([f'抽奖脚本检测到房间{roomid:^9}为异常房间'], True)
-                printer.warn(f'抽奖脚本检测到房间{roomid:^9}为异常房间')
+                self.printer_with_id([f'抽奖脚本检测到房间{roomid:^9}为异常房间'], True)
                 return False
             else:
-                printer.info([f'抽奖脚本检测到房间{roomid:^9}为常房间'], True)
+                self.printer_with_id([f'抽奖脚本检测到房间{roomid:^9}为正常房间'], True)
                 await self.webhub.post_watching_history(roomid)
                 return True
     
@@ -155,7 +189,6 @@ class User():
                 return True
             elif code == -405:
                 print('没抢到。。。。。')
-                printer.warn(raffleid)
                 return False
             elif code == 400:
                 self.fall_in_jail()
@@ -166,9 +199,9 @@ class User():
         data = json_response2['data']
         self.statistics.append_to_TVlist()
         self.statistics.add_to_result(data['gift_name'], int(data['gift_num']))
-        printer.info([f'参与了房间{real_roomid:^9}的道具抽奖'], True)
-        # printer.info([f'# 道具抽奖状态: {json_response2["msg"]}'])
-        printer.info([f'# 房间{real_roomid:^9}网页端活动抽奖结果: {data["gift_name"]}X{data["gift_num"]}'])
+        self.printer_with_id([f'参与了房间{real_roomid:^9}的道具抽奖'], True)
+        # self.printer_with_id([f'# 道具抽奖状态: {json_response2["msg"]}'])
+        self.printer_with_id([f'# 房间{real_roomid:^9}网页端活动抽奖结果: {data["gift_name"]}X{data["gift_num"]}'])
         return True
  
                
@@ -190,16 +223,16 @@ class User():
         json_response1 = await self.webhub.get_gift_of_events_app(text1, text2, raffleid)
         json_pc_response = await self.webhub.get_gift_of_events_web(text1, text2, raffleid)
         
-        printer.info([f'参与了房间{text1:^9}的活动抽奖'], True)
+        self.printer_with_id([f'参与了房间{text1:^9}的活动抽奖'], True)
     
         if not json_response1['code']:
-            printer.info([f'# 移动端活动抽奖结果: {json_response1["data"]["gift_desc"]}'])
+            self.printer_with_id([f'# 移动端活动抽奖结果: {json_response1["data"]["gift_desc"]}'])
             self.statistics.add_to_result(*(json_response1['data']['gift_desc'].split('X')))
         else:
             print(json_response1)
-            printer.info([f'# 移动端活动抽奖结果: {json_response1}'])
+            self.printer_with_id([f'# 移动端活动抽奖结果: {json_response1}'])
             
-        printer.info(
+        self.printer_with_id(
                 [f'# 网页端活动抽奖状态:  {json_pc_response}'])
         if not json_pc_response['code']:
             self.statistics.append_to_activitylist()
@@ -623,7 +656,7 @@ class User():
                                                                utils. adjust_for_chinese(str(i['rank'])),
                                                                dic_worn[str(i['status'])]))
             if show:
-                printer.info(printlist, True)
+                self.printer_with_id(printlist, True)
             if list_wanted_medal:
                 list_return_medal = []
                 for roomid in list_wanted_medal:
@@ -644,9 +677,8 @@ class User():
     async def Daily_bag(self):
         json_response = await self.webhub.get_dailybag()
         # no done code
-        # printer.warn(json_response)
         for i in json_response['data']['bag_list']:
-            printer.info(["# 获得-" + i['bag_name'] + "-成功"])
+            self.printer_with_id(["# 获得-" + i['bag_name'] + "-成功"])
         await Task().put2queue('Daily_bag', 21600)
     
     
@@ -654,8 +686,7 @@ class User():
     async def DoSign(self):
         # -500 done
         temp = await self.webhub.get_dosign()
-        # printer.warn(temp)
-        printer.info([f'# 签到状态: {temp["msg"]}'])
+        self.printer_with_id([f'# 签到状态: {temp["msg"]}'])
         if temp['code'] == -500 and '已' in temp['msg']:
             sleeptime = (utils.seconds_until_tomorrow() + 300)
         else:
@@ -666,8 +697,7 @@ class User():
     async def Daily_Task(self):
         # -400 done/not yet
         json_response2 = await self.webhub.get_dailytask()
-        # printer.warn(json_response2)
-        printer.info([f'# 双端观看直播:  {json_response2["msg"]}'])
+        self.printer_with_id([f'# 双端观看直播:  {json_response2["msg"]}'])
         if json_response2['code'] == -400 and '已' in json_response2['msg']:
             sleeptime = (utils.seconds_until_tomorrow() + 300)
         else:
@@ -678,16 +708,15 @@ class User():
         json_response = await self.webhub.assign_group(i1, i2)
         if not json_response['code']:
             if json_response['data']['status']:
-                printer.info([f'# 应援团 {i1} 已应援过'])
+                self.printer_with_id([f'# 应援团 {i1} 已应援过'])
             else:
-                printer.info([f'# 应援团 {i1} 应援成功,获得 {json_response["data"]["add_num"]} 点亲密度'])
+                self.printer_with_id([f'# 应援团 {i1} 应援成功,获得 {json_response["data"]["add_num"]} 点亲密度'])
         else:
-            printer.info([f'# 应援团 {i1} 应援失败'])
+            self.printer_with_id([f'# 应援团 {i1} 应援失败'])
     
     # 应援团签到
     async def link_sign(self):
         json_rsp = await self.webhub.get_grouplist()
-        # printer.warn(json_rsp)
         list_check = json_rsp['data']['list']
         id_list = ((i['group_id'], i['owner_uid']) for i in list_check)
         if list_check:
@@ -701,7 +730,6 @@ class User():
     async def send_gift(self):
         if self.task_control['clean-expiring-gift']:
             argvs = await self.fetch_bag_list(show=False)
-            printer.warn(argvs)
             roomID = self.task_control['clean-expiring-gift2room']
             time_set = self.task_control['set-expiring-time']
             list_gift = []
@@ -749,7 +777,7 @@ class User():
                 list_gift.append(i[:3])
         await self.full_intimate(list_gift, list_medal)
                 
-        # printer.info(["# 自动送礼共送出亲密度为%s的礼物" % int(calculate)])
+        # self.printer_with_id(["# 自动送礼共送出亲密度为%s的礼物" % int(calculate)])
         await Task().put2queue('auto_send_gift', 21600)
     
     async def full_intimate(self, list_gift, list_medal):
@@ -773,7 +801,7 @@ class User():
                 await self.send_gift_web(roomid, gift_num, bag_id, gift_id)
                 calculate = calculate + score
                 left_intimate = left_intimate - score
-            printer.info([f'# 对{medal_name}共送出亲密度为{int(calculate)}的礼物'])
+            self.printer_with_id([f'# 对{medal_name}共送出亲密度为{int(calculate)}的礼物'])
         return [i for i in list_gift if i[1]]
     
     
@@ -790,8 +818,8 @@ class User():
             json_response1 = await self.webhub.silver2coin_app()
             # -403 done
             json_response = await self.webhub.silver2coin_web()
-            printer.info([f'#  {json_response["msg"]}'])
-            printer.info([f'#  {json_response1["msg"]}'])
+            self.printer_with_id([f'#  {json_response["msg"]}'])
+            self.printer_with_id([f'#  {json_response1["msg"]}'])
             if json_response['code'] == -403 and '只' in json_response['msg']:
                 finish_web = True
             else:
@@ -915,7 +943,7 @@ class User():
             print('______________________________')
             # await asyncio.sleep(1)
         
-        printer.info([f'风纪委员会共获取{num_case}件案例，其中有效投票{num_voted}件'], True)
+        self.printer_with_id([f'风纪委员会共获取{num_case}件案例，其中有效投票{num_voted}件'], True)
         await Task().put2queue('judge', 3600)
         
     

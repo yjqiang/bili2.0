@@ -18,7 +18,7 @@ class Messenger():
             cls.instance.queue = asyncio.PriorityQueue()
             cls.instance._observers = users
             cls.instance.dict_user_status = dict()
-            cls.instance.black_list = ['handle_1_room_activity', 'handle_1_room_TV', 'handle_1_activity_raffle', 'handle_1_TV_raffle', 'draw_lottery']
+            cls.instance.black_list = ['handle_1_room_activity', 'handle_1_room_TV', 'handle_1_activity_raffle', 'handle_1_TV_raffle', 'draw_lottery', 'open_silver_box']
         return cls.instance
 
     def register(self, ob):
@@ -114,6 +114,7 @@ class Task(Messenger):
         await self.put2queue('auto_send_gift', 0)
         await self.put2queue('BiliMainTask', 0)
         await self.put2queue('judge', 0)
+        await self.put2queue('open_silver_box', 0)
         
     async def run(self):
         await self.init()
