@@ -93,7 +93,7 @@ class DelayRaffleHandler(Messenger):
             await asyncio.sleep(max(sleeptime, 0))
             # await i[2](*i[3])
             await self.notify(i[1], i[2], i[3])
-            await asyncio.sleep(1)
+            # await asyncio.sleep(1)
         
     def put2queue(self, func, time_expected, value, id=None):
         self.queue.put_nowait((time_expected, func, value, id))
