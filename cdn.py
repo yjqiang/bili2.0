@@ -65,14 +65,14 @@ class Host():
         headers = {'host': 'api.live.bilibili.com'}
         async with aiohttp.ClientSession() as session:
             num_won = 0
-            for i in range(10):
+            for i in range(5):
                 try:
                     rsp = await session.get(url, headers=headers, timeout=1)
                     if rsp.status == 200:
                         num_won += 1
                 except:
                     print('fail ip', ip)
-        if num_won >= 8:
+        if num_won >= 4:
             return True
         return False
     

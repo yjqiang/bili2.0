@@ -645,7 +645,7 @@ class User():
     async def Daily_bag(self):
         json_response = await self.webhub.get_dailybag()
         # no done code
-        printer.warn(json_response)
+        # printer.warn(json_response)
         for i in json_response['data']['bag_list']:
             printer.info(["# 获得-" + i['bag_name'] + "-成功"])
         await Task().put2queue('Daily_bag', 21600)
@@ -655,7 +655,7 @@ class User():
     async def DoSign(self):
         # -500 done
         temp = await self.webhub.get_dosign()
-        printer.warn(temp)
+        # printer.warn(temp)
         printer.info([f'# 签到状态: {temp["msg"]}'])
         if temp['code'] == -500 and '已' in temp['msg']:
             sleeptime = (utils.seconds_until_tomorrow() + 300)
@@ -667,7 +667,7 @@ class User():
     async def Daily_Task(self):
         # -400 done/not yet
         json_response2 = await self.webhub.get_dailytask()
-        printer.warn(json_response2)
+        # printer.warn(json_response2)
         printer.info([f'# 双端观看直播:  {json_response2["msg"]}'])
         if json_response2['code'] == -400 and '已' in json_response2['msg']:
             sleeptime = (utils.seconds_until_tomorrow() + 300)
@@ -688,7 +688,7 @@ class User():
     # 应援团签到
     async def link_sign(self):
         json_rsp = await self.webhub.get_grouplist()
-        printer.warn(json_rsp)
+        # printer.warn(json_rsp)
         list_check = json_rsp['data']['list']
         id_list = ((i['group_id'], i['owner_uid']) for i in list_check)
         if list_check:

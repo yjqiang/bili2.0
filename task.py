@@ -17,6 +17,8 @@ class Messenger():
             cls.instance = super(Messenger, cls).__new__(cls)
             cls.instance.queue = asyncio.PriorityQueue()
             cls.instance._observers = users
+            cls.instance.dict_user_status = dict()
+            cls.instance.black_list = ['handle_1_room_activity', 'handle_1_room_TV', 'handle_1_activity_raffle', 'handle_1_TV_raffle', 'draw_lottery']
         return cls.instance
 
     def register(self, ob):
@@ -24,14 +26,21 @@ class Messenger():
         self._observers.append(ob)
 
     def remove(self, user_id):
-        self._observers[user_id] = None
+        self.dict_user_status[user_id] = False
+        
+    def check_status(self, func, user_id):
+        if func not in self.black_list:
+            return True
+        else:
+            return self.dict_user_status.get(user_id, True)
+        
 
     async def notify(self, func, value, id=None):
-        print(self._observers)
+        print(self.dict_user_status)
         if id is None:
             list_tasks = []
             for i, user in enumerate(self._observers):
-                if user is not None:
+                if self.check_status(func, i):
                     task = asyncio.ensure_future(user.update(func, value))
                     list_tasks.append(task)
                 if not ((i+1) % 30):
@@ -42,7 +51,7 @@ class Messenger():
                 await asyncio.wait(list_tasks, return_when=asyncio.ALL_COMPLETED)
         else:
             user = self._observers[id]
-            if user is not None:
+            if self.check_status(func, id):
                 await user.update(func, value)
             
 
@@ -93,14 +102,6 @@ class DelayRaffleHandler(Messenger):
         
         
 class Task(Messenger):
-    instance = None
-    
-    def __new__(cls, user=[]):
-        if not cls.instance:
-            cls.instance = super(Task, cls).__new__(cls)
-            cls.instance._observers = user
-            cls.instance.queue = asyncio.PriorityQueue()
-        return cls.instance
         
     async def init(self):
         await self.put2queue('sliver2coin', 0)
@@ -125,7 +126,7 @@ class Task(Messenger):
             
             await self.notify(raffle[1], (), raffle[2])
             
-            print('ffffdjjjdcgcdhtdtdchtrhtcrcrthctrhhctrctrhctrhcrhtctrhcrthchtrhct')
+            print('---------------------------------------')
                 
     async def put2queue(self, func, delay, id=None):
         await self.queue.put((CurrentTime() + delay, func, id))
