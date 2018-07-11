@@ -33,8 +33,6 @@ class User():
         self.task_control = task_control
         if not dict_user['cookie']:
             self.login(dict_user['username'], dict_user['password'])
-        print(self.user_id)
-        self.webhub.print_status()
         
     def login(self, username, password):
         response = self.webhub.fetch_key()
@@ -93,12 +91,15 @@ class User():
         self.statistics.getresult()
          
     async def heartbeat(self):
+        printer.info([f'心跳'], True)
         json_response = await self.webhub.apppost_heartbeat()
-        print(json_response)
+        # print(json_response)
         json_response = await self.webhub.pcpost_heartbeat()
-        print(json_response)
+        # print(json_response)
         json_response = await self.webhub.heart_gift()
-        print(json_response)
+        if json_response['code'] == 400:
+            self.fall_in_jail()
+        # print(json_response)
         
     async def draw_lottery(self):
         for i in range(74, 90):
@@ -577,11 +578,9 @@ class User():
                         
     async def WearingMedalInfo(self):
         json_response = await self.webhub.ReqWearingMedal()
-        print('testjjjjjjjjjjjjjjdesdeddefvegrvegvrevgrvgervergvregvregvergevrgvergverg', json_response)
         if not json_response['code']:
             data = json_response['data']
             if data:
-                print(data['roominfo'], int(data['day_limit']) - int(data['today_feed']), data['medal_name'])
                 return [(data['roominfo']['room_id'],  int(data['day_limit']) - int(data['today_feed']), data['medal_name']), ]
             else:
                 # print('暂无佩戴任何勋章')

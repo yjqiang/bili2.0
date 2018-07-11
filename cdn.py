@@ -83,7 +83,7 @@ class Host():
             tasklist.append(task)
         results = await asyncio.gather(*tasklist)
         self.list_ips = [ip for ip, tag in zip(self.list_ips, results) if tag]
-        print(len(self.list_ips))
+        print('可用ip为', len(self.list_ips), '个')
         
     def get_host(self):
         return random.choice(self.list_ips)

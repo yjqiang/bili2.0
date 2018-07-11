@@ -36,7 +36,7 @@ class Messenger():
         
 
     async def notify(self, func, value, id=None):
-        print(self.dict_user_status)
+        print('小黑屋状态:', self.dict_user_status)
         if id is None:
             list_tasks = []
             for i, user in enumerate(self._observers):
@@ -135,9 +135,9 @@ class Task(Messenger):
         
     async def heartbeat(self):
         while True:
-            await asyncio.sleep(300)
             await self.notify('heartbeat', ())
             await self.notify('draw_lottery', ())
+            await asyncio.sleep(300)
 
 
 

@@ -9,6 +9,7 @@ import bili_console
 import threading
 from cdn import Host
 
+loop = asyncio.get_event_loop()
 fileDir = os.path.dirname(os.path.realpath('__file__'))
 file_color = f'{fileDir}/config/color.toml'
 file_user = f'{fileDir}/config/user.toml'
@@ -25,6 +26,8 @@ task_control = dict_user['task_control']
 if len(dict_user['users']) < 100:
     users = [User(i, user_info, dict_bili, task_control, False) for i, user_info in enumerate(dict_user['users'])]
 else:
+    host = Host()
+    loop.run_until_complete(host.proxies_filter())
     users = [User(i, user_info, dict_bili, task_control, True) for i, user_info in enumerate(dict_user['users'])]
 
 
@@ -36,7 +39,6 @@ list_raffle_connection_task = [i.run() for i in list_raffle_connection]
 raffle = RaffleHandler(users)
 delayraffle = DelayRaffleHandler(users)
 normal_task = Task(users)
-loop = asyncio.get_event_loop()
 
 
 queue = asyncio.Queue()
@@ -44,16 +46,9 @@ bili_console.Biliconsole(loop, queue, users)
 console_thread = threading.Thread(target=bili_console.controler)
 console_thread.start()
 
-async def run():
-    host = Host()
-    await host.proxies_filter()
-    print(Host().get_host())
-    
-loop.run_until_complete(run())
-
 tasks = [
     raffle.join_raffle(),
-    delayraffle.join_raffle(), 
+    delayraffle.join_raffle(),
     normal_task.heartbeat(),
     danmu_connection.run(),
     normal_task.run(),
