@@ -346,7 +346,7 @@ class WebHub():
         response = requests.post(url, data=payload, headers=headers)
         return response
 
-    def capcha_login(self, username, password):
+    def captcha_login(self, username, password):
         headers = {
             'Accept': 'application/json, text/plain, */*',
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',

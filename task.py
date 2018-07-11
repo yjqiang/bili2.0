@@ -61,7 +61,7 @@ class RaffleHandler(Messenger):
     async def join_raffle(self):
         while True:
             raffle = await self.queue.get()
-            await asyncio.sleep(5)
+            await asyncio.sleep(1.5)
             list_raffle0 = [self.queue.get_nowait() for i in range(self.queue.qsize())]
             list_raffle0.append(raffle)
             list_raffle = list(set(list_raffle0))
@@ -75,10 +75,10 @@ class RaffleHandler(Messenger):
                 task = asyncio.ensure_future(self.notify(i[1], i[0]))
                 tasklist.append(task)
             await asyncio.wait(tasklist, return_when=asyncio.ALL_COMPLETED)
+            await asyncio.sleep(0.5)
         
     def push2queue(self,  value, func):
         self.queue.put_nowait((value, func))
-        # print('appended')
         return
 
 
@@ -87,13 +87,13 @@ class DelayRaffleHandler(Messenger):
     async def join_raffle(self):
         while True:
             i = await self.queue.get()
-            print(i)
             currenttime = CurrentTime()
             sleeptime = i[0] - currenttime
             print('智能睡眠', sleeptime)
             await asyncio.sleep(max(sleeptime, 0))
             # await i[2](*i[3])
             await self.notify(i[1], i[2], i[3])
+            await asyncio.sleep(1)
         
     def put2queue(self, func, time_expected, value, id=None):
         self.queue.put_nowait((time_expected, func, value, id))
@@ -128,6 +128,7 @@ class Task(Messenger):
             await self.notify(raffle[1], (), raffle[2])
             
             print('---------------------------------------')
+            await asyncio.sleep(1)
                 
     async def put2queue(self, func, delay, id=None):
         await self.queue.put((CurrentTime() + delay, func, id))
