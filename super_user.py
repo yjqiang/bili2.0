@@ -7,6 +7,7 @@ import printer
 import webbrowser
 from PIL import Image
 from io import BytesIO
+import re
 
 
 class SuperUser():
@@ -49,6 +50,64 @@ class SuperUser():
             # print(json_response)
             # print(json_response['data']['parent_area_id'])
             return json_response['data']['parent_area_id']
+            
+    async def find_live_user_roomid(self, wanted_name):
+        print('发现名字', wanted_name)
+        for i in range(len(wanted_name), 0, -1):
+            json_rsp = await self.webhub.search_biliuser(wanted_name[:i])
+            results = json_rsp['result']
+            if results is None:
+                # print('屏蔽全名')
+                continue
+            for i in results:
+                real_name = re.sub(r'<[^>]*>', '', i['uname'])
+                # print('去除干扰', real_name)
+                if real_name == wanted_name:
+                    print('找到结果', i['room_id'])
+                    return i['room_id']
+            # print('结束一次')
+    
+        print('第2备份启用')
+        for i in range(len(wanted_name)):
+            json_rsp = await self.webhub.search_biliuser(wanted_name[i:])
+            results = json_rsp['result']
+            if results is None:
+                # print('屏蔽全名')
+                continue
+            for i in results:
+                real_name = re.sub(r'<[^>]*>', '', i['uname'])
+                # print('去除干扰', real_name)
+                if real_name == wanted_name:
+                    print('找到结果', i['room_id'])
+                    return i['room_id']
+    
+        print('第3备份启用')
+        for i in range(len(wanted_name), 0, -1):
+            json_rsp = await self.webhub.search_liveuser(wanted_name[:i])
+            results = json_rsp['result']
+            if results is None:
+                # print('屏蔽全名')
+                continue
+            for i in results:
+                real_name = re.sub(r'<[^>]*>', '', i['uname'])
+                # print('去除干扰', real_name)
+                if real_name == wanted_name:
+                    print('找到结果', i['roomid'])
+                    return i['roomid']
+    
+        print('第4备份启用')
+        for i in range(len(wanted_name)):
+            json_rsp = await self.webhub.search_liveuser(wanted_name[i:])
+            results = json_rsp['result']
+            if results is None:
+                # print('屏蔽全名')
+                continue
+            for i in results:
+                real_name = re.sub(r'<[^>]*>', '', i['uname'])
+                # print('去除干扰', real_name)
+                if real_name == wanted_name:
+                    print('找到结果', i['roomid'])
+                    return i['roomid']
             
     async def check_room(self, roomid):
         json_response = await self.webhub.check_room(roomid)

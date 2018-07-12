@@ -70,6 +70,15 @@ class RaffleHandler(Messenger):
             # if len(list_raffle) != len(list_raffle0):
             print('过滤机制起作用', list_raffle)
             
+            for i in list_raffle:
+                i = list(i)
+                i[0] = list(i[0])
+                for j in range(len(i[0])):
+                    if isinstance(i[0][j], tuple):
+                        print('检测', i)
+                        # i[0] = list(i[0])
+                        i[0][j] = await i[0][j][1](*(i[0][j][0]))
+            
             tasklist = []
             for i in list_raffle:
                 task = asyncio.ensure_future(self.notify(i[1], i[0]))
