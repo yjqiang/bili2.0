@@ -18,7 +18,7 @@ class ConfigLoader():
     
     inst = None
 
-    def __new__(cls, file_color=None, file_user=None, file_bili=None):
+    def __new__(cls, file_color=None, file_user=None, file_bili=None, file_ip=None):
         if not cls.inst:
             cls.inst = super(ConfigLoader, cls).__new__(cls)
             cls.inst.file_color = file_color
@@ -33,6 +33,10 @@ class ConfigLoader():
             # cls.inst.dict_bili = cls.inst.read_bili()
             # print(cls.inst.dict_bili)
             # print("# 初始化完成")
+            
+            cls.inst.file_ip = file_ip
+            # cls.inst.dict_ip = cls.inst.read_ip()
+            # print(cls.inst.dict_ip)
         return cls.inst
     
     def write_user(self, dict_new, user_id):
@@ -47,6 +51,11 @@ class ConfigLoader():
         with open(self.file_bili, encoding="utf-8") as f:
             dict_bili = toml.load(f)
         return dict_bili
+        
+    def read_ip(self):
+        with open(self.file_ip, encoding="utf-8") as f:
+            dict_ip = toml.load(f)
+        return dict_ip
         
     def read_color(self):
         with open(self.file_color, encoding="utf-8") as f:

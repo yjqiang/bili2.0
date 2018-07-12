@@ -14,19 +14,21 @@ fileDir = os.path.dirname(os.path.realpath('__file__'))
 file_color = f'{fileDir}/config/color.toml'
 file_user = f'{fileDir}/config/user.toml'
 file_bili = f'{fileDir}/config/bili.toml'
+file_ip = f'{fileDir}/config/ips.toml'
+cfg = ConfigLoader(file_color, file_user, file_bili, file_ip)
 
-cfg = ConfigLoader(file_color, file_user, file_bili)
 dict_user = cfg.read_user()
 dict_bili = cfg.read_bili()
 dict_color = cfg.read_color()
+dict_ip = cfg.read_ip()
 Printer(dict_color, dict_user['print_control']['danmu'], dict_user['platform']['platform'])
 
 
 task_control = dict_user['task_control']
-if len(dict_user['users']) < 100:
+if len(dict_user['users']) < 20:
     users = [User(i, user_info, dict_bili, task_control, False) for i, user_info in enumerate(dict_user['users'])]
 else:
-    host = Host()
+    host = Host(dict_ip['list_ips'])
     loop.run_until_complete(host.proxies_filter())
     users = [User(i, user_info, dict_bili, task_control, True) for i, user_info in enumerate(dict_user['users'])]
 
