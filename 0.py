@@ -25,7 +25,7 @@ Printer(dict_color, dict_user['print_control']['danmu'], dict_user['platform']['
 
 
 task_control = dict_user['task_control']
-if len(dict_user['users']) < 20:
+if len(dict_user['users']) < 10:
     users = [User(i, user_info, dict_bili, task_control, False) for i, user_info in enumerate(dict_user['users'])]
 else:
     host = Host(dict_ip['list_ips'])
