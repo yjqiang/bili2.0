@@ -137,7 +137,7 @@ class Task(Messenger):
             await self.notify(raffle[1], (), raffle[2])
             
             print('---------------------------------------')
-            await asyncio.sleep(1)
+            await asyncio.sleep(10)
                 
     async def put2queue(self, func, delay, id=None):
         await self.queue.put((CurrentTime() + delay, func, id))
