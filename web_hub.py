@@ -700,6 +700,7 @@ class HostWebHub(WebHub):
             i -= 1
             if i < 0:
                 self.base_url = f'http://{Host().get_host()}'
+                print('ip切换为', self.base_url)
                 list_words = url.split('/')
                 list_words[2] = self.base_url
                 url = '/'.join(list_words[2:])
@@ -727,6 +728,7 @@ class HostWebHub(WebHub):
             i -= 1
             if i < 0:
                 self.base_url = f'http://{Host().get_host()}'
+                print('ip切换为', self.base_url)
                 list_words = url.split('/')
                 list_words[2] = self.base_url
                 url = '/'.join(list_words[2:])
