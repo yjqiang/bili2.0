@@ -8,6 +8,7 @@ import connect
 import bili_console
 import threading
 from cdn import Host
+from super_user import SuperUser
 
 loop = asyncio.get_event_loop()
 fileDir = os.path.dirname(os.path.realpath('__file__'))
@@ -37,10 +38,10 @@ danmu_connection = connect.connect(dict_user['other_control']['default_monitor_r
 list_raffle_connection = [connect.RaffleConnect(i) for i in range(1, 5)]
 list_raffle_connection_task = [i.run() for i in list_raffle_connection]
 
-
-raffle = RaffleHandler(users)
-delayraffle = DelayRaffleHandler(users)
-normal_task = Task(users)
+var_super_user = SuperUser()
+raffle = RaffleHandler(users, var_super_user)
+delayraffle = DelayRaffleHandler(users, var_super_user)
+normal_task = Task(users, var_super_user)
 
 
 queue = asyncio.Queue()

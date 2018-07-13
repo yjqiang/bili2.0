@@ -471,12 +471,12 @@ class WebHub():
 
     async def get_giftlist_of_TV(self, real_roomid):
         url = f"{self.base_url}/gift/v3/smalltv/check?roomid={real_roomid}"
-        response = await self.bili_section_get(url, headers=self.dict_bili['pcheaders'])
+        response = await self.bili_section_get(url)
         return response
 
     async def get_giftlist_of_captain(self, roomid):
         true_url = f'{self.base_url}/lottery/v1/lottery/check?roomid={roomid}'
-        response1 = await self.bili_section_get(true_url, headers=self.dict_bili['pcheaders'])
+        response1 = await self.bili_section_get(true_url)
         return response1
 
     def get_giftids_raffle(self, str):

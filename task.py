@@ -1,7 +1,7 @@
 import time
 import datetime
 import asyncio
-# from user import User
+# from super_user import SuperUser
 
 
 def CurrentTime():
@@ -12,13 +12,14 @@ def CurrentTime():
 class Messenger():
     instance = None
     
-    def __new__(cls, users=[]):
+    def __new__(cls, users=[], var_super_user=None):
         if not cls.instance:
             cls.instance = super(Messenger, cls).__new__(cls)
             cls.instance.queue = asyncio.PriorityQueue()
             cls.instance._observers = users
+            cls.instance._var_super_user = var_super_user
             cls.instance.dict_user_status = dict()
-            cls.instance.black_list = ['handle_1_room_activity', 'handle_1_room_TV', 'handle_1_activity_raffle', 'handle_1_TV_raffle', 'draw_lottery', 'open_silver_box']
+            cls.instance.black_list = ['handle_1_room_activity', 'handle_1_room_TV', 'handle_1_activity_raffle', 'handle_1_TV_raffle', 'draw_lottery', 'open_silver_box', 'post_watching_history']
         return cls.instance
 
     def register(self, ob):
@@ -33,10 +34,13 @@ class Messenger():
             return True
         else:
             return self.dict_user_status.get(user_id, True)
+            
+    def print_blacklist(self):
+        print('小黑屋状态:', self.dict_user_status)
         
 
     async def notify(self, func, value, id=None):
-        print('小黑屋状态:', self.dict_user_status)
+        # print('小黑屋状态:', self.dict_user_status)
         if id is None:
             list_tasks = []
             for i, user in enumerate(self._observers):
@@ -45,14 +49,19 @@ class Messenger():
                     list_tasks.append(task)
                 if not ((i+1) % 30):
                     await asyncio.wait(list_tasks, return_when=asyncio.ALL_COMPLETED)
-                    await asyncio.sleep(1)
+                    # await asyncio.sleep(1)
                     list_tasks = []
             if list_tasks:
                 await asyncio.wait(list_tasks, return_when=asyncio.ALL_COMPLETED)
-        else:
+        elif id >= 0:
             user = self._observers[id]
             if self.check_status(func, id):
                 await user.update(func, value)
+        else:
+            user = self._var_super_user
+            answer = await user.update(func, value)
+            print('superuser', func, value, answer)
+            return answer
             
 
 # 被观测的
@@ -70,25 +79,30 @@ class RaffleHandler(Messenger):
             # if len(list_raffle) != len(list_raffle0):
             print('过滤机制起作用', list_raffle)
             
-            for i in list_raffle:
-                i = list(i)
-                i[0] = list(i[0])
-                for j in range(len(i[0])):
-                    if isinstance(i[0][j], tuple):
-                        print('检测', i)
-                        # i[0] = list(i[0])
-                        i[0][j] = await i[0][j][1](*(i[0][j][0]))
-            
+            for i, value in enumerate(list_raffle):
+                # 总督预处理
+                if isinstance(value[0][0], str):
+                    value = list(value)
+                    value[0] = [await self.notify('find_live_user_roomid', value[0], -1)]
+                    list_raffle[i] = value
             tasklist = []
             for i in list_raffle:
-                task = asyncio.ensure_future(self.notify(i[1], i[0]))
+                task = asyncio.ensure_future(self.handle_1_roomid_raffle(i))
                 tasklist.append(task)
             await asyncio.wait(tasklist, return_when=asyncio.ALL_COMPLETED)
             await asyncio.sleep(0.5)
         
-    def push2queue(self,  value, func):
-        self.queue.put_nowait((value, func))
+    def push2queue(self,  value, func, id=None):
+        self.queue.put_nowait((value, func, id))
         return
+    
+    async def handle_1_roomid_raffle(self, i):
+        if i[1] in ['handle_1_room_TV', 'handle_1_room_captain']:
+            if (await self.notify('check_if_normal_room', i[0], -1)):
+                await self.notify('post_watching_history', i[0])
+                await self.notify(i[1], i[0], i[2])
+        else:
+            print('hhjjkskddrsfvsfdfvdfvvfdvdvdfdfffdfsvh', i)
 
 
 class DelayRaffleHandler(Messenger):
@@ -98,7 +112,7 @@ class DelayRaffleHandler(Messenger):
             i = await self.queue.get()
             currenttime = CurrentTime()
             sleeptime = i[0] - currenttime
-            print('智能睡眠', sleeptime)
+            print('延迟抽奖智能睡眠', sleeptime)
             await asyncio.sleep(max(sleeptime, 0))
             # await i[2](*i[3])
             await self.notify(i[1], i[2], i[3])
@@ -106,7 +120,7 @@ class DelayRaffleHandler(Messenger):
         
     def put2queue(self, func, time_expected, value, id=None):
         self.queue.put_nowait((time_expected, func, value, id))
-        # print('添加任务', time_expected, func.__name__, func, value)
+        print('添加任务', time_expected, func, value)
         return
         
         

@@ -157,31 +157,21 @@ class User():
                 self.printer_with_id(["# 继续等待宝箱冷却..."])
                 # 未来如果取消了这个东西就睡眠185s，否则精确睡眠
                 # surplus里面是min，float格式
-                sleeptime = (json_rsp['data'].get('surplus', 3)) * 60 + 5
+                try:
+                    sleeptime = (json_rsp['data'].get('surplus', 3)) * 60 + 5
+                except :
+                    sleeptime = 180
+                    print(json_rsp)
                 await Task().put2queue('open_silver_box', sleeptime, self.user_id)
                 break
                 
-    async def enter_room(self, roomid):
-        json_response = await self.webhub.check_room(roomid)
-    
-        if not json_response['code']:
-            data = json_response['data']
-            param1 = data['is_hidden']
-            param2 = data['is_locked']
-            param3 = data['encrypted']
-            if any((param1, param2, param3)):
-                self.printer_with_id([f'抽奖脚本检测到房间{roomid:^9}为异常房间'], True)
-                return False
-            else:
-                self.printer_with_id([f'抽奖脚本检测到房间{roomid:^9}为正常房间'], True)
-                await self.webhub.post_watching_history(roomid)
-                return True
+
     
     async def handle_1_TV_raffle(self, num, real_roomid, raffleid, raffle_type):
-        print(self.user_id, real_roomid) 
+        # print(self.user_id, real_roomid) 
         while True:
             json_response2 = await self.webhub.get_gift_of_TV_app(real_roomid, raffleid, raffle_type)
-            print(json_response2)
+            # print(json_response2)
             code = json_response2['code']
             if not code:
                 break
@@ -240,31 +230,12 @@ class User():
             print(json_pc_response)
         return True
     
-                    
-    async def handle_1_room_TV(self, real_roomid):
-        result = await self.enter_room(real_roomid)
-        if result:
-            json_response = await self.webhub.get_giftlist_of_TV(real_roomid)
-            current_time = CurrentTime()
-            # print(json_response['data']['list'])
-            checklen = json_response['data']['list']
-            list_available_raffleid = []
-            for j in checklen:
-                raffle_id = j['raffleId']
-                raffle_type = j['type']
-                time_wanted = j['time_wait'] + current_time
-                # 处理一些重复
-                if j['time_wait'] > 105:
-                    print(raffle_id)
-                    list_available_raffleid.append((raffle_id, raffle_type, time_wanted))
-                
-            num_available = len(list_available_raffleid)
-            # print(list_available_raffleid)
-            for raffle_id, raffle_type, time_wanted in list_available_raffleid:
-                DelayRaffleHandler().put2queue('handle_1_TV_raffle', time_wanted, (num_available, real_roomid, raffle_id, raffle_type), self.user_id)
+    async def post_watching_history(self, roomid):
+        # print('进入', roomid)
+        await self.webhub.post_watching_history(roomid)
     
     async def handle_1_room_activity(self, giftId, text1, text2):
-        result = await self.enter_room(text1)
+        result = True
         if result:
             json_response = await self.webhub.get_giftlist_of_events(text1)
             checklen = json_response['data']
@@ -288,41 +259,7 @@ class User():
                     RaffleHandler().Put2Queue((giftId, text1, text2), 'handle_1_room_activity', self.user_id)
                 
     
-    async def handle_1_room_captain(self, roomid):
-        result = await self.enter_room(roomid)
-        if result:
-            while True:
-                json_response1 = await self.webhub.get_giftlist_of_captain(roomid)
-                # print(json_response1['data']['guard'])
-                if not json_response1['data']['guard']:
-                    await asyncio.sleep(1)
-                else:
-                    break
-                
-            list_available_raffleid = []
-            # guard这里领取后，list对应会消失，其实就没有status了，这里是为了统一
-            for j in json_response1['data']['guard']:
-                id = j['id']
-                status = j['status']
-                if status == 1:
-                    # print('未参加')
-                    list_available_raffleid.append(id)
-                elif status == 2:
-                    # print('过滤')
-                    pass
-                else:
-                    print(json_response1)
-                
-            tasklist = []
-            num_available = len(list_available_raffleid)
-            for raffleid in list_available_raffleid:
-                task = asyncio.ensure_future(self.handle_1_captain_raffle(num_available, roomid, raffleid))
-                tasklist.append(task)
-            if tasklist:
-                raffle_results = await asyncio.gather(*tasklist)
-                if False in raffle_results:
-                    print('有繁忙提示，稍后重新尝试')
-                    RaffleHandler().Put2Queue((roomid,), 'handle_1_room_captain', self.user_id)
+    
 
                     
     async def fetch_capsule_info(self):
@@ -552,8 +489,8 @@ class User():
             print(f'给视频av{video_id}投{num}枚硬币成功')
             return True
         else:
-            print('投币失败', json_rsp['message'])
-            if code == -104:
+            print('投币失败', json_rsp)
+            if code == -104 or code == -102:
                 return None
             return False
     
@@ -950,7 +887,7 @@ class User():
     
 
     async def update(self, func, value):
-        print('hhhhhhhhhhhhhhhh', self.user_id, func)
+        # print('hhhhhhhhhhhhhhhh', self.user_id, func)
         await getattr(self, func)(*value)
         
         

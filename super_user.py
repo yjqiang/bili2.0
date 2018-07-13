@@ -1,5 +1,5 @@
 from web_hub import WebHub
-# from messenger import DelayRaffleHandler
+from task import DelayRaffleHandler
 import asyncio
 import time
 import random
@@ -8,6 +8,11 @@ import webbrowser
 from PIL import Image
 from io import BytesIO
 import re
+
+
+def CurrentTime():
+    # currenttime = int(time.mktime(datetime.datetime.now().timetuple()))
+    return int(time.time())
 
 
 class SuperUser():
@@ -163,6 +168,73 @@ class SuperUser():
             data = json_response['data']
             print(data)
             webbrowser.open(data)
+    async def check_if_normal_room(self, roomid):
+        json_response = await self.webhub.check_room(roomid)
+        if not json_response['code']:
+            data = json_response['data']
+            param1 = data['is_hidden']
+            param2 = data['is_locked']
+            param3 = data['encrypted']
+            if any((param1, param2, param3)):
+                printer.info([f'抽奖脚本检测到房间{roomid:^9}为异常房间'], True)
+                return False
+            else:
+                printer.info([f'抽奖脚本检测到房间{roomid:^9}为正常房间'], True)
+                return True
+                
+    async def handle_1_room_TV(self, real_roomid):
+        json_response = await self.webhub.get_giftlist_of_TV(real_roomid)
+        current_time = CurrentTime()
+        # print(json_response['data']['list'])
+        checklen = json_response['data']['list']
+        list_available_raffleid = []
+        for j in checklen:
+            raffle_id = j['raffleId']
+            raffle_type = j['type']
+            time_wanted = j['time_wait'] + current_time
+            # 处理一些重复
+            if j['time_wait'] > 105:
+                print(raffle_id)
+                list_available_raffleid.append((raffle_id, raffle_type, time_wanted))
+            
+        num_available = len(list_available_raffleid)
+        # print(list_available_raffleid)
+        for raffle_id, raffle_type, time_wanted in list_available_raffleid:
+            DelayRaffleHandler().put2queue('handle_1_TV_raffle', time_wanted, (num_available, real_roomid, raffle_id, raffle_type))
+                
+    async def handle_1_room_captain(self, roomid):
+        print('初步测试', roomid)
+        while True:
+            json_response1 = await self.webhub.get_giftlist_of_captain(roomid)
+            print(json_response1)
+            if not json_response1['data']['guard']:
+                await asyncio.sleep(1)
+            else:
+                break
+            
+        list_available_raffleid = []
+        # guard这里领取后，list对应会消失，其实就没有status了，这里是为了统一
+        for j in json_response1['data']['guard']:
+            id = j['id']
+            status = j['status']
+            if status == 1:
+                # print('未参加')
+                list_available_raffleid.append(id)
+            elif status == 2:
+                # print('过滤')
+                pass
+            else:
+                print(json_response1)
+            
+        num_available = len(list_available_raffleid)
+        for raffleid in list_available_raffleid:
+            # 一天之内均可领取，延迟2分钟无所谓
+            DelayRaffleHandler().put2queue('handle_1_captain_raffle', 0, (num_available, roomid, raffleid))
+            
+    
+    async def update(self, func, value):
+        # print('hhhhhhhhhhhhhhhh', self.user_id, func)
+        return (await getattr(self, func)(*value))
     
     
     
