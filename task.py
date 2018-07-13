@@ -56,7 +56,7 @@ class Messenger():
         elif id >= 0:
             user = self._observers[id]
             if self.check_status(func, id):
-                await user.update(func, value)
+                return await user.update(func, value)
         else:
             user = self._var_super_user
             answer = await user.update(func, value)
@@ -161,7 +161,12 @@ class Task(Messenger):
     async def heartbeat(self):
         while True:
             await self.notify('heartbeat', ())
-            await self.notify('draw_lottery', ())
+            # await self.notify('draw_lottery', ())
+            for i in range(87, 95):
+                answer = await self.notify('handle_1_room_substant', (i,), 0)
+                if answer is None:
+                    print('结束')
+                    break
             await asyncio.sleep(300)
 
 

@@ -104,31 +104,40 @@ class User():
         if json_response['code'] == 400:
             self.fall_in_jail()
         # print(json_response)
-        
-    async def draw_lottery(self):
-        for i in range(74, 90):
-            json_response = await self.webhub.get_lotterylist(i)
-            blacklist = ['test', 'TEST', '测试', '加密']
-            # -400 不存在
-            if not json_response['code']:
-                temp = json_response['data']['title']
-                if any(word in temp for word in blacklist):
-                    print("检测到疑似钓鱼类测试抽奖，默认不参与，请自行判断抽奖可参与性")
-                    # print(temp)
-                else:
-                    check = json_response['data']['typeB']
-                    for g, value in enumerate(check):
-                        join_end_time = value['join_end_time']
-                        join_start_time = value['join_start_time']
-                        ts = CurrentTime()
-                        if int(join_end_time) > int(ts) > int(join_start_time):
-                            json_response1 = await self.webhub.get_gift_of_lottery(i, g)
-                            print("当前时间:", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
-                            print("参与实物抽奖回显：", json_response1)
-                        else:
-                            pass
+            
+
+    # 与弹幕抽奖对应，这里的i其实是抽奖id             
+    async def handle_1_room_substant(self, i):
+        blacklist = ['test', 'TEST', '测试', '加密']
+        list_available_raffleid = []
+        json_response = await self.webhub.get_lotterylist(i)
+        # print(i, json_response)   
+        # -400 不存在
+        if not json_response['code']:
+            temp = json_response['data']['title']
+            if any(word in temp for word in blacklist):
+                print("检测到疑似钓鱼类测试的实物抽奖，默认不参与")
+                return False
             else:
-                break    
+                check = json_response['data']['typeB']
+                for g, value in enumerate(check):
+                    join_end_time = value['join_end_time']
+                    join_start_time = value['join_start_time']
+                    ts = CurrentTime()
+
+                    if int(join_end_time) > int(ts) > int(join_start_time):
+                        list_available_raffleid.append(g)
+        else:
+            return None
+        for raffleid in list_available_raffleid:
+            # 最低的好像540s之内可领取，延迟2分钟无所谓
+            DelayRaffleHandler().put2queue('handle_1_substantial_raffle', 0, (i, g))
+        if list_available_raffleid:
+            return True
+        else:
+            return False
+                        
+    
 
     async def open_silver_box(self):
         while True:
@@ -142,7 +151,7 @@ class User():
                 time_start = temp['data']['time_start']
                 time_end = temp['data']['time_end']
                 json_rsp = await self.webhub.get_silver(time_start, time_end)
-            if json_rsp is None or json_rsp['code'] == -10017:
+            if json_rsp is None or json_rsp['code'] == -10017 or json_rsp['code'] == -800:
                 sleeptime = (utils.seconds_until_tomorrow() + 300)
                 await Task().put2queue('open_silver_box', sleeptime, self.user_id)
                 break
@@ -165,7 +174,10 @@ class User():
                 await Task().put2queue('open_silver_box', sleeptime, self.user_id)
                 break
                 
-
+    async def handle_1_substantial_raffle(self, i, g):
+        json_response1 = await self.webhub.get_gift_of_lottery(i, g)
+        print("当前时间:", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
+        print("参与实物抽奖回显：", json_response1)
     
     async def handle_1_TV_raffle(self, num, real_roomid, raffleid, raffle_type):
         # print(self.user_id, real_roomid) 
@@ -888,6 +900,6 @@ class User():
 
     async def update(self, func, value):
         # print('hhhhhhhhhhhhhhhh', self.user_id, func)
-        await getattr(self, func)(*value)
+        return await getattr(self, func)(*value)
         
         
