@@ -1,6 +1,7 @@
 import time
 import datetime
 import asyncio
+import printer
 # from super_user import SuperUser
 
 
@@ -60,7 +61,6 @@ class Messenger():
         else:
             user = self._var_super_user
             answer = await user.update(func, value)
-            print('superuser', func, value, answer)
             return answer
             
 
@@ -160,6 +160,7 @@ class Task(Messenger):
         
     async def heartbeat(self):
         while True:
+            printer.info([f'用户普通心跳以及实物抽奖检测开始'], True)
             await self.notify('heartbeat', ())
             # await self.notify('draw_lottery', ())
             for i in range(87, 95):
@@ -167,6 +168,7 @@ class Task(Messenger):
                 if answer is None:
                     # print('结束')
                     break
+            printer.info([f'用户普通心跳以及实物抽奖检测完成'], True)
             await asyncio.sleep(300)
 
 

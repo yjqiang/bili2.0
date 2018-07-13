@@ -95,7 +95,6 @@ class User():
         self.statistics.getresult()
          
     async def heartbeat(self):
-        self.printer_with_id([f'心跳'], True)
         json_response = await self.webhub.apppost_heartbeat()
         # print(json_response)
         json_response = await self.webhub.pcpost_heartbeat()
