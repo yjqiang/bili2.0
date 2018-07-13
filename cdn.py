@@ -14,10 +14,10 @@ class Host():
         return cls.instance
 
     async def test_proxy(self, ip):
-        # url = 'http://api.github.com/events'
         url = f'http://{ip}/room/v1/Room/room_init?id=6'
         headers = {'host': 'api.live.bilibili.com'}
-        async with aiohttp.ClientSession() as session:
+        timeout = aiohttp.ClientTimeout(total=1.5)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
             num_won = 0
             for i in range(5):
                 try:
@@ -26,7 +26,7 @@ class Host():
                         num_won += 1
                 except:
                     print('fail ip', ip)
-        if num_won >= 3:
+        if num_won >= 4:
             return True
         return False
     

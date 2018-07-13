@@ -65,14 +65,14 @@ class WebHub():
     @property
     def bili_section(self):
         if self.bili_session is None:
-            self.bili_session = aiohttp.ClientSession()
+            self.bili_session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1.5))
             # print(0)
         return self.bili_session
         
     @property
     def other_session(self):
         if self.var_other_session is None:
-            self.var_other_session = aiohttp.ClientSession()
+            self.var_other_session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1.5))
             # print(0)
         return self.var_other_session
 
