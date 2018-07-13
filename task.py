@@ -165,7 +165,7 @@ class Task(Messenger):
             for i in range(87, 95):
                 answer = await self.notify('handle_1_room_substant', (i,), 0)
                 if answer is None:
-                    print('结束')
+                    # print('结束')
                     break
             await asyncio.sleep(300)
 
