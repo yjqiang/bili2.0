@@ -48,7 +48,7 @@ class Messenger():
                 if self.check_status(func, i):
                     task = asyncio.ensure_future(user.update(func, value))
                     list_tasks.append(task)
-                if not ((i+1) % 50):
+                if not ((i+1) % 100):
                     await asyncio.wait(list_tasks, return_when=asyncio.ALL_COMPLETED)
                     # await asyncio.sleep(1)
                     list_tasks = []

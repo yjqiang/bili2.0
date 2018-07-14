@@ -17,17 +17,17 @@ class Host():
         url = f'http://{ip}/room/v1/Room/room_init?id=6'
         # url = f'http://{ip}/gift/v3/live/gift_config'
         headers = {'host': 'api.live.bilibili.com'}
-        timeout = aiohttp.ClientTimeout(total=1.5)
+        timeout = aiohttp.ClientTimeout(total=1)
         async with aiohttp.ClientSession(timeout=timeout) as session:
             num_won = 0
-            for i in range(5):
+            for i in range(10):
                 try:
                     rsp = await session.get(url, headers=headers)
                     if rsp.status == 200:
                         num_won += 1
                 except:
                     print('fail ip', ip)
-        if num_won >= 4:
+        if num_won >= 9:
             return True
         return False
     

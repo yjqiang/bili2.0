@@ -65,14 +65,14 @@ class WebHub():
     @property
     def bili_section(self):
         if self.bili_session is None:
-            self.bili_session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1.5))
+            self.bili_session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1))
             # print(0)
         return self.bili_session
         
     @property
     def other_session(self):
         if self.var_other_session is None:
-            self.var_other_session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1.5))
+            self.var_other_session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1))
             # print(0)
         return self.var_other_session
 
@@ -98,7 +98,7 @@ class WebHub():
                     print('403频繁')
             except:
                 # print('当前网络不好，正在重试，请反馈开发者!!!!')
-                # print(sys.exc_info()[0], sys.exc_info()[1])
+                print(sys.exc_info()[0], sys.exc_info()[1])
                 continue
 
     async def other_session_get(self, url, headers=None, data=None):
@@ -116,7 +116,7 @@ class WebHub():
                     print('403频繁')
             except:
                 # print('当前网络不好，正在重试，请反馈开发者!!!!')
-                # print(sys.exc_info()[0], sys.exc_info()[1])
+                print(sys.exc_info()[0], sys.exc_info()[1])
                 continue
                 
     async def other_session_post(self, url, headers=None, data=None):
@@ -134,7 +134,7 @@ class WebHub():
                     print('403频繁')
             except:
                 # print('当前网络不好，正在重试，请反馈开发者!!!!')
-                # print(sys.exc_info()[0], sys.exc_info()[1])
+                print(sys.exc_info()[0], sys.exc_info()[1])
                 continue
 
     async def bili_section_get(self, url, headers=None, data=None):
@@ -152,7 +152,7 @@ class WebHub():
                     print('403频繁')
             except:
                 # print('当前网络不好，正在重试，请反馈开发者!!!!')
-                # print(sys.exc_info()[0], sys.exc_info()[1])
+                print(sys.exc_info()[0], sys.exc_info()[1])
                 continue
                 
     async def session_text_get(self, url, headers=None, data=None):
@@ -165,7 +165,7 @@ class WebHub():
                     print('403频繁')
             except:
                 # print('当前网络不好，正在重试，请反馈开发者!!!!')
-                # print(sys.exc_info()[0], sys.exc_info()[1])
+                print(sys.exc_info()[0], sys.exc_info()[1])
                 continue
 
     async def playurl(self, cid):
@@ -719,7 +719,7 @@ class HostWebHub(WebHub):
                     i = -1
             except:
                 # print('当前网络不好，正在重试，请反馈开发者!!!!')
-                # print(sys.exc_info()[0], sys.exc_info()[1], url, self.user_id)
+                print(sys.exc_info()[0], sys.exc_info()[1], url, self.user_id)
                 continue
 
     async def bili_section_get(self, url, headers={}, data=None):
@@ -747,7 +747,7 @@ class HostWebHub(WebHub):
                     i = -1
             except:
                 # print('当前网络不好，正在重试，请反馈开发者!!!!')
-                # print(sys.exc_info()[0], sys.exc_info()[1], url, self.user_id)
+                print(sys.exc_info()[0], sys.exc_info()[1], url, self.user_id)
                 continue
                 
     
