@@ -48,7 +48,7 @@ class Messenger():
                 if self.check_status(func, i):
                     task = asyncio.ensure_future(user.update(func, value))
                     list_tasks.append(task)
-                if not ((i+1) % 30):
+                if not ((i+1) % 50):
                     await asyncio.wait(list_tasks, return_when=asyncio.ALL_COMPLETED)
                     # await asyncio.sleep(1)
                     list_tasks = []
@@ -133,8 +133,8 @@ class Task(Messenger):
         await self.put2queue('Daily_bag', 0)
         await self.put2queue('Daily_Task', 0)
         await self.put2queue('link_sign', 0)
-        await self.put2queue('send_gift', 0)
-        await self.put2queue('auto_send_gift', 0)
+        # await self.put2queue('send_gift', 0)
+        #await self.put2queue('auto_send_gift', 0)
         await self.put2queue('BiliMainTask', 0)
         await self.put2queue('judge', 0)
         await self.put2queue('open_silver_box', 0)
