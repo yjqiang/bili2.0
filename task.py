@@ -70,14 +70,14 @@ class RaffleHandler(Messenger):
     async def join_raffle(self):
         while True:
             raffle = await self.queue.get()
-            await asyncio.sleep(1.5)
+            await asyncio.sleep(3)
             list_raffle0 = [self.queue.get_nowait() for i in range(self.queue.qsize())]
             list_raffle0.append(raffle)
             list_raffle = list(set(list_raffle0))
                 
             # print('过滤完毕')
-            # if len(list_raffle) != len(list_raffle0):
-            print('过滤机制起作用', list_raffle)
+            if len(list_raffle) != len(list_raffle0):
+                print('过滤机制起作用', list_raffle)
             
             for i, value in enumerate(list_raffle):
                 # 总督预处理
@@ -90,7 +90,6 @@ class RaffleHandler(Messenger):
                 task = asyncio.ensure_future(self.handle_1_roomid_raffle(i))
                 tasklist.append(task)
             await asyncio.wait(tasklist, return_when=asyncio.ALL_COMPLETED)
-            await asyncio.sleep(0.5)
         
     def push2queue(self,  value, func, id=None):
         self.queue.put_nowait((value, func, id))
