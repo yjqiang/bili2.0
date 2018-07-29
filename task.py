@@ -13,10 +13,11 @@ def CurrentTime():
 class Messenger():
     instance = None
     
-    def __new__(cls, users=[], var_super_user=None):
+    def __new__(cls, users=[], var_super_user=None, loop=None):
         if not cls.instance:
             cls.instance = super(Messenger, cls).__new__(cls)
-            cls.instance.queue = asyncio.PriorityQueue()
+            cls.instance.queue = asyncio.Queue()
+            cls.instance.loop = loop
             cls.instance._observers = users
             cls.instance._var_super_user = var_super_user
             cls.instance.dict_user_status = dict()
@@ -102,59 +103,41 @@ class RaffleHandler(Messenger):
                 await self.notify(i[1], i[0], i[2])
         else:
             print('hhjjkskddrsfvsfdfvdfvvfdvdvdfdfffdfsvh', i)
-
-
-class DelayRaffleHandler(Messenger):
-
-    async def join_raffle(self):
-        while True:
-            i = await self.queue.get()
-            currenttime = CurrentTime()
-            sleeptime = i[0] - currenttime
-            print('延迟抽奖智能睡眠', sleeptime)
-            await asyncio.sleep(max(sleeptime, 0))
-            # await i[2](*i[3])
-            await self.notify(i[1], i[2], i[3])
-            # await asyncio.sleep(1)
-        
-    def put2queue(self, func, time_expected, value, id=None):
-        self.queue.put_nowait((time_expected, func, value, id))
-        print('添加任务', time_expected, func, value)
-        return
         
         
 class Task(Messenger):
         
     async def init(self):
-        await self.put2queue('sliver2coin', 0)
-        await self.put2queue('doublegain_coin2silver', 0)
-        await self.put2queue('DoSign', 0)
-        await self.put2queue('Daily_bag', 0)
-        await self.put2queue('Daily_Task', 0)
-        await self.put2queue('link_sign', 0)
-        # await self.put2queue('send_gift', 0)
-        #await self.put2queue('auto_send_gift', 0)
-        await self.put2queue('BiliMainTask', 0)
-        await self.put2queue('judge', 0)
-        await self.put2queue('open_silver_box', 0)
+        self.call_after('sliver2coin', 0)
+        self.call_after('doublegain_coin2silver', 0)
+        self.call_after('DoSign', 0)
+        self.call_after('Daily_bag', 0)
+        self.call_after('Daily_Task', 0)
+        self.call_after('link_sign', 0)
+        # self.call_after('send_gift', 0)
+        #self.call_after('auto_send_gift', 0)
+        self.call_after('BiliMainTask', 0)
+        self.call_after('judge', 0)
+        self.call_after('open_silver_box', 0)
         
     async def run(self):
-        await self.init()
+        #await self.init()
         while True:
-            raffle = await self.queue.get()
-            wanted_time = raffle[0]
-            sleeptime = max(wanted_time - CurrentTime(), 0)
-            print('智能睡眠', sleeptime)
-            await asyncio.sleep(sleeptime)
-            
-            await self.notify(raffle[1], (), raffle[2])
-            
-            print('---------------------------------------')
-            await asyncio.sleep(10)
+            i = await self.queue.get()
+            print(i, '一级')  
+            await self.notify(*i)
                 
-    async def put2queue(self, func, delay, id=None):
-        await self.queue.put((CurrentTime() + delay, func, id))
-        # print('添加任务')
+    def call_after(self, func, delay, id=None):
+        value = (func, (), id)
+        self.loop.call_later(delay, self.queue.put_nowait, value)
+        print(value)
+        return 
+        
+    def call_at(self, func, time_expected, tuple_values, id=None):
+        current_time = CurrentTime()
+        value = (func, tuple_values, id)
+        self.loop.call_later(time_expected-current_time, self.queue.put_nowait, value)
+        print(value)
         return
         
     async def heartbeat(self):

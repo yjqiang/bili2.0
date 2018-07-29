@@ -1,5 +1,5 @@
 from web_hub import WebHub, HostWebHub
-from task import DelayRaffleHandler, RaffleHandler, Task
+from task import RaffleHandler, Task
 from config_loader import ConfigLoader
 import asyncio
 import time
@@ -79,7 +79,6 @@ class User():
             return False
             
     def fall_in_jail(self):
-        DelayRaffleHandler().remove(self.user_id)
         RaffleHandler().remove(self.user_id)
         Task().remove(self.user_id)
         self.printer_with_id([f'抽奖脚本检测{self.user_id}为小黑屋'], True)
@@ -130,7 +129,7 @@ class User():
             return None
         for raffleid in list_available_raffleid:
             # 最低的好像540s之内可领取，延迟2分钟无所谓
-            DelayRaffleHandler().put2queue('handle_1_substantial_raffle', 0, (i, g))
+            Task().call_at('handle_1_substantial_raffle', 0, (i, g))
         if list_available_raffleid:
             return True
         else:
@@ -152,7 +151,7 @@ class User():
                 json_rsp = await self.webhub.get_silver(time_start, time_end)
             if json_rsp is None or json_rsp['code'] == -10017 or json_rsp['code'] == -800:
                 sleeptime = (utils.seconds_until_tomorrow() + 300)
-                await Task().put2queue('open_silver_box', sleeptime, self.user_id)
+                Task().call_after('open_silver_box', sleeptime, self.user_id)
                 break
                 # await asyncio.sleep(sleeptime)
             elif not json_rsp['code']:
@@ -170,7 +169,7 @@ class User():
                 except :
                     sleeptime = 180
                     print(json_rsp)
-                await Task().put2queue('open_silver_box', sleeptime, self.user_id)
+                Task().call_after('open_silver_box', sleeptime, self.user_id)
                 break
                 
     async def handle_1_substantial_raffle(self, i, g):
@@ -627,7 +626,7 @@ class User():
         # no done code
         for i in json_response['data']['bag_list']:
             self.printer_with_id(["# 获得-" + i['bag_name'] + "-成功"])
-        await Task().put2queue('Daily_bag', 21600)
+        Task().call_after('Daily_bag', 21600)
     
     
     # 签到功能
@@ -639,7 +638,7 @@ class User():
             sleeptime = (utils.seconds_until_tomorrow() + 300)
         else:
             sleeptime = 350
-        await Task().put2queue('DoSign', sleeptime, self.user_id)
+        Task().call_after('DoSign', sleeptime, self.user_id)
     
     # 领取每日任务奖励
     async def Daily_Task(self):
@@ -650,7 +649,7 @@ class User():
             sleeptime = (utils.seconds_until_tomorrow() + 300)
         else:
             sleeptime = 350
-        await Task().put2queue('Daily_Task', sleeptime, self.user_id)
+        Task().call_after('Daily_Task', sleeptime, self.user_id)
     
     async def Sign1Group(self, i1, i2):
         json_response = await self.webhub.assign_group(i1, i2)
@@ -673,7 +672,7 @@ class User():
                 task = asyncio.ensure_future(self.Sign1Group(i1, i2))
                 tasklist.append(task)
             results = await asyncio.gather(*tasklist)
-        await Task().put2queue('link_sign', 21600)
+        Task().call_after('link_sign', 21600)
     
     async def send_gift(self):
         if self.task_control['clean-expiring-gift']:
@@ -700,7 +699,7 @@ class User():
                     await self.send_gift_web(roomID, giftNum, bagID, giftID)
             else:
                 print('未发现即将过期的礼物')
-        await Task().put2queue('send_gift', 21600)
+        Task().call_after('send_gift', 21600)
     
     async def auto_send_gift(self):
         # await utils.WearingMedalInfo()
@@ -726,7 +725,7 @@ class User():
         await self.full_intimate(list_gift, list_medal)
                 
         # self.printer_with_id(["# 自动送礼共送出亲密度为%s的礼物" % int(calculate)])
-        await Task().put2queue('auto_send_gift', 21600)
+        Task().call_after('auto_send_gift', 21600)
     
     async def full_intimate(self, list_gift, list_medal):
         json_res = await self.webhub.gift_list()
@@ -758,7 +757,7 @@ class User():
             json_response0 = await self.webhub.doublegain_coin2silver()
             json_response1 = await self.webhub.doublegain_coin2silver()
             print(json_response0['msg'], json_response1['msg'])
-        await Task().put2queue('doublegain_coin2silver', 21600)
+        Task().call_after('doublegain_coin2silver', 21600)
     
     async def sliver2coin(self):
         if self.task_control['silver2coin']:
@@ -779,13 +778,13 @@ class User():
                 finish_app = False
             if finish_app and finish_web:
                 sleeptime = (utils.seconds_until_tomorrow() + 300)
-                await Task().put2queue('sliver2coin', sleeptime, self.user_id)
+                Task().call_after('sliver2coin', sleeptime, self.user_id)
                 return
             else:
-                await Task().put2queue('sliver2coin', 350, self.user_id)
+                Task().call_after('sliver2coin', 350, self.user_id)
                 return
     
-        await Task().put2queue('sliver2coin', 21600, self.user_id)
+        Task().call_after('sliver2coin', 21600, self.user_id)
     
     async def GetVideoExp(self, list_topvideo):
         print('开始获取视频观看经验')
@@ -823,7 +822,7 @@ class User():
         if not share_av:
             await self.GetVideoShareExp(list_topvideo)
         # b站傻逼有记录延迟，3点左右成功率高一点
-        await Task().put2queue('BiliMainTask', utils.seconds_until_tomorrow() + 10800)
+        Task().call_after('BiliMainTask', utils.seconds_until_tomorrow() + 10800)
     
     
     async def check(self, id):
@@ -892,7 +891,7 @@ class User():
             # await asyncio.sleep(1)
         
         self.printer_with_id([f'风纪委员会共获取{num_case}件案例，其中有效投票{num_voted}件'], True)
-        await Task().put2queue('judge', 3600)
+        Task().call_after('judge', 3600)
         
     
     

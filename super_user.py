@@ -1,5 +1,5 @@
 from web_hub import WebHub
-from task import DelayRaffleHandler
+from task import Task
 import asyncio
 import time
 import random
@@ -200,7 +200,7 @@ class SuperUser():
         num_available = len(list_available_raffleid)
         # print(list_available_raffleid)
         for raffle_id, raffle_type, time_wanted in list_available_raffleid:
-            DelayRaffleHandler().put2queue('handle_1_TV_raffle', time_wanted, (num_available, real_roomid, raffle_id, raffle_type))
+            Task().call_at('handle_1_TV_raffle', time_wanted, (num_available, real_roomid, raffle_id, raffle_type))
                 
     async def handle_1_room_captain(self, roomid):
         print('初步测试', roomid)
@@ -229,7 +229,7 @@ class SuperUser():
         num_available = len(list_available_raffleid)
         for raffleid in list_available_raffleid:
             # 一天之内均可领取，延迟2分钟无所谓
-            DelayRaffleHandler().put2queue('handle_1_captain_raffle', 0, (num_available, roomid, raffleid))
+            Task().call_at('handle_1_captain_raffle', 0, (num_available, roomid, raffleid))
             
     
     async def update(self, func, value):

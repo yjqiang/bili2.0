@@ -1,5 +1,5 @@
 from config_loader import ConfigLoader
-from task import DelayRaffleHandler, RaffleHandler, Task
+from task import RaffleHandler, Task
 import os
 from user import User
 import asyncio
@@ -39,9 +39,8 @@ list_raffle_connection = [connect.RaffleConnect(i) for i in range(1, 5)]
 list_raffle_connection_task = [i.run() for i in list_raffle_connection]
 
 var_super_user = SuperUser()
-raffle = RaffleHandler(users, var_super_user)
-delayraffle = DelayRaffleHandler(users, var_super_user)
-normal_task = Task(users, var_super_user)
+raffle = RaffleHandler(users, var_super_user, loop)
+normal_task = Task(users, var_super_user, loop)
 
 
 queue = asyncio.Queue()
@@ -51,7 +50,6 @@ console_thread.start()
 
 tasks = [
     raffle.join_raffle(),
-    delayraffle.join_raffle(),
     normal_task.heartbeat(),
     danmu_connection.run(),
     normal_task.run(),
