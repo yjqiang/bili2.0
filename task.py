@@ -2,6 +2,7 @@ import time
 import datetime
 import asyncio
 import printer
+import random
 # from super_user import SuperUser
 
 
@@ -63,6 +64,9 @@ class Messenger():
             user = self._var_super_user
             answer = await user.update(func, value)
             return answer
+            
+    def set_delay_times(self, time_range):
+        return ((i,random.uniform(0, time_range)) for i in range(len(self._observers)))
             
 
 # 被观测的
@@ -127,17 +131,32 @@ class Task(Messenger):
             print(i, '一级')  
             await self.notify(*i)
                 
-    def call_after(self, func, delay, id=None):
-        value = (func, (), id)
-        self.loop.call_later(delay, self.queue.put_nowait, value)
-        print(value)
+    def call_after(self, func, delay, id=None, time_range=None):
+        if time_range is None:
+            value = (func, (), id)
+            self.loop.call_later(delay, self.queue.put_nowait, value)
+            print(value)
+        else:
+            for id, add_time in self.set_delay_times(time_range):
+                value = (func, (), id)
+                self.loop.call_later(delay + add_time, self.queue.put_nowait, value)
+                
         return 
         
-    def call_at(self, func, time_expected, tuple_values, id=None):
+    def call_at(self, func, time_expected, tuple_values, id=None, time_range=None):
         current_time = CurrentTime()
-        value = (func, tuple_values, id)
-        self.loop.call_later(time_expected-current_time, self.queue.put_nowait, value)
-        print(value)
+        delay = time_expected - current_time
+        if time_range is None:
+            value = (func, tuple_values, id)
+            self.loop.call_later(delay, self.queue.put_nowait, value)
+            print(value)
+        else:
+            print(time_range, 'hhhhhjjjkkkkkkkkk')          
+            for id, add_time in self.set_delay_times(time_range):
+                value = (func, tuple_values, id)
+                print('分布时间', value, id, add_time)
+                self.loop.call_later(delay + add_time, self.queue.put_nowait, value)
+                
         return
         
     async def heartbeat(self):
