@@ -200,7 +200,7 @@ class SuperUser():
         num_available = len(list_available_raffleid)
         # print(list_available_raffleid)
         for raffle_id, raffle_type, time_wanted in list_available_raffleid:
-            Task().call_at('handle_1_TV_raffle', current_time, (num_available, real_roomid, raffle_id, raffle_type), time_range=100)
+            Task().call_at('handle_1_TV_raffle', current_time, (num_available, real_roomid, raffle_id, raffle_type), time_range=time_wanted-10-current_time)
                 
     async def handle_1_room_captain(self, roomid):
         print('初步测试', roomid)
