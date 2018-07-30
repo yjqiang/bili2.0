@@ -65,6 +65,29 @@ class Messenger():
             answer = await user.update(func, value)
             return answer
             
+    async def raffle_notify(self, func, value, id=None):
+        await asyncio.sleep(0)
+        if id is None:
+            list_tasks = []
+            for i, user in enumerate(self._observers):
+                if self.check_status(func, i):
+                    task = asyncio.ensure_future(user.update(func, value))
+                    list_tasks.append(task)
+                if not ((i+1) % 100):
+                    await asyncio.wait(list_tasks, return_when=asyncio.ALL_COMPLETED)
+                    # await asyncio.sleep(1)
+                    list_tasks = []
+            if list_tasks:
+                await asyncio.wait(list_tasks, return_when=asyncio.ALL_COMPLETED)
+        elif id >= 0:
+            user = self._observers[id]
+            if self.check_status(func, id):
+                asyncio.ensure_future(user.update(func, value))
+        else:
+            user = self._var_super_user
+            answer = await user.update(func, value)
+            return answer
+            
     def set_delay_times(self, time_range):
         return ((i,random.uniform(0, time_range)) for i in range(len(self._observers)))
             
@@ -129,7 +152,8 @@ class Task(Messenger):
         while True:
             i = await self.queue.get()
             print(i, '一级')  
-            await self.notify(*i)
+            # await self.notify(*i)
+            await self.raffle_notify(*i)
                 
     def call_after(self, func, delay, id=None, time_range=None):
         if time_range is None:
