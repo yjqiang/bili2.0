@@ -254,7 +254,7 @@ class User():
         return True
     
     async def post_watching_history(self, roomid):
-        # print('进入', roomid)
+        print('进入', roomid)
         await self.webhub.post_watching_history(roomid)
     
     async def handle_1_room_activity(self, giftId, text1, text2):

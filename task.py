@@ -126,7 +126,9 @@ class RaffleHandler(Messenger):
     async def handle_1_roomid_raffle(self, i):
         if i[1] in ['handle_1_room_TV', 'handle_1_room_captain']:
             if (await self.notify('check_if_normal_room', i[0], -1)):
-                await self.notify('post_watching_history', i[0])
+                # await self.notify('post_watching_history', i[0])
+                Task().call_after('post_watching_history', 0, i[0], time_range=30)
+                
                 await self.notify(i[1], i[0], i[2])
         else:
             print('hhjjkskddrsfvsfdfvdfvvfdvdvdfdfffdfsvh', i)
@@ -164,6 +166,7 @@ class Task(Messenger):
         else:
             for id, add_time in self.set_delay_times(time_range):
                 value = (func, tuple_values, id)
+                print('分布时间', value, id, add_time)
                 self.loop.call_later(delay + add_time, self.queue.put_nowait, value)
                 
         return 
