@@ -134,35 +134,35 @@ class RaffleHandler(Messenger):
         
 class Task(Messenger):
         
-    async def init(self):
-        self.call_after('sliver2coin', 0)
-        self.call_after('doublegain_coin2silver', 0)
-        self.call_after('DoSign', 0)
-        self.call_after('Daily_bag', 0)
-        self.call_after('Daily_Task', 0)
-        self.call_after('link_sign', 0)
-        # self.call_after('send_gift', 0)
-        #self.call_after('auto_send_gift', 0)
-        self.call_after('BiliMainTask', 0)
-        self.call_after('judge', 0)
-        self.call_after('open_silver_box', 0)
+    def init(self):
+        self.call_after('daily_task', 0, ('sliver2coin',), time_range=25)
+        self.call_after('daily_task', 0, ('doublegain_coin2silver',), time_range=25)
+        self.call_after('daily_task', 0, ('DoSign',), time_range=25)
+        self.call_after('daily_task', 0, ('Daily_bag',), time_range=25)
+        self.call_after('daily_task', 0, ('Daily_Task',), time_range=25)
+        self.call_after('daily_task', 0, ('link_sign',), time_range=25)
+        # self.call_after('daily_task', 0, ('send_gift',), time_range=25)
+        #self.call_after('daily_task', 0, ('auto_send_gift',), time_range=25)
+        self.call_after('daily_task', 0, ('BiliMainTask',), time_range=25)
+        self.call_after('daily_task', 0, ('judge',), time_range=25)
+        self.call_after('daily_task', 0, ('open_silver_box',), time_range=25)
         
     async def run(self):
-        #await self.init()
+        self.init()
         while True:
             i = await self.queue.get()
             print(i, '一级')  
             # await self.notify(*i)
             await self.raffle_notify(*i)
                 
-    def call_after(self, func, delay, id=None, time_range=None):
+    def call_after(self, func, delay, tuple_values, id=None, time_range=None):
         if time_range is None:
-            value = (func, (), id)
+            value = (func, tuple_values, id)
             self.loop.call_later(delay, self.queue.put_nowait, value)
             print(value)
         else:
             for id, add_time in self.set_delay_times(time_range):
-                value = (func, (), id)
+                value = (func, tuple_values, id)
                 self.loop.call_later(delay + add_time, self.queue.put_nowait, value)
                 
         return 
@@ -174,8 +174,7 @@ class Task(Messenger):
             value = (func, tuple_values, id)
             self.loop.call_later(delay, self.queue.put_nowait, value)
             print(value)
-        else:
-            print(time_range, 'hhhhhjjjkkkkkkkkk')          
+        else:      
             for id, add_time in self.set_delay_times(time_range):
                 value = (func, tuple_values, id)
                 print('分布时间', value, id, add_time)
