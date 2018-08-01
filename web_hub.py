@@ -705,10 +705,10 @@ class HostWebHub(WebHub):
             i -= 1
             if i < 0:
                 self.base_url = f'http://{Host().get_host()}'
-                print('ip切换为', self.base_url)
                 list_words = url.split('/')
                 list_words[2] = self.base_url
                 url = '/'.join(list_words[2:])
+                print('ip切换为', url)
                 i = 5
             try:
                 response = await self.bili_section.post(url, headers={**headers, **(self.headers_host)}, data=data)
@@ -734,10 +734,10 @@ class HostWebHub(WebHub):
             i -= 1
             if i < 0:
                 self.base_url = f'http://{Host().get_host()}'
-                print('ip切换为', self.base_url)
                 list_words = url.split('/')
                 list_words[2] = self.base_url
                 url = '/'.join(list_words[2:])
+                print('ip切换为', url)
                 i = 5
             try:
                 response = await self.bili_section.get(url, headers={**headers, **(self.headers_host)}, data=data)

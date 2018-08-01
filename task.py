@@ -146,6 +146,7 @@ class Task(Messenger):
         self.call_after('daily_task', 0, ('BiliMainTask',), time_range=25)
         self.call_after('daily_task', 0, ('judge',), time_range=25)
         self.call_after('daily_task', 0, ('open_silver_box',), time_range=25)
+        self.call_after('daily_task', 0, ('heartbeat',), time_range=25)
         
     async def run(self):
         self.init()
@@ -185,7 +186,8 @@ class Task(Messenger):
     async def heartbeat(self):
         while True:
             printer.info([f'用户普通心跳以及实物抽奖检测开始'], True)
-            await self.notify('heartbeat', ())
+            # await self.notify('heartbeat', ())
+            
             # await self.notify('draw_lottery', ())
             for i in range(87, 95):
                 answer = await self.notify('handle_1_room_substant', (i,), 0)

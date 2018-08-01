@@ -96,11 +96,13 @@ class User():
     async def heartbeat(self):
         json_response = await self.webhub.apppost_heartbeat()
         # print(json_response)
+        self.printer_with_id(['心跳包(5分钟左右间隔)'], True)
         json_response = await self.webhub.pcpost_heartbeat()
         # print(json_response)
         json_response = await self.webhub.heart_gift()
         if json_response['code'] == 400:
             self.fall_in_jail()
+        return 260
         # print(json_response)
             
 
