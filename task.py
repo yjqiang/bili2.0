@@ -98,7 +98,7 @@ class RaffleHandler(Messenger):
     async def join_raffle(self):
         while True:
             raffle = await self.queue.get()
-            await asyncio.sleep(3)
+            await asyncio.sleep(4)
             list_raffle0 = [self.queue.get_nowait() for i in range(self.queue.qsize())]
             list_raffle0.append(raffle)
             list_raffle = list(set(list_raffle0))
@@ -127,7 +127,7 @@ class RaffleHandler(Messenger):
         if i[1] in ['handle_1_room_TV', 'handle_1_room_captain']:
             if (await self.notify('check_if_normal_room', i[0], -1)):
                 # await self.notify('post_watching_history', i[0])
-                Task().call_after('post_watching_history', 0, i[0], time_range=30)
+                Task().call_after('post_watching_history', 0, i[0], time_range=60)
                 
                 await self.notify(i[1], i[0], i[2])
         else:

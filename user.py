@@ -927,6 +927,6 @@ class User():
         
     async def daily_task(self, task_name):
         time_delay = await getattr(self, task_name)()
-        time_delay += random.uniform(0, 25)
+        time_delay += random.uniform(0, 30)
         Task().call_after('daily_task', time_delay, (task_name,), self.user_id)
         
