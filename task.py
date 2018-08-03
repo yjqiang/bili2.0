@@ -102,10 +102,6 @@ class RaffleHandler(Messenger):
             list_raffle0 = [self.queue.get_nowait() for i in range(self.queue.qsize())]
             list_raffle0.append(raffle)
             list_raffle = list(set(list_raffle0))
-                
-            # print('过滤完毕')
-            if len(list_raffle) != len(list_raffle0):
-                print('过滤机制起作用', list_raffle)
             
             tasklist = []
             for i in list_raffle:

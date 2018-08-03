@@ -197,6 +197,7 @@ class User():
     async def handle_1_TV_raffle(self, real_roomid, raffleid, raffle_type):
         print('参与', raffleid)
         json_response2 = await self.webhub.get_gift_of_TV(real_roomid, raffleid)
+        self.statistics.append_to_TVlist()
         self.printer_with_id([f'参与了房间{real_roomid:^9}的道具抽奖'], True)
         self.printer_with_id([f'# 道具抽奖状态: {json_response2["msg"]}'])
         # -400不存在
@@ -218,6 +219,7 @@ class User():
  
                
     async def handle_1_captain_raffle(self, roomid, raffleid):
+        self.statistics.append_to_captainlist()
         json_response2 = await self.webhub.get_gift_of_captain(roomid, raffleid)
         if not json_response2['code']:
             print("# 获取到房间 %s 的总督奖励: " %(roomid), json_response2['data']['message'])
