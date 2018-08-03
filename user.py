@@ -30,12 +30,13 @@ class User():
             self.webhub = WebHub(user_id, dict_user, dict_bili)
         self.statistics = Statistics()
         self.user_id = user_id
+        self.user_name = dict_user['username']
         self.task_control = task_control
         if not dict_user['cookie']:
             self.login(dict_user['username'], dict_user['password'])
             
     def printer_with_id(self, list_msg, tag_time=False):
-        list_msg[0] += f'(用户{self.user_id})'
+        list_msg[0] += f'(用户id:{self.user_id}  用户名:{self.user_name})'
         printer.info(list_msg, tag_time)
         
     def login(self, username, password):
@@ -205,7 +206,7 @@ class User():
         code = json_response2['code']
         if not code:
             # Statistics.append_to_TVlist(raffleid, real_roomid)
-            Task().call_at('check_tv_result', CurrentTime()+190, (raffleid, real_roomid), id=self.user_id)
+            Task().call_after('check_tv_result', 190, (raffleid, real_roomid), id=self.user_id)
             return True
         elif code == -500:
             print('# -500繁忙，稍后重试')
