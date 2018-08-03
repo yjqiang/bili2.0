@@ -1,18 +1,12 @@
 from web_hub import WebHub
 from task import Task
 import asyncio
-import time
 import random
 import printer
 import webbrowser
 from PIL import Image
 from io import BytesIO
 import re
-
-
-def CurrentTime():
-    # currenttime = int(time.mktime(datetime.datetime.now().timetuple()))
-    return int(time.time())
 
 
 class SuperUser():
@@ -194,23 +188,22 @@ class SuperUser():
                 
     async def handle_1_room_TV(self, real_roomid):
         json_response = await self.webhub.get_giftlist_of_TV(real_roomid)
-        current_time = CurrentTime()
         # print(json_response['data']['list'])
         checklen = json_response['data']['list']
         list_available_raffleid = []
         for j in checklen:
             raffle_id = j['raffleId']
             raffle_type = j['type']
-            time_wanted = j['time_wait'] + current_time
+            max_wait = j['time_wait'] - 10
             # 处理一些重复
             if not self.check_duplicate(raffle_id):
                 print(raffle_id)
-                list_available_raffleid.append((raffle_id, raffle_type, time_wanted))
+                list_available_raffleid.append(((real_roomid, raffle_id, raffle_type), max_wait))
                 self.add2raffle_id(raffle_id)
                 
         # print(list_available_raffleid)
-        for raffle_id, raffle_type, time_wanted in list_available_raffleid:
-            Task().call_at('handle_1_TV_raffle', current_time, (real_roomid, raffle_id, raffle_type), time_range=time_wanted-10-current_time)
+        for tuple_values, max_wait in list_available_raffleid:
+            Task().call_after('handle_1_TV_raffle', 0, tuple_values, time_range=max_wait)
                 
     async def handle_1_room_captain(self, roomid):
         print('初步测试', roomid)
@@ -229,16 +222,16 @@ class SuperUser():
             status = j['status']
             if status == 1:
                 # print('未参加')
-                list_available_raffleid.append(id)
+                list_available_raffleid.append(((roomid, id), 200))
             elif status == 2:
                 # print('过滤')
                 pass
             else:
                 print(json_response1)
             
-        for raffleid in list_available_raffleid:
+        for tuple_values, max_wait in list_available_raffleid:
             # 一天之内均可领取，延迟2分钟无所谓
-            Task().call_at('handle_1_captain_raffle', 0, (roomid, raffleid))
+            Task().call_after('handle_1_captain_raffle', 0, tuple_values, time_range=max_wait)
             
     
     async def update(self, func, value):
