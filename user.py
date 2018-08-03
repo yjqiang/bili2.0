@@ -228,7 +228,7 @@ class User():
         return True
      
                                            
-    async def handle_1_activity_raffle(self, giftId, text1, text2, raffleid):
+    async def handle_1_activity_raffle(self, text1, text2, raffleid):
         # print('参与')
         json_response1 = await self.webhub.get_gift_of_events_app(text1, text2, raffleid)
         json_pc_response = await self.webhub.get_gift_of_events_web(text1, text2, raffleid)
@@ -254,7 +254,7 @@ class User():
         print('进入', roomid)
         await self.webhub.post_watching_history(roomid)
     
-    async def handle_1_room_activity(self, giftId, text1, text2):
+    async def handle_1_room_activity(self, text1, text2):
         result = True
         if result:
             json_response = await self.webhub.get_giftlist_of_events(text1)
@@ -269,13 +269,13 @@ class User():
                 list_available_raffleid.append(raffleid)
             tasklist = []
             for raffleid in list_available_raffleid:
-                task = asyncio.ensure_future(self.handle_1_activity_raffle(giftId, text1, text2, raffleid))
+                task = asyncio.ensure_future(self.handle_1_activity_raffle(text1, text2, raffleid))
                 tasklist.append(task)
             if tasklist:
                 raffle_results = await asyncio.gather(*tasklist)
                 if False in raffle_results:
                     print('有繁忙提示，稍后重新尝试')
-                    RaffleHandler().Put2Queue((giftId, text1, text2), 'handle_1_room_activity', self.user_id)
+                    RaffleHandler().Put2Queue((text1, text2), 'handle_1_room_activity', self.user_id)
                 
     
     
