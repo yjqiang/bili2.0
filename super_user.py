@@ -196,11 +196,10 @@ class SuperUser():
             if j['time_wait'] > 105:
                 print(raffle_id)
                 list_available_raffleid.append((raffle_id, raffle_type, time_wanted))
-            
-        num_available = len(list_available_raffleid)
+        
         # print(list_available_raffleid)
         for raffle_id, raffle_type, time_wanted in list_available_raffleid:
-            Task().call_at('handle_1_TV_raffle', current_time, (num_available, real_roomid, raffle_id, raffle_type), time_range=time_wanted-10-current_time)
+            Task().call_at('handle_1_TV_raffle', current_time, (real_roomid, raffle_id, raffle_type), time_range=time_wanted-10-current_time)
                 
     async def handle_1_room_captain(self, roomid):
         print('初步测试', roomid)
@@ -226,10 +225,9 @@ class SuperUser():
             else:
                 print(json_response1)
             
-        num_available = len(list_available_raffleid)
         for raffleid in list_available_raffleid:
             # 一天之内均可领取，延迟2分钟无所谓
-            Task().call_at('handle_1_captain_raffle', 0, (num_available, roomid, raffleid))
+            Task().call_at('handle_1_captain_raffle', 0, (roomid, raffleid))
             
     
     async def update(self, func, value):
