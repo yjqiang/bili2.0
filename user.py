@@ -228,9 +228,8 @@ class User():
         return True
      
                                            
-    async def handle_1_activity_raffle(self, num, giftId, text1, text2, raffleid):
+    async def handle_1_activity_raffle(self, giftId, text1, text2, raffleid):
         # print('参与')
-        # await asyncio.sleep(random.uniform(0.5, min(30, num * 1.3)))
         json_response1 = await self.webhub.get_gift_of_events_app(text1, text2, raffleid)
         json_pc_response = await self.webhub.get_gift_of_events_web(text1, text2, raffleid)
         
@@ -269,9 +268,8 @@ class User():
                 #    list_available_raffleid.append(raffleid)
                 list_available_raffleid.append(raffleid)
             tasklist = []
-            num_available = len(list_available_raffleid)
             for raffleid in list_available_raffleid:
-                task = asyncio.ensure_future(self.handle_1_activity_raffle(num_available, giftId, text1, text2, raffleid))
+                task = asyncio.ensure_future(self.handle_1_activity_raffle(giftId, text1, text2, raffleid))
                 tasklist.append(task)
             if tasklist:
                 raffle_results = await asyncio.gather(*tasklist)
