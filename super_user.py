@@ -23,9 +23,19 @@ class SuperUser():
             cls.instance = super(SuperUser, cls).__new__(cls)
             cls.instance.webhub = WebHub(-1, {}, {})
             cls.instance.user_id = -1
+            cls.instance.list_raffle_id = []
         return cls.instance
-
         
+    def add2raffle_id(self, raffle_id):
+        self.list_raffle_id.append(raffle_id)
+        if len(self.list_raffle_id) > 150:
+            # print(self.list_raffle_id)
+            del self.list_raffle_id[:75]
+            # print(self.list_raffle_id)
+    
+    def check_duplicate(self, raffle_id):
+        return (raffle_id in self.list_raffle_id)
+     
     async def check_room_state(self, roomid):
         json_rsp = await self.webhub.req_room_init(roomid)
         return json_rsp['data']['live_status']
@@ -193,10 +203,11 @@ class SuperUser():
             raffle_type = j['type']
             time_wanted = j['time_wait'] + current_time
             # 处理一些重复
-            if j['time_wait'] > 105:
+            if not self.check_duplicate(raffle_id):
                 print(raffle_id)
                 list_available_raffleid.append((raffle_id, raffle_type, time_wanted))
-        
+                self.add2raffle_id(raffle_id)
+                
         # print(list_available_raffleid)
         for raffle_id, raffle_type, time_wanted in list_available_raffleid:
             Task().call_at('handle_1_TV_raffle', current_time, (real_roomid, raffle_id, raffle_type), time_range=time_wanted-10-current_time)

@@ -107,12 +107,6 @@ class RaffleHandler(Messenger):
             if len(list_raffle) != len(list_raffle0):
                 print('过滤机制起作用', list_raffle)
             
-            for i, value in enumerate(list_raffle):
-                # 总督预处理
-                if isinstance(value[0][0], str):
-                    value = list(value)
-                    value[0] = [await self.notify('find_live_user_roomid', value[0], -1)]
-                    list_raffle[i] = value
             tasklist = []
             for i in list_raffle:
                 task = asyncio.ensure_future(self.handle_1_roomid_raffle(i))
@@ -122,14 +116,23 @@ class RaffleHandler(Messenger):
     def push2queue(self,  value, func, id=None):
         self.queue.put_nowait((value, func, id))
         return
+        
+    async def handle_TV_raffle(self, room_id):
+        if (await self.notify('check_if_normal_room', (room_id,), -1)):
+            Task().call_after('post_watching_history', 0, (room_id,), time_range=60)
+            await self.notify('handle_1_room_TV', (room_id,), -1)
+        return 
+        
+    async def handle_captain_raffle(self, user_name):
+        room_id = await self.notify('find_live_user_roomid', (user_name,), -1)
+        if (await self.notify('check_if_normal_room', (room_id,), -1)):
+            Task().call_after('post_watching_history', 0, (room_id,), time_range=60)
+            await self.notify('handle_1_room_captain', (room_id,), -1)
+        return 
     
     async def handle_1_roomid_raffle(self, i):
-        if i[1] in ['handle_1_room_TV', 'handle_1_room_captain']:
-            if (await self.notify('check_if_normal_room', i[0], -1)):
-                # await self.notify('post_watching_history', i[0])
-                Task().call_after('post_watching_history', 0, i[0], time_range=60)
-                
-                await self.notify(i[1], i[0], i[2])
+        if i[1] in ['handle_TV_raffle', 'handle_captain_raffle']:
+            await getattr(self, i[1])(*i[0])
         else:
             print('hhjjkskddrsfvsfdfvdfvvfdvdvdfdfffdfsvh', i)
         
@@ -154,7 +157,7 @@ class Task(Messenger):
         self.init()
         while True:
             i = await self.queue.get()
-            print(i, '一级')  
+            # print(i, '一级')  
             # await self.notify(*i)
             await self.raffle_notify(*i)
                 

@@ -183,11 +183,11 @@ class User():
         
     async def check_tv_result(self, raffleid, real_roomid):
         json_response = await self.webhub.get_TV_result(real_roomid, raffleid)
-        print(json_response)
+        # print(json_response)
         if not json_response['code']:
             # {'code': 0, 'msg': '正在抽奖中..', 'message': '正在抽奖中..', 'data': {'gift_id': '-1', 'gift_name': '', 'gift_num': 0, 'gift_from': '', 'gift_type': 0, 'gift_content': '', 'status': 3}}
             if json_response['data']['gift_id'] == '-1':
-                print([json_response], True)
+                print([f'json_response'], True)
                 return
             elif json_response['data']['gift_id'] != '-1':
                 data = json_response['data']

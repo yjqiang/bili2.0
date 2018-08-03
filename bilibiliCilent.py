@@ -53,7 +53,7 @@ async def DanMuraffle(area_id, connect_roomid, dic):
             real_roomid = dic['real_roomid']
             type_text = (dic['msg'].split(':?')[-1]).split('，')[0].replace('一个', '')
             printer.info([f'{area_id}号弹幕监控检测到{real_roomid:^9}的{type_text}'], True)
-            RaffleHandler().push2queue((real_roomid,), 'handle_1_room_TV', -1)
+            RaffleHandler().push2queue((real_roomid,), 'handle_TV_raffle')
             # Statistics.append2pushed_raffle(type_text, area_id=area_id)
             
     elif cmd == 'GUARD_MSG':
@@ -62,7 +62,7 @@ async def DanMuraffle(area_id, connect_roomid, dic):
         if res is not None:
             name = str(res.group())
             printer.info([f'{area_id}号弹幕监控检测到{name:^9}的总督'], True)
-            RaffleHandler().push2queue((name,), 'handle_1_room_captain', -1)
+            RaffleHandler().push2queue((name,), 'handle_captain_raffle')
             # Statistics.append2pushed_raffle('总督', area_id=area_id)
         
   
