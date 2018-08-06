@@ -1,6 +1,7 @@
 from config_loader import ConfigLoader
 from task import RaffleHandler, Task
 import os
+import sys
 from user import User
 import asyncio
 from printer import Printer
@@ -10,7 +11,11 @@ import threading
 from cdn import Host
 from super_user import SuperUser
 
-loop = asyncio.get_event_loop()
+if sys.platform == 'win32':
+    loop = asyncio.ProactorEventLoop()
+    asyncio.set_event_loop()
+else:
+    loop = asyncio.get_event_loop()
 fileDir = os.path.dirname(os.path.realpath('__file__'))
 file_color = f'{fileDir}/config/color.toml'
 file_user = f'{fileDir}/config/user.toml'
