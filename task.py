@@ -3,7 +3,6 @@ import datetime
 import asyncio
 import printer
 import random
-# from super_user import SuperUser
 
 
 def CurrentTime():

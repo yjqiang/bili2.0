@@ -38,7 +38,7 @@ danmu_connection = connect.connect(dict_user['other_control']['default_monitor_r
 list_raffle_connection = [connect.RaffleConnect(i) for i in range(1, 5)]
 list_raffle_connection_task = [i.run() for i in list_raffle_connection]
 
-var_super_user = SuperUser()
+var_super_user = SuperUser(users[0])
 raffle = RaffleHandler(users, var_super_user, loop)
 normal_task = Task(users, var_super_user, loop)
 

@@ -1,4 +1,3 @@
-from web_hub import WebHub
 from task import Task
 import asyncio
 import random
@@ -10,15 +9,11 @@ import re
 
 
 class SuperUser():
-    instance = None
         
-    def __new__(cls):
-        if not cls.instance:
-            cls.instance = super(SuperUser, cls).__new__(cls)
-            cls.instance.webhub = WebHub(-1, {}, {})
-            cls.instance.user_id = -1
-            cls.instance.list_raffle_id = []
-        return cls.instance
+    def __init__(self, user):
+        self.webhub = user.webhub
+        self.user_id = -1
+        self.list_raffle_id = []
         
     def add2raffle_id(self, raffle_id):
         self.list_raffle_id.append(raffle_id)
