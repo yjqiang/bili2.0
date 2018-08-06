@@ -102,7 +102,6 @@ class bilibiliClient():
     async def CheckArea(self):
         while self.connected:
             area_id = await Task().call_right_now('FetchRoomArea', self.roomid)
-            printer.info([f'{self.roomid}更换分区{self.area_id}为{area_id}，即将'], True)
             if area_id != self.area_id:
                 printer.info([f'{self.roomid}更换分区{self.area_id}为{area_id}，即将切换房间'], True)
                 return
