@@ -189,7 +189,7 @@ class SuperUser():
         for j in checklen:
             raffle_id = j['raffleId']
             raffle_type = j['type']
-            max_wait = j['time_wait'] - 10
+            max_wait = j['time_wait'] - 5
             # 处理一些重复
             if not self.check_duplicate(raffle_id):
                 print(raffle_id)
