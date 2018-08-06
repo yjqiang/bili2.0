@@ -1,6 +1,6 @@
 import asyncio
 from bilibiliCilent import bilibiliClient
-from super_user import SuperUser
+from task import Task
 import datetime
 import time
 
@@ -63,7 +63,7 @@ class RaffleConnect():
         
     async def run(self):
         while True:
-            self.roomid = await SuperUser().get_one(self.areaid)
+            self.roomid = await Task().call_right_now('get_one', self.areaid)
             print('# 正在启动抽奖监控弹幕姬')
             time_start = int(CurrentTime())
             self.danmuji = bilibiliClient(self.roomid, self.areaid)

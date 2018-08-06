@@ -185,6 +185,10 @@ class Task(Messenger):
                 
         return
         
+    async def call_right_now(self, func, value, id=-1):
+        # print(func, value)
+        return (await self.notify(func, (value,), id))
+        
     async def heartbeat(self):
         while True:
             printer.info([f'用户普通心跳以及实物抽奖检测开始'], True)

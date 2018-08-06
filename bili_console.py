@@ -1,8 +1,8 @@
 
 from connect import connect
 from printer import Printer
-from super_user import SuperUser
-from task import Messenger
+
+from task import Messenger, Task
 
 def guide_of_console():
     print('___________________________')
@@ -25,7 +25,7 @@ def guide_of_console():
 
 def fetch_real_roomid(roomid):
     if roomid:
-        real_roomid = [[roomid], SuperUser().check_room]
+        real_roomid = [['check_room', roomid], Task().call_right_now]
     else:
         real_roomid = connect().roomid
     return real_roomid
@@ -42,7 +42,7 @@ def preprocess_check_room():
     roomid = input('请输入要转化的房间号:')
     if not roomid:
         roomid = connect().roomid
-    Biliconsole.append2list_console([[roomid], SuperUser().check_room])
+    Biliconsole.append2list_console([['check_room', roomid], Task().call_right_now])
     
     
 def preprocess_change_danmuji_roomid():
@@ -62,7 +62,7 @@ def change_printer_dic_user():
 def preprocess_fetch_liveuser_info():
     roomid = input('请输入roomid')
     real_roomid = fetch_real_roomid(roomid)
-    Biliconsole.append2list_console([[real_roomid], SuperUser().fetch_liveuser_info])
+    Biliconsole.append2list_console([['fetch_liveuser_info', real_roomid], Task().call_right_now])
 
         
 def preprocess_open_capsule():
@@ -73,7 +73,7 @@ def preprocess_open_capsule():
 def process_watch_living_video():
     roomid = input('请输入roomid')
     real_roomid = fetch_real_roomid(roomid)
-    Biliconsole.append2list_console([[real_roomid], SuperUser().watch_living_video])
+    Biliconsole.append2list_console([['watch_living_video', real_roomid], Task().call_right_now])
     return
 
         
@@ -133,7 +133,7 @@ class Biliconsole(Messenger):
             if isinstance(i, list):
                 for j in range(len(i[0])):
                     if isinstance(i[0][j], list):
-                        # print('检测')
+                        print('检测')
                         i[0][j] = await i[0][j][1](*(i[0][j][0]))
                 if isinstance(i[1], str):
                     await self.notify(i[1], i[0], None)
