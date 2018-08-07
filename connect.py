@@ -3,7 +3,7 @@ from bilibiliCilent import bilibiliClient
 from task import Task
 import datetime
 import time
-
+import printer
 
 
 def CurrentTime():
@@ -23,10 +23,10 @@ class connect():
         return cls.instance
         
     async def run(self):
+        self.danmuji = bilibiliClient(self.roomid, 0)
         while True:
             print('# 正在启动直播监控弹幕姬')
             time_start = int(CurrentTime())
-            self.danmuji = bilibiliClient(self.roomid, 0)
             connect_results = await self.danmuji.connectServer()
             # print(connect_results)
             if not connect_results:
@@ -34,16 +34,14 @@ class connect():
             task_main = asyncio.ensure_future(self.danmuji.ReceiveMessageLoop())
             task_heartbeat = asyncio.ensure_future(self.danmuji.HeartbeatLoop())
             finished, pending = await asyncio.wait([task_main, task_heartbeat], return_when=asyncio.FIRST_COMPLETED)
-            print('# 弹幕姬异常或主动断开，处理完剩余信息后重连')
-            self.danmuji.connected = False
+            print('主弹幕姬异常或主动断开，正在处理剩余信息')
             time_end = int(CurrentTime())
             if not task_heartbeat.done():
                 task_heartbeat.cancel()
-                await self.danmuji.close_connection()
-                print('# 弹幕主程序退出，立即取消心跳模块')
-            else:
-                await asyncio.wait(pending)
-                print('# 弹幕心跳模块退出，主程序剩余任务处理完毕')
+            task_terminate = asyncio.ensure_future(self.danmuji.close_connection())
+            await asyncio.wait(pending)
+            await asyncio.wait([task_terminate])
+            printer.info(['主弹幕姬退出，剩余任务处理完毕'], True)
             if time_end - time_start < 5:
                 print('# 当前网络不稳定，为避免频繁不必要尝试，将自动在5秒后重试')
                 await asyncio.sleep(5)
@@ -62,11 +60,11 @@ class RaffleConnect():
         self.areaid = areaid
         
     async def run(self):
+        self.danmuji = bilibiliClient(self.roomid, self.areaid)
         while True:
-            self.roomid = await Task().call_right_now('get_one', self.areaid)
-            print('# 正在启动抽奖监控弹幕姬')
+            self.danmuji.roomid = await Task().call_right_now('get_one', self.areaid)
+            printer.info(['# 正在启动抽奖监控弹幕姬'], True)
             time_start = int(CurrentTime())
-            self.danmuji = bilibiliClient(self.roomid, self.areaid)
             connect_results = await self.danmuji.connectServer()
             # print(connect_results)
             if not connect_results:
@@ -75,16 +73,16 @@ class RaffleConnect():
             task_heartbeat = asyncio.ensure_future(self.danmuji.HeartbeatLoop())
             task_checkarea = asyncio.ensure_future(self.danmuji.CheckArea())
             finished, pending = await asyncio.wait([task_main, task_heartbeat, task_checkarea], return_when=asyncio.FIRST_COMPLETED)
-            print('# 弹幕姬异常或主动断开，处理完剩余信息后重连')
-            self.danmuji.connected = False
+            printer.info([f'{self.areaid}号弹幕姬异常或主动断开，正在处理剩余信息'], True)
             time_end = int(CurrentTime())
             if not task_heartbeat.done():
                 task_heartbeat.cancel()
-                await self.danmuji.close_connection()
-                print('# 弹幕主程序退出，立即取消心跳模块')
-            else:
-                await asyncio.wait(pending)
-                print('# 弹幕心跳模块退出，主程序剩余任务处理完毕')
+            if not task_checkarea.done():
+                task_checkarea.cancel()
+            task_terminate = asyncio.ensure_future(self.danmuji.close_connection())
+            await asyncio.wait(pending)
+            await asyncio.wait([task_terminate])
+            printer.info([f'{self.areaid}号弹幕姬退出，剩余任务处理完毕'], True)
             if time_end - time_start < 5:
                 print('# 当前网络不稳定，为避免频繁不必要尝试，将自动在5秒后重试')
                 await asyncio.sleep(5)
