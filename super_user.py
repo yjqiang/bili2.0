@@ -192,7 +192,7 @@ class SuperUser():
             max_wait = j['time_wait'] - 5
             # 处理一些重复
             if not self.check_duplicate(raffle_id):
-                print(raffle_id)
+                print('本次获取到的抽奖id为', raffle_id)
                 list_available_raffleid.append(((real_roomid, raffle_id, raffle_type), max_wait))
                 self.add2raffle_id(raffle_id)
                 

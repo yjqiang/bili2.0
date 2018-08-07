@@ -160,11 +160,9 @@ class Task(Messenger):
         if time_range is None:
             value = (func, tuple_values, id)
             self.loop.call_later(delay, self.queue.put_nowait, value)
-            print(value)
         else:
             for id, add_time in self.set_delay_times(time_range):
                 value = (func, tuple_values, id)
-                print('分布时间', value, id, add_time)
                 self.loop.call_later(delay + add_time, self.queue.put_nowait, value)
                 
         return 
@@ -175,11 +173,9 @@ class Task(Messenger):
         if time_range is None:
             value = (func, tuple_values, id)
             self.loop.call_later(delay, self.queue.put_nowait, value)
-            print(value)
         else:      
             for id, add_time in self.set_delay_times(time_range):
                 value = (func, tuple_values, id)
-                print('分布时间', value, id, add_time)
                 self.loop.call_later(delay + add_time, self.queue.put_nowait, value)
                 
         return

@@ -83,8 +83,7 @@ class User():
         RaffleHandler().remove(self.user_id)
         Task().remove(self.user_id)
         self.printer_with_id([f'抽奖脚本检测{self.user_id}为小黑屋'], True)
-        
-        
+                
     def write_user(self, dict_new):
         self.webhub.set_status(dict_new)
         ConfigLoader().write_user(dict_new, self.user_id)
@@ -106,13 +105,12 @@ class User():
         return 260
         # print(json_response)
             
-
-    # 与弹幕抽奖对应，这里的i其实是抽奖id             
+    # 与弹幕抽奖对应，这里的i其实是抽奖id
     async def handle_1_room_substant(self, i):
         blacklist = ['test', 'TEST', '测试', '加密']
         list_available_raffleid = []
         json_response = await self.webhub.get_lotterylist(i)
-        # print(i, json_response)   
+        # print(i, json_response)
         # -400 不存在
         if not json_response['code']:
             temp = json_response['data']['title']
@@ -136,8 +134,6 @@ class User():
             return True
         else:
             return False
-                        
-    
 
     async def open_silver_box(self):
         while True:
@@ -169,7 +165,7 @@ class User():
                 # surplus里面是min，float格式
                 try:
                     sleeptime = (json_rsp['data'].get('surplus', 3)) * 60 + 5
-                except :
+                except:
                     sleeptime = 180
                     print(json_rsp)
                 # Task().call_after('open_silver_box', sleeptime, self.user_id)
@@ -180,7 +176,6 @@ class User():
         json_response1 = await self.webhub.get_gift_of_lottery(i, g)
         print("当前时间:", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
         print("参与实物抽奖回显：", json_response1)
-        
         
     async def check_tv_result(self, raffleid, real_roomid):
         json_response = await self.webhub.get_TV_result(real_roomid, raffleid)
@@ -217,20 +212,18 @@ class User():
         else:
             print(json_response2)
             return True
- 
-               
+                
     async def handle_1_captain_raffle(self, roomid, raffleid):
         self.statistics.append_to_captainlist()
         json_response2 = await self.webhub.get_gift_of_captain(roomid, raffleid)
         if not json_response2['code']:
-            print("# 获取到房间 %s 的总督奖励: " %(roomid), json_response2['data']['message'])
+            print("# 获取到房间 %s 的总督奖励: " % (roomid), json_response2['data']['message'])
             # print(json_response2)
             self.statistics.append_to_captainlist()
         else:
             print(json_response2)
         return True
-     
-                                           
+                                                
     async def handle_1_activity_raffle(self, text1, text2, raffleid):
         # print('参与')
         json_response1 = await self.webhub.get_gift_of_events_app(text1, text2, raffleid)
@@ -279,11 +272,7 @@ class User():
                 if False in raffle_results:
                     print('有繁忙提示，稍后重新尝试')
                     RaffleHandler().Put2Queue((text1, text2), 'handle_1_room_activity', self.user_id)
-                
-    
-    
-
-                    
+                                    
     async def fetch_capsule_info(self):
         json_response = await self.webhub.fetch_capsule()
         # print(json_response)
@@ -496,9 +485,7 @@ class User():
                 img.show()
             except:
                 pass
-    
-    
-    
+        
     async def GiveCoin2Av(self, video_id, num):
         if num not in (1, 2):
             return False
@@ -564,9 +551,9 @@ class User():
         percent = current_exp / next_exp * 100.0
         process_bar = '# [' + '>' * arrow + '-' * line + ']' + '%.2f' % percent + '%'
         print(process_bar)
-        if show: print(f'每日登陆：{login} 每日观看：{watch_av} 每日投币经验：{coins_av}/50 每日分享：{share_av}')
-        return login, watch_av, coins_av, share_av                    
-                        
+        if show:
+            print(f'每日登陆：{login} 每日观看：{watch_av} 每日投币经验：{coins_av}/50 每日分享：{share_av}')
+        return login, watch_av, coins_av, share_av
                         
     async def WearingMedalInfo(self):
         json_response = await self.webhub.ReqWearingMedal()
@@ -630,9 +617,7 @@ class User():
     async def send_danmu_msg_web(self, msg, roomId):
         json_response = await self.webhub.send_danmu_msg_web(msg, roomId)
         print(json_response)
-                
-                    
-                    
+                                    
     async def Daily_bag(self):
         json_response = await self.webhub.get_dailybag()
         # no done code
@@ -640,8 +625,7 @@ class User():
             self.printer_with_id(["# 获得-" + i['bag_name'] + "-成功"])
         # Task().call_after('Daily_bag', 21600)
         return 21600
-    
-    
+        
     # 签到功能
     async def DoSign(self):
         # -500 done
@@ -729,7 +713,7 @@ class User():
                 # await BiliTimer.append2list_jobs(auto_send_gift, 21600)
         if self.task_control['send2medal']:
             list_medal += await self.fetch_medal(False, self.task_control['send2medal'])
-        # print(list_medal)    
+        # print(list_medal)
         print('正在投递勋章')
         temp = await self.fetch_bag_list(show=False)
         # print(temp)
@@ -768,8 +752,7 @@ class User():
                 left_intimate = left_intimate - score
             self.printer_with_id([f'# 对{medal_name}共送出亲密度为{int(calculate)}的礼物'])
         return [i for i in list_gift if i[1]]
-    
-    
+        
     async def doublegain_coin2silver(self):
         if self.task_control['doublegain_coin2silver']:
             json_response0 = await self.webhub.doublegain_coin2silver()
@@ -846,8 +829,7 @@ class User():
         # b站傻逼有记录延迟，3点左右成功率高一点
         # Task().call_after('BiliMainTask', utils.seconds_until_tomorrow() + 10800)
         return utils.seconds_until_tomorrow() + 10800
-    
-    
+        
     async def check(self, id):
         # 3放弃
         # 2 否 voterule
@@ -865,6 +847,7 @@ class User():
         votebreak = data['voteBreak']
         voteDelete = data['voteDelete']
         voteRule = data['voteRule']
+        status = data['status']
         voted = votebreak+voteDelete+voteRule
         if voted:
             percent = voteRule / voted
@@ -872,12 +855,14 @@ class User():
             percent = 0
         print('目前已投票', voted)
         print('认为不违反规定的比例', percent)
-        vote = 3
-        if voted >= 400:
-            if percent >= 0.8:
+        vote = None
+        if voted >= 300:
+            if percent >= 0.75:
                 vote = 2
-            elif percent <= 0.2:
+            elif percent <= 0.25:
                 vote = 4
+            elif 0.4 <= percent <= 0.6:
+                vote = 2
         elif voted >= 150:
             if percent >= 0.9:
                 vote = 2
@@ -888,9 +873,12 @@ class User():
                 vote = 2
             elif percent <= 0.03:
                 vote = 4
-        return vote
-     
-                   
+        # 抬一手
+        if vote is None and voted >= 400:
+            vote = 2
+            
+        return vote, status, voted
+                        
     async def judge(self):
         num_case = 0
         num_voted = 0
@@ -902,13 +890,28 @@ class User():
                 print('本次未获取到案件')
                 # await asyncio.sleep(1)
                 break
-            vote = await self.check(id)
-            print('投票决策', id, vote)
-            json_rsp = await self.webhub.req_vote_case(id, vote)
-            print(json_rsp)
             num_case += 1
-            if vote != 3:
-                num_voted += 1
+            while True:
+                vote, status, voted = await self.check(id)
+                if vote is None and status == 1:
+                    if voted < 300:
+                        printer.info([f'本次获取到的案件{id}暂时无法判定，在180s后重新尝试'], True)
+                        await asyncio.sleep(180)
+                    else:
+                        printer.info([f'本次获取到的案件{id}暂时无法判定，在60s后重新尝试'], True)
+                        await asyncio.sleep(60)
+                else:
+                    break
+            if status != 1:
+                print('超时失败，请联系作者')
+            else:
+                print('投票决策', id, vote)
+                json_rsp = await self.webhub.req_vote_case(id, vote)
+                if not json_rsp['code']:
+                    print(f'投票{id}成功')
+                    num_voted += 1
+                else:
+                    print(f'投票{id}失败，请反馈作者')
             
             print('______________________________')
             # await asyncio.sleep(1)
@@ -916,9 +919,6 @@ class User():
         self.printer_with_id([f'风纪委员会共获取{num_case}件案例，其中有效投票{num_voted}件'], True)
         # Task().call_after('judge', 3600)
         return 3600
-        
-    
-    
 
     async def update(self, func, value):
         # print('hhhhhhhhhhhhhhhh', self.user_id, func)
