@@ -56,27 +56,28 @@ class Printer():
             cls.instance.dic_color = dic_color
             cls.instance.platform_platform = platform_platform
             cls.instance.print_control_danmu = print_control_danmu
+            if (platform_platform == 'ios_pythonista'):
+                cls.instance.danmu_print = cls.instance.concole_print
+            else:
+                cls.instance.danmu_print = cls.instance.normal_print
         return cls.instance
         
-    def concole_print(self, msg, color=[]):
-        if color:
-            for i, j in zip(msg, color):
-                console.set_color(*j)
-                print(i, end='')
-            print()
-            console.set_color()
-        else:
-            print(''.join(msg))
+    def concole_print(self, msg, color):
+        for i, j in zip(msg, color):
+            console.set_color(*j)
+            print(i, end='')
+        print()
+        console.set_color()
+            
+    def normal_print(self, msg, color):
+        print(''.join(msg))
              
     # 弹幕 礼物 。。。。type
     def print_danmu(self, dic_msg, type='normal'):
         if not self.print_control_danmu:
             return
         list_msg, list_color = self.print_danmu_msg(dic_msg)
-        if (self.platform_platform == 'ios_pythonista'):
-            self.concole_print(list_msg, list_color)
-        else:
-            self.concole_print(list_msg)
+        self.danmu_print(list_msg, list_color)
     
     def print_danmu_msg(self, dic):
         info = dic['info']

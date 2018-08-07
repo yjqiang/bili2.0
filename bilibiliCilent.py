@@ -17,14 +17,12 @@ class bilibiliClient():
 
     def __init__(self, roomid=None, area_id=None):
         self.ws = None
+        self.roomid = roomid
+        self.area_id = area_id
         if area_id == 0:
-            self.roomid = roomid
-            self.area_id = 0
             self.loop_func = self.printDanMu
         else:
             self.loop_func = self.DanMuraffle
-            self.roomid = roomid
-            self.area_id = area_id
 
     # 待确认
     async def close_connection(self):
