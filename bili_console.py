@@ -4,6 +4,7 @@ from printer import Printer
 
 from task import Messenger, Task
 
+
 def guide_of_console():
     print('___________________________')
     print('| 欢迎使用本控制台           |')
@@ -14,7 +15,7 @@ def guide_of_console():
     print('|5 检查今日任务的完成情况     |')
 
     print('|7 模拟电脑网页端发送弹幕     |')
-    print('|8 直播间的长短号码的转化     |')    
+    print('|8 直播间的长短号码的转化     |')
     print('|9  切换监听的直播间         |')
     print('|10 T或F控制弹幕的开关       |')
     print('|11 房间号码查看主播         |')

@@ -1,6 +1,7 @@
 import datetime
 import time
 
+
 def seconds_until_tomorrow():
     today = datetime.date.today()
     tomorrow = today + datetime.timedelta(days=1)

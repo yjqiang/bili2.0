@@ -692,6 +692,7 @@ class WebHub():
         
 class HostWebHub(WebHub):
     base_url = 'https://api.live.bilibili.com'
+    
     def __init__(self, id, dict_new, dict_bili):
         self.dict_bili = copy.deepcopy(dict_bili)
         self.set_status(dict_new)

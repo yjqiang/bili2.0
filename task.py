@@ -39,7 +39,6 @@ class Messenger():
             
     def print_blacklist(self):
         print('小黑屋状态:', self.dict_user_status)
-        
 
     async def notify(self, func, value, id=None):
         # print('小黑屋状态:', self.dict_user_status)
@@ -88,7 +87,7 @@ class Messenger():
             return answer
             
     def set_delay_times(self, time_range):
-        return ((i,random.uniform(0, time_range)) for i in range(len(self._observers)))
+        return ((i, random.uniform(0, time_range)) for i in range(len(self._observers)))
             
 
 # 被观测的
@@ -116,14 +115,14 @@ class RaffleHandler(Messenger):
         if (await self.notify('check_if_normal_room', (room_id,), -1)):
             Task().call_after('post_watching_history', 0, (room_id,), time_range=60)
             await self.notify('handle_1_room_TV', (room_id,), -1)
-        return 
+        return
         
     async def handle_captain_raffle(self, user_name):
         room_id = await self.notify('find_live_user_roomid', (user_name,), -1)
         if (await self.notify('check_if_normal_room', (room_id,), -1)):
             Task().call_after('post_watching_history', 0, (room_id,), time_range=60)
             await self.notify('handle_1_room_captain', (room_id,), -1)
-        return 
+        return
     
     async def handle_1_roomid_raffle(self, i):
         if i[1] in ['handle_TV_raffle', 'handle_captain_raffle']:
@@ -142,7 +141,7 @@ class Task(Messenger):
         self.call_after('daily_task', 0, ('Daily_Task',), time_range=25)
         self.call_after('daily_task', 0, ('link_sign',), time_range=25)
         # self.call_after('daily_task', 0, ('send_gift',), time_range=25)
-        #self.call_after('daily_task', 0, ('auto_send_gift',), time_range=25)
+        # self.call_after('daily_task', 0, ('auto_send_gift',), time_range=25)
         self.call_after('daily_task', 0, ('BiliMainTask',), time_range=25)
         self.call_after('daily_task', 0, ('judge',), time_range=25)
         self.call_after('daily_task', 0, ('open_silver_box',), time_range=25)
@@ -152,7 +151,7 @@ class Task(Messenger):
         self.init()
         while True:
             i = await self.queue.get()
-            # print(i, '一级')  
+            # print(i, '一级')
             # await self.notify(*i)
             await self.raffle_notify(*i)
                 
@@ -165,7 +164,7 @@ class Task(Messenger):
                 value = (func, tuple_values, id)
                 self.loop.call_later(delay + add_time, self.queue.put_nowait, value)
                 
-        return 
+        return
         
     def call_at(self, func, time_expected, tuple_values, id=None, time_range=None):
         current_time = CurrentTime()
@@ -173,7 +172,7 @@ class Task(Messenger):
         if time_range is None:
             value = (func, tuple_values, id)
             self.loop.call_later(delay, self.queue.put_nowait, value)
-        else:      
+        else:
             for id, add_time in self.set_delay_times(time_range):
                 value = (func, tuple_values, id)
                 self.loop.call_later(delay + add_time, self.queue.put_nowait, value)
