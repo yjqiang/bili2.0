@@ -671,7 +671,7 @@ class WebHub():
         url = 'http://api.bilibili.com/x/credit/jury/caseObtain'
         payload = {
             "jsonp": "jsonp",
-            "csrf": self.dic_bilibili['csrf']
+            "csrf": self.dict_bili['csrf']
         }
         json_rsp = await self.other_session_post(url, headers=self.dict_bili['pcheaders'], data=payload)
         return json_rsp
