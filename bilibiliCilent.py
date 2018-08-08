@@ -123,7 +123,7 @@ class bilibiliClient():
                 elif opt == 5:
                     messages = remain_data.decode('utf-8')
                     dic = json.loads(messages)
-                    state = await self.loop_func(dic)
+                    state = self.loop_func(dic)
                 # 握手确认
                 elif opt == 8:
                     printer.info([f'{self.area_id}号弹幕监控进入房间（{self.roomid}）'], True)
@@ -134,8 +134,7 @@ class bilibiliClient():
                     return
                 len_read += len_data
     
-    async def printDanMu(self, dic):
-        await asyncio.sleep(0)
+    def printDanMu(self, dic):
         cmd = dic['cmd']
         # print(cmd)
         if cmd == 'DANMU_MSG':
@@ -143,7 +142,7 @@ class bilibiliClient():
             Printer().print_danmu(dic)
             return True
             
-    async def DanMuraffle(self, dic):
+    def DanMuraffle(self, dic):
         cmd = dic['cmd']
         
         if cmd == 'PREPARING':
