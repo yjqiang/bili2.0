@@ -6,7 +6,13 @@ import webbrowser
 from PIL import Image
 from io import BytesIO
 import re
+import time
 
+
+def CurrentTime():
+    # currenttime = int(time.mktime(datetime.datetime.now().timetuple()))
+    return int(time.time())
+    
 
 class SuperUser():
         
@@ -179,6 +185,48 @@ class SuperUser():
             else:
                 printer.info([f'抽奖脚本检测到房间{roomid:^9}为正常房间'], True)
                 return True
+                
+    # 与弹幕抽奖对应，这里的i其实是抽奖id
+    async def handle_1_room_substant(self):
+        list_available_raffleid = []
+        blacklist = ['test', 'TEST', '测试', '加密']
+        max = 10000
+        min = 50
+        while max > min:
+            # print(min, max)
+            middle = int((min + max + 1) / 2)
+            code_middle = (await self.webhub.get_lotterylist(middle))['code']
+            if code_middle:
+                code_middle1 = (await self.webhub.get_lotterylist(middle + 1))['code']
+                code_middle2 = (await self.webhub.get_lotterylist(middle + 2))['code']
+                if code_middle1 and code_middle2:
+                    max = middle - 1
+                else:
+                    min = middle + 1
+            else:
+                min = middle
+        print('最新实物抽奖id为', min, max)
+        for i in range(max - 30, max + 1):
+            json_response = await self.webhub.get_lotterylist(i)
+            print('id对应code数值为', json_response['code'], i)
+            # -400 不存在
+            if not json_response['code']:
+                temp = json_response['data']['title']
+                if any(word in temp for word in blacklist):
+                    print("检测到疑似钓鱼类测试抽奖，默认不参与，请自行判断抽奖可参与性")
+                    # print(temp)
+                else:
+                    check = json_response['data']['typeB']
+                    for g, value in enumerate(check):
+                        join_end_time = value['join_end_time']
+                        join_start_time = value['join_start_time']
+                        ts = CurrentTime()
+                        if int(join_end_time) > int(ts) > int(join_start_time):
+                            print('本次获取到的抽奖id为', i, g)
+                            list_available_raffleid.append((i, g), 100)
+    
+        for tuple_values, max_wait in list_available_raffleid:
+            Task().call_at('handle_1_substantial_raffle', 0, tuple_values, time_range=max_wait)
                 
     async def handle_1_room_TV(self, real_roomid):
         json_response = await self.webhub.get_giftlist_of_TV(real_roomid)

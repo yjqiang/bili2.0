@@ -19,8 +19,10 @@ def guide_of_console():
     print('|9  切换监听的直播间         |')
     print('|10 T或F控制弹幕的开关       |')
     print('|11 房间号码查看主播         |')
-    print('|12 当前拥有的扭蛋币         |')
-    print('|13 开扭蛋币(只能1，10，100) |')
+    # print('|12 当前拥有的扭蛋币         |')
+    print('|12 开扭蛋币(只能1，10，100) |')
+    print('|14 查看小黑屋的状态         |')
+    print('|15 检测参与正常的实物抽奖    |')
     print('￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣')
     
 
@@ -89,12 +91,13 @@ def return_error():
 class Biliconsole(Messenger):
     instance = None
 
-    def __new__(cls, loop=None, queue=None, users=[]):
+    def __new__(cls, loop=None, queue=None, var_super_user=None, users=[]):
         if not cls.instance:
             cls.instance = super(Biliconsole, cls).__new__(cls)
             cls.instance.queue_console = queue
             cls.instance.loop = loop
             cls.instance._observers = users
+            cls.instance._var_super_user = var_super_user
         return cls.instance
         
     def controler(self):    
@@ -113,6 +116,7 @@ class Biliconsole(Messenger):
             '12': preprocess_open_capsule,
             '13': process_watch_living_video,  # input async
             '14': Task().print_blacklist,
+            '15': 'handle_1_room_substant',
             'help': guide_of_console,
             'h': guide_of_console
         }
@@ -120,7 +124,10 @@ class Biliconsole(Messenger):
             x = input('')
             if x in ['1', '2', '3', '4', '5', '6']:
                 answer = options.get(x, return_error)
-                self.append2list_console([[], answer])
+                self.append2list_console([[], answer, None])
+            elif x == '15':
+                answer = options.get(x, return_error)
+                self.append2list_console([[], answer, -1])
             else:
                 options.get(x, return_error)()    
             
@@ -139,7 +146,7 @@ class Biliconsole(Messenger):
                         print('检测')
                         i[0][j] = await i[0][j][1](*(i[0][j][0]))
                 if isinstance(i[1], str):
-                    await self.notify(i[1], i[0], None)
+                    await self.notify(i[1], i[0], i[2])
                 else:
                     await i[1](*i[0])
             else:

@@ -17,11 +17,6 @@ from io import BytesIO
 import utils
 
 
-def CurrentTime():
-    # currenttime = int(time.mktime(datetime.datetime.now().timetuple()))
-    return int(time.time())
-
-
 class User():
     def __init__(self, user_id, dict_user, dict_bili, task_control, high_concurency):
         if high_concurency:
@@ -104,36 +99,6 @@ class User():
             self.fall_in_jail()
         return 260
         # print(json_response)
-            
-    # 与弹幕抽奖对应，这里的i其实是抽奖id
-    async def handle_1_room_substant(self, i):
-        blacklist = ['test', 'TEST', '测试', '加密']
-        list_available_raffleid = []
-        json_response = await self.webhub.get_lotterylist(i)
-        # print(i, json_response)
-        # -400 不存在
-        if not json_response['code']:
-            temp = json_response['data']['title']
-            if any(word in temp for word in blacklist):
-                print("检测到疑似钓鱼类测试的实物抽奖，默认不参与")
-                return False
-            else:
-                check = json_response['data']['typeB']
-                for g, value in enumerate(check):
-                    join_end_time = value['join_end_time']
-                    join_start_time = value['join_start_time']
-                    ts = CurrentTime()
-
-                    if int(join_end_time) > int(ts) > int(join_start_time):
-                        list_available_raffleid.append(g)
-        else:
-            return None
-        for raffleid in list_available_raffleid:
-            Task().call_at('handle_1_substantial_raffle', 0, (i, g))
-        if list_available_raffleid:
-            return True
-        else:
-            return False
 
     async def open_silver_box(self):
         while True:

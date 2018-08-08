@@ -182,20 +182,5 @@ class Task(Messenger):
     async def call_right_now(self, func, value, id=-1):
         # print(func, value)
         return (await self.notify(func, (value,), id))
-        
-    async def heartbeat(self):
-        while True:
-            printer.info([f'用户普通心跳以及实物抽奖检测开始'], True)
-            # await self.notify('heartbeat', ())
-            
-            # await self.notify('draw_lottery', ())
-            for i in range(87, 95):
-                answer = await self.notify('handle_1_room_substant', (i,), 0)
-                if answer is None:
-                    # print('结束')
-                    break
-            printer.info([f'用户普通心跳以及实物抽奖检测完成'], True)
-            await asyncio.sleep(300)
-
 
 

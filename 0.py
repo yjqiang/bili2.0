@@ -49,13 +49,13 @@ normal_task = Task(users, var_super_user, loop)
 
 
 queue = asyncio.Queue()
-var_console = bili_console.Biliconsole(loop, queue, users)
+var_console = bili_console.Biliconsole(loop, queue, var_super_user, users)
 console_thread = threading.Thread(target=var_console.controler)
 console_thread.start()
 
 tasks = [
     raffle.join_raffle(),
-    normal_task.heartbeat(),
+    # normal_task.heartbeat(),
     danmu_connection.run(),
     normal_task.run(),
     var_console.run()
