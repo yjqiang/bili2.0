@@ -483,12 +483,6 @@ class WebHub():
         true_url = f'{self.base_url}/lottery/v1/lottery/check?roomid={roomid}'
         response1 = await self.bili_section_get(true_url)
         return response1
-
-    def get_giftids_raffle(self, str):
-        return self.dict_bili['giftids_raffle'][str]
-    
-    def get_giftids_raffle_keys(self):
-        return self.dict_bili['giftids_raffle'].keys()
     
     async def get_activity_result(self, activity_roomid, activity_raffleid):
         url = f"{self.base_url}/activity/v1/Raffle/notice?roomid={activity_roomid}&raffleId={activity_raffleid}"

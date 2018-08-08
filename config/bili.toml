@@ -10,10 +10,6 @@ access_key = ""
 cookie = ""
 csrf = ""
 uid = ""
-_CIDInfoUrl = "http://live.bilibili.com/api/player?id=cid:"
-_ChatPort = 2243
-_protocolversion = 1
-_ChatHost = "livecmt-2.bilibili.com"
 
 [pcheaders]
 Accept = "application/json, text/plain, */*"
@@ -31,7 +27,3 @@ Accept-Language = "zh-CN"
 Accept = "text/html,application/xhtml+xml,*/*;q=0.8"
 Connection = "keep-alive"
 cookie = ""
-
-[giftids_raffle]
-117 = "怦然心动"
-116 = "漫天花雨"
