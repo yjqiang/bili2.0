@@ -13,7 +13,7 @@ from super_user import SuperUser
 
 if sys.platform == 'win32':
     loop = asyncio.ProactorEventLoop()
-    asyncio.set_event_loop()
+    asyncio.set_event_loop(loop)
 else:
     loop = asyncio.get_event_loop()
 fileDir = os.path.dirname(os.path.realpath('__file__'))
