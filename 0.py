@@ -49,8 +49,8 @@ normal_task = Task(users, var_super_user, loop)
 
 
 queue = asyncio.Queue()
-bili_console.Biliconsole(loop, queue, users)
-console_thread = threading.Thread(target=bili_console.controler)
+var_console = bili_console.Biliconsole(loop, queue, users)
+console_thread = threading.Thread(target=var_console.controler)
 console_thread.start()
 
 tasks = [
@@ -58,7 +58,7 @@ tasks = [
     normal_task.heartbeat(),
     danmu_connection.run(),
     normal_task.run(),
-    bili_console.Biliconsole().run()
+    var_console.run()
 ]
 
 

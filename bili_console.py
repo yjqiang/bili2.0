@@ -77,38 +77,13 @@ def process_watch_living_video():
     Biliconsole.append2list_console([['watch_living_video', real_roomid], Task().call_right_now])
     return
 
-        
-options = {
-    '1': 'get_statistic',                  # all # async
-    '2': 'fetch_bag_list',                 # all # async
-    '3': 'fetch_medal',                    # all # async
-    '4': 'fetch_user_info',                # all # async
-    '5': 'check_taskinfo',                 # all # async
-    '6': 'TitleInfo',                      # all # async
-    '7': preprocess_send_danmu_msg_web,  # input async  # str
-    '8': preprocess_check_room,          # input async
-    '9': preprocess_change_danmuji_roomid,  # input async
-    '10': change_printer_dic_user,
-    '11': preprocess_fetch_liveuser_info,
-    '12': preprocess_open_capsule,
-    '13': process_watch_living_video,  # input async
-    'help': guide_of_console,
-    'h': guide_of_console
-}
 
 
 def return_error():
     print('命令无法识别，请重新输入(提示输入h/help查看详细)')
 
 
-def controler():
-    while True:
-        x = input('')
-        if x in ['1', '2', '3', '4', '5', '6']:
-            answer = options.get(x, return_error)
-            Biliconsole.append2list_console([[], answer])
-        else:
-            options.get(x, return_error)()
+
   
               
 class Biliconsole(Messenger):
@@ -122,6 +97,33 @@ class Biliconsole(Messenger):
             cls.instance._observers = users
         return cls.instance
         
+    def controler(self):    
+        options = {
+            '1': 'get_statistic',                  # all # async
+            '2': 'fetch_bag_list',                 # all # async
+            '3': 'fetch_medal',                    # all # async
+            '4': 'fetch_user_info',                # all # async
+            '5': 'check_taskinfo',                 # all # async
+            '6': 'TitleInfo',                      # all # async
+            '7': preprocess_send_danmu_msg_web,  # input async  # str
+            '8': preprocess_check_room,          # input async
+            '9': preprocess_change_danmuji_roomid,  # input async
+            '10': change_printer_dic_user,
+            '11': preprocess_fetch_liveuser_info,
+            '12': preprocess_open_capsule,
+            '13': process_watch_living_video,  # input async
+            '14': Task().print_blacklist,
+            'help': guide_of_console,
+            'h': guide_of_console
+        }
+        while True:
+            x = input('')
+            if x in ['1', '2', '3', '4', '5', '6']:
+                answer = options.get(x, return_error)
+                self.append2list_console([[], answer])
+            else:
+                options.get(x, return_error)()    
+            
     @staticmethod
     def append2list_console(request):
         inst = Biliconsole.instance
