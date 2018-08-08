@@ -114,7 +114,6 @@ class User():
                 json_rsp = await self.webhub.get_silver(time_start, time_end)
             if json_rsp is None or json_rsp['code'] == -10017 or json_rsp['code'] == -800:
                 sleeptime = (utils.seconds_until_tomorrow() + 300)
-                # Task().call_after('open_silver_box', sleeptime, self.user_id)
                 return sleeptime
                 break
                 # await asyncio.sleep(sleeptime)
@@ -133,7 +132,6 @@ class User():
                 except:
                     sleeptime = 180
                     print(json_rsp)
-                # Task().call_after('open_silver_box', sleeptime, self.user_id)
                 return sleeptime
                 break
                 
@@ -588,7 +586,6 @@ class User():
         # no done code
         for i in json_response['data']['bag_list']:
             self.printer_with_id(["# 获得-" + i['bag_name'] + "-成功"])
-        # Task().call_after('Daily_bag', 21600)
         return 21600
         
     # 签到功能
@@ -600,7 +597,6 @@ class User():
             sleeptime = (utils.seconds_until_tomorrow() + 300)
         else:
             sleeptime = 350
-        # Task().call_after('DoSign', sleeptime, self.user_id)
         return sleeptime
     
     # 领取每日任务奖励
@@ -612,7 +608,6 @@ class User():
             sleeptime = (utils.seconds_until_tomorrow() + 300)
         else:
             sleeptime = 350
-        # Task().call_after('Daily_Task', sleeptime, self.user_id)
         return sleeptime
     
     async def Sign1Group(self, i1, i2):
@@ -636,7 +631,6 @@ class User():
                 task = asyncio.ensure_future(self.Sign1Group(i1, i2))
                 tasklist.append(task)
             results = await asyncio.gather(*tasklist)
-        # Task().call_after('link_sign', 21600)
         return 21600
     
     async def send_gift(self):
@@ -664,7 +658,6 @@ class User():
                     await self.send_gift_web(roomID, giftNum, bagID, giftID)
             else:
                 print('未发现即将过期的礼物')
-        # Task().call_after('send_gift', 21600)
         return 21600
     
     async def auto_send_gift(self):
@@ -691,7 +684,6 @@ class User():
         await self.full_intimate(list_gift, list_medal)
                 
         # self.printer_with_id(["# 自动送礼共送出亲密度为%s的礼物" % int(calculate)])
-        # Task().call_after('auto_send_gift', 21600)
         return 21600
     
     async def full_intimate(self, list_gift, list_medal):
@@ -723,7 +715,6 @@ class User():
             json_response0 = await self.webhub.doublegain_coin2silver()
             json_response1 = await self.webhub.doublegain_coin2silver()
             print(json_response0['msg'], json_response1['msg'])
-        # Task().call_after('doublegain_coin2silver', 21600)
         return 21600
     
     async def sliver2coin(self):
@@ -745,15 +736,12 @@ class User():
                 finish_app = False
             if finish_app and finish_web:
                 sleeptime = (utils.seconds_until_tomorrow() + 300)
-                # Task().call_after('sliver2coin', sleeptime, self.user_id)
                 return sleeptime
                 return
             else:
-                # Task().call_after('sliver2coin', 350, self.user_id)
                 return 350
                 return
     
-        # Task().call_after('sliver2coin', 21600, self.user_id)
         return 21600
     
     async def GetVideoExp(self, list_topvideo):
@@ -792,7 +780,6 @@ class User():
         if not share_av:
             await self.GetVideoShareExp(list_topvideo)
         # b站傻逼有记录延迟，3点左右成功率高一点
-        # Task().call_after('BiliMainTask', utils.seconds_until_tomorrow() + 10800)
         return utils.seconds_until_tomorrow() + 10800
         
     async def check(self, id):
@@ -882,11 +869,9 @@ class User():
             # await asyncio.sleep(1)
         
         self.printer_with_id([f'风纪委员会共获取{num_case}件案例，其中有效投票{num_voted}件'], True)
-        # Task().call_after('judge', 3600)
         return 3600
 
     async def update(self, func, value):
-        # print('hhhhhhhhhhhhhhhh', self.user_id, func)
         return await getattr(self, func)(*value)
         
     async def daily_task(self, task_name):

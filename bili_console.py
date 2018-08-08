@@ -80,12 +80,8 @@ def process_watch_living_video():
     return
 
 
-
 def return_error():
     print('命令无法识别，请重新输入(提示输入h/help查看详细)')
-
-
-
   
               
 class Biliconsole(Messenger):
@@ -100,7 +96,7 @@ class Biliconsole(Messenger):
             cls.instance._var_super_user = var_super_user
         return cls.instance
         
-    def controler(self):    
+    def controler(self):
         options = {
             '1': 'get_statistic',                  # all # async
             '2': 'fetch_bag_list',                 # all # async
@@ -129,7 +125,7 @@ class Biliconsole(Messenger):
                 answer = options.get(x, return_error)
                 self.append2list_console([[], answer, -1])
             else:
-                options.get(x, return_error)()    
+                options.get(x, return_error)()
             
     @staticmethod
     def append2list_console(request):

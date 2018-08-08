@@ -272,11 +272,9 @@ class SuperUser():
                 print(json_response1)
             
         for tuple_values, max_wait in list_available_raffleid:
-            # 一天之内均可领取，延迟2分钟无所谓
             Task().call_after('handle_1_captain_raffle', 0, tuple_values, time_range=max_wait)
                 
     async def update(self, func, value):
-        # print('hhhhhhhhhhhhhhhh', self.user_id, func)
         return (await getattr(self, func)(*value))
     
     
