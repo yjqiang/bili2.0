@@ -12,13 +12,6 @@ def hex_to_rgb_percent(hex_str):
     color = webcolors.hex_to_rgb_percent(hex_str)
     # print([float(i.strip('%'))/100.0 for i in color])
     return [float(i.strip('%'))/100.0 for i in color]
- 
-
-def level(str):
-    if str == "user":
-        return 0
-    if str == "debug":
-        return 1
 
 
 def timestamp(tag_time):
@@ -26,9 +19,6 @@ def timestamp(tag_time):
         str_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()))
         print(f'[{str_time}]', end=' ')
         return str_time
-    else:
-        # print('    ', end='')
-        pass
 
 
 def info(list_msg, tag_time=False):
