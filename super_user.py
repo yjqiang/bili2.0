@@ -228,6 +228,22 @@ class SuperUser():
     
         for tuple_values, max_wait in list_available_raffleid:
             Task().call_after('handle_1_substantial_raffle', 0, tuple_values, time_range=max_wait)
+            
+    async def handle_1_room_activity(self, room_id, text2):
+        result = True
+        if result:
+            json_response = await self.webhub.get_giftlist_of_events(room_id)
+            checklen = json_response['data']
+            list_available_raffleid = []
+            for j in checklen:
+                # await asyncio.sleep(random.uniform(0.5, 1))
+                # resttime = j['time']
+                raffleid = j['raffleId']
+                # if self.statistics.check_activitylist(text1, raffleid):
+                #    list_available_raffleid.append(raffleid)
+                list_available_raffleid.append((room_id, text2, raffleid), 00000)
+            for tuple_values, max_wait in list_available_raffleid:
+                Task().call_after('handle_1_activity_raffle', 0, tuple_values, time_range=max_wait)
                 
     async def handle_1_room_TV(self, real_roomid):
         json_response = await self.webhub.get_giftlist_of_TV(real_roomid)

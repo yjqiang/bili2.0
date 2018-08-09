@@ -412,26 +412,26 @@ class WebHub():
         response1 = await self.bili_section_post(storm_url, data=payload, headers=self.dict_bili['pcheaders'])
         return response1
 
-    async def get_gift_of_events_web(self, text1, text2, raffleid):
+    async def get_gift_of_events_web(self, room_id, text2, raffleid):
         headers = {
             'Accept': 'application/json, text/plain, */*',
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
             'cookie': self.dict_bili['cookie'],
             'referer': text2
         }
-        pc_url = f'{self.base_url}/activity/v1/Raffle/join?roomid={text1}&raffleId={raffleid}'
+        pc_url = f'{self.base_url}/activity/v1/Raffle/join?roomid={room_id}&raffleId={raffleid}'
         pc_response = await self.bili_section_get(pc_url, headers=headers)
 
         return pc_response
 
-    async def get_gift_of_events_app(self, text1, text2, raffleid):
+    async def get_gift_of_events_app(self, room_id, text2, raffleid):
         headers = {
             'Accept': 'application/json, text/plain, */*',
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
             'cookie': self.dict_bili['cookie'],
             'referer': text2
         }
-        temp_params = f'access_key={self.dict_bili["access_key"]}&actionKey={self.dict_bili["actionKey"]}&appkey={self.dict_bili["appkey"]}&build={self.dict_bili["build"]}&device={self.dict_bili["device"]}&event_type=flower_rain-{raffleid}&mobi_app={self.dict_bili["mobi_app"]}&platform={self.dict_bili["platform"]}&room_id={text1}&ts={CurrentTime()}'
+        temp_params = f'access_key={self.dict_bili["access_key"]}&actionKey={self.dict_bili["actionKey"]}&appkey={self.dict_bili["appkey"]}&build={self.dict_bili["build"]}&device={self.dict_bili["device"]}&event_type=flower_rain-{raffleid}&mobi_app={self.dict_bili["mobi_app"]}&platform={self.dict_bili["platform"]}&room_id={room_id}&ts={CurrentTime()}'
         # params = temp_params + self.dict_bili['app_secret']
         sign = self.calc_sign(temp_params)
         true_url = f'{self.base_url}/YunYing/roomEvent?{temp_params}&sign={sign}'
@@ -469,8 +469,8 @@ class WebHub():
         response2 = await self.bili_section_post(join_url, data=payload, headers=self.dict_bili['pcheaders'])
         return response2
     
-    async def get_giftlist_of_events(self, text1):
-        url = f'{self.base_url}/activity/v1/Raffle/check?roomid={text1}'
+    async def get_giftlist_of_events(self, room_id):
+        url = f'{self.base_url}/activity/v1/Raffle/check?roomid={room_id}'
         response = await self.bili_section_get(url, headers=self.dict_bili['pcheaders'])
         return response
 
