@@ -172,6 +172,7 @@ class SuperUser():
             data = json_response['data']
             print(data)
             webbrowser.open(data)
+            
     async def check_if_normal_room(self, roomid):
         json_response = await self.webhub.check_room(roomid)
         if not json_response['code']:
@@ -252,10 +253,9 @@ class SuperUser():
         while True:
             json_response1 = await self.webhub.get_giftlist_of_captain(roomid)
             print(json_response1)
-            if not json_response1['data']['guard']:
-                await asyncio.sleep(1)
-            else:
+            if json_response1['data']['guard']:
                 break
+            await asyncio.sleep(1)
             
         list_available_raffleid = []
         # guard这里领取后，list对应会消失，其实就没有status了，这里是为了统一

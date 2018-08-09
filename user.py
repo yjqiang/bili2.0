@@ -737,10 +737,8 @@ class User():
             if finish_app and finish_web:
                 sleeptime = (utils.seconds_until_tomorrow() + 300)
                 return sleeptime
-                return
             else:
                 return 350
-                return
     
         return 21600
     

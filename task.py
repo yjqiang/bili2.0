@@ -1,7 +1,6 @@
 import time
 import datetime
 import asyncio
-import printer
 import random
 
 
