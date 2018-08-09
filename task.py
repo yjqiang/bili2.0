@@ -48,12 +48,8 @@ class Messenger():
                 if self.check_status(func, i):
                     task = asyncio.ensure_future(user.update(func, value))
                     list_tasks.append(task)
-                if not ((i+1) % 100):
-                    await asyncio.wait(list_tasks, return_when=asyncio.ALL_COMPLETED)
-                    # await asyncio.sleep(1)
-                    list_tasks = []
             if list_tasks:
-                await asyncio.wait(list_tasks, return_when=asyncio.ALL_COMPLETED)
+                await asyncio.wait(list_tasks)
         elif id >= 0:
             user = self._observers[id]
             if self.check_status(func, id):
@@ -82,7 +78,7 @@ class RaffleHandler(Messenger):
             for i in list_raffle:
                 task = asyncio.ensure_future(self.handle_1_roomid_raffle(i))
                 tasklist.append(task)
-            await asyncio.wait(tasklist, return_when=asyncio.ALL_COMPLETED)
+            await asyncio.wait(tasklist)
         
     def push2queue(self,  value, func, id=None):
         self.queue.put_nowait((value, func, id))
