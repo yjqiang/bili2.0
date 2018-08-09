@@ -226,7 +226,7 @@ class SuperUser():
                             list_available_raffleid.append((i, g), 100)
     
         for tuple_values, max_wait in list_available_raffleid:
-            Task().call_at('handle_1_substantial_raffle', 0, tuple_values, time_range=max_wait)
+            Task().call_after('handle_1_substantial_raffle', 0, tuple_values, time_range=max_wait)
                 
     async def handle_1_room_TV(self, real_roomid):
         json_response = await self.webhub.get_giftlist_of_TV(real_roomid)
