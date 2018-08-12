@@ -132,13 +132,7 @@ class Task(Messenger):
     def call_at(self, func, time_expected, tuple_values, id=None, time_range=None):
         current_time = CurrentTime()
         delay = time_expected - current_time
-        if time_range is None:
-            value = (func, tuple_values, id)
-            self.loop.call_later(delay, self.excute_async, value)
-        else:
-            for id, add_time in self.set_delay_times(time_range):
-                value = (func, tuple_values, id)
-                self.loop.call_later(delay + add_time, self.excute_async, value)
+        self.call_after(func, delay, tuple_values, id=id, time_range=time_range)
         
     async def call_right_now(self, func, value, id=-1):
         # print(func, value)
