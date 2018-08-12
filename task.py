@@ -81,20 +81,17 @@ class RaffleHandler(Messenger):
         
     def push2queue(self,  value, func, id=None):
         self.queue.put_nowait((value, func, id))
-        return
         
     async def handle_TV_raffle(self, room_id):
         if (await self.notify('check_if_normal_room', (room_id,), -1)):
             Task().call_after('post_watching_history', 0, (room_id,), time_range=60)
             await self.notify('handle_1_room_TV', (room_id,), -1)
-        return
         
     async def handle_captain_raffle(self, user_name):
         room_id = await self.notify('find_live_user_roomid', (user_name,), -1)
         if (await self.notify('check_if_normal_room', (room_id,), -1)):
             Task().call_after('post_watching_history', 0, (room_id,), time_range=60)
             await self.notify('handle_1_room_captain', (room_id,), -1)
-        return
     
     async def handle_1_roomid_raffle(self, i):
         if i[1] in ['handle_TV_raffle', 'handle_captain_raffle']:
@@ -136,8 +133,6 @@ class Task(Messenger):
             for id, add_time in self.set_delay_times(time_range):
                 value = (func, tuple_values, id)
                 self.loop.call_later(delay + add_time, self.queue.put_nowait, value)
-                
-        return
         
     def call_at(self, func, time_expected, tuple_values, id=None, time_range=None):
         current_time = CurrentTime()
@@ -149,8 +144,6 @@ class Task(Messenger):
             for id, add_time in self.set_delay_times(time_range):
                 value = (func, tuple_values, id)
                 self.loop.call_later(delay + add_time, self.queue.put_nowait, value)
-                
-        return
         
     async def call_right_now(self, func, value, id=-1):
         # print(func, value)
