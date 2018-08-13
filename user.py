@@ -607,6 +607,33 @@ class User():
             for (i1, i2) in id_list:
                 asyncio.ensure_future(self.Sign1Group(i1, i2))
         return 21600
+        
+    async def send_latiao(self, room_id, num_wanted):
+        argvs = await self.fetch_bag_list(show=False)
+        sum = 0
+        list_gift = []
+        for i in argvs:
+            left_time = i[3]
+            gift_id = int(i[0])
+            if (gift_id == 1) and (left_time is not None):
+                list_gift.append(i[:3])
+                
+        for i in list_gift:
+            giftID = i[0]
+            giftNum = i[1]
+            if num_wanted - sum >= giftNum:
+                sum += int(giftNum)
+                bagID = i[2]
+                await self.send_gift_web(room_id, giftNum, bagID, giftID)
+                self.printer_with_id([f'送出{giftNum}个辣条'], True)
+            elif num_wanted - sum > 0:
+                giftNum = num_wanted - sum
+                sum += giftNum
+                bagID = i[2]
+                await self.send_gift_web(room_id, giftNum, bagID, giftID)
+                self.printer_with_id([f'送出{giftNum}个辣条'], True)
+        self.printer_with_id([f'一共送出{sum}个辣条'], True)
+        return num_wanted - sum
     
     async def send_gift(self):
         if self.task_control['clean-expiring-gift']:

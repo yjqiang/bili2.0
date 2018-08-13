@@ -14,7 +14,7 @@ class Messenger():
     
     def __new__(cls, users=[], var_super_user=None, loop=None, is_need_queue=False):
         if not cls.instance:
-            cls.instance = super(Messenger, cls).__new__(cls)            
+            cls.instance = super(Messenger, cls).__new__(cls)
             if is_need_queue:
                 cls.instance.queue = asyncio.Queue()
             cls.instance.loop = loop
@@ -116,6 +116,15 @@ class Task(Messenger):
         self.call_after('daily_task', 0, ('judge',), time_range=25)
         self.call_after('daily_task', 0, ('open_silver_box',), time_range=25)
         self.call_after('daily_task', 0, ('heartbeat',), time_range=25)
+        
+    async def send_latiao(self, room_id, num_wanted):
+        i = 0
+        while True:
+            num_wanted = await self.notify('send_latiao', (room_id, num_wanted), i)
+            i += 1
+            if num_wanted == 0:
+                break
+            await asyncio.sleep(1)
                 
     def excute_async(self, i):
         print('执行', i)

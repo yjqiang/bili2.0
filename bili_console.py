@@ -79,6 +79,13 @@ def process_watch_living_video():
     Biliconsole.append2list_console([['watch_living_video', real_roomid], Task().call_right_now])
     return
 
+        
+def preprocess_send_gift():
+    roomid = input('请输入roomid')
+    real_roomid = fetch_real_roomid(roomid)
+    num_wanted = int(input('请输入辣条数目'))
+    Biliconsole.append2list_console([[real_roomid, num_wanted], Task().send_latiao])
+
 
 def return_error():
     print('命令无法识别，请重新输入(提示输入h/help查看详细)')
@@ -103,6 +110,7 @@ class Biliconsole(Messenger):
             '13': process_watch_living_video,  # input async
             '14': Task().print_blacklist,
             '15': 'handle_1_room_substant',
+            '16': preprocess_send_gift,
             'help': guide_of_console,
             'h': guide_of_console
         }
