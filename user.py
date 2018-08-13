@@ -122,6 +122,7 @@ class User():
             elif json_rsp['code'] == 400:
                 self.printer_with_id(["# 宝箱开启中返回了小黑屋提示"])
                 self.fall_in_jail()
+                return 6 * 3600
                 break
             else:
                 self.printer_with_id(["# 继续等待宝箱冷却..."])

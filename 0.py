@@ -44,12 +44,10 @@ list_raffle_connection = [connect.RaffleConnect(i) for i in range(1, 5)]
 list_raffle_connection_task = [i.run() for i in list_raffle_connection]
 
 var_super_user = SuperUser(users[0])
-raffle = RaffleHandler(users, var_super_user, loop)
+raffle = RaffleHandler(users, var_super_user, loop, True)
 normal_task = Task(users, var_super_user, loop)
 
-
-queue = asyncio.Queue()
-var_console = bili_console.Biliconsole(loop, queue, var_super_user, users)
+var_console = bili_console.Biliconsole(users, var_super_user, loop)
 console_thread = threading.Thread(target=var_console.controler)
 console_thread.start()
 normal_task.init()
@@ -59,7 +57,7 @@ tasks = [
     # normal_task.heartbeat(),
     danmu_connection.run(),
     # normal_task.run(),
-    var_console.run()
+    # var_console.run()
 ]
 
 

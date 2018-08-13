@@ -1,7 +1,7 @@
 
 from connect import connect
 from printer import Printer
-
+import asyncio
 from task import Messenger, Task
 
 
@@ -85,16 +85,6 @@ def return_error():
   
               
 class Biliconsole(Messenger):
-    instance = None
-
-    def __new__(cls, loop=None, queue=None, var_super_user=None, users=[]):
-        if not cls.instance:
-            cls.instance = super(Biliconsole, cls).__new__(cls)
-            cls.instance.queue_console = queue
-            cls.instance.loop = loop
-            cls.instance._observers = users
-            cls.instance._var_super_user = var_super_user
-        return cls.instance
         
     def controler(self):
         options = {
@@ -130,25 +120,23 @@ class Biliconsole(Messenger):
     @staticmethod
     def append2list_console(request):
         inst = Biliconsole.instance
-        inst.loop.call_soon_threadsafe(inst.queue_console.put_nowait, request)
+        asyncio.run_coroutine_threadsafe(inst.excute_async(request), inst.loop)
         
-    async def run(self):
-        while True:
-            i = await self.queue_console.get()
-            print('00000000000000000000', i)
-            if isinstance(i, list):
-                for j in range(len(i[0])):
-                    if isinstance(i[0][j], list):
-                        print('检测')
-                        i[0][j] = await i[0][j][1](*(i[0][j][0]))
-                if isinstance(i[1], str):
-                    await self.notify(i[1], i[0], i[2])
-                else:
-                    await i[1](*i[0])
+    async def excute_async(self, i):
+        print('00000000000000000000', i)
+        i.append(None)
+        if isinstance(i, list):
+            for j in range(len(i[0])):
+                if isinstance(i[0][j], list):
+                    print('检测')
+                    i[0][j] = await i[0][j][1](*(i[0][j][0]))
+            if isinstance(i[1], str):
+                await self.notify(i[1], i[0], i[2])
             else:
-                print('qqqqqqqqqqqqqqqq', i)
-                await i()
-            # print('剩余', self.queue_console.qsize())
+                await i[1](*i[0])
+        else:
+            print('qqqqqqqqqqqqqqqq', i)
+            await i()
         
         
     
