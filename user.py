@@ -604,11 +604,8 @@ class User():
         list_check = json_rsp['data']['list']
         id_list = ((i['group_id'], i['owner_uid']) for i in list_check)
         if list_check:
-            tasklist = []
             for (i1, i2) in id_list:
-                task = asyncio.ensure_future(self.Sign1Group(i1, i2))
-                tasklist.append(task)
-            results = await asyncio.gather(*tasklist)
+                asyncio.ensure_future(self.Sign1Group(i1, i2))
         return 21600
     
     async def send_gift(self):
