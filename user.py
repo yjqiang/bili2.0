@@ -567,6 +567,7 @@ class User():
                 self.printer_with_id(["# 获得-" + i['bag_name'] + "-成功"])
         except :
             print('hhhhhhjjjjdjdjdjddjdjdjjdjdjdjdjdjdjdjdjddjjddjjdjdjdjdj', json_response)
+            printer.warn(f'{json_response}')
         return 21600
         
     # 签到功能
