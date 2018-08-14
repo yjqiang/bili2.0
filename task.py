@@ -12,7 +12,7 @@ def CurrentTime():
 class Messenger():
     instance = None
     
-    def __new__(cls, users=[], var_super_user=None, loop=None, is_need_queue=False):
+    def __new__(cls, users=None, var_super_user=None, loop=None, is_need_queue=False):
         if not cls.instance:
             cls.instance = super(Messenger, cls).__new__(cls)
             if is_need_queue:

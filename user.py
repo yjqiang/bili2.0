@@ -520,7 +520,7 @@ class User():
                     max = '-'
                 print(i['activity'], i['score'], max)
     
-    async def fetch_medal(self, show=True, list_wanted_medal=[]):
+    async def fetch_medal(self, show=True, list_wanted_medal=None):
         printlist = []
         list_medal = []
         if show:
