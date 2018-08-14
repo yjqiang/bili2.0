@@ -22,7 +22,7 @@ def randomint():
 
 
 def cnn_captcha(img):
-    url = "http://101.236.6.31:8080/code"
+    url = "http://47.95.255.188:5000/code"
     data = {"image": img}
     rsp = requests.post(url, data=data)
     captcha = rsp.text
