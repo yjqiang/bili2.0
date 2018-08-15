@@ -83,21 +83,41 @@ class WebHub():
         hash.update(str.encode('utf-8'))
         sign = hash.hexdigest()
         return sign
+        
+    async def get_json_rsp(self, rsp):
+        if rsp.status == 200:
+            # json_response = await response.json(content_type=None)
+            data = await rsp.read()
+            json_rsp = json.loads(data)
+            if isinstance(json_rsp, dict) and 'code' in json_rsp:
+                code = json_rsp['code']
+                if code == 1024:
+                    print('b站炸了，暂停所有请求1.5s后重试，请耐心等待')
+                    await asyncio.sleep(1.5)
+                    return None
+                elif code == 3:
+                    print('api错误，稍后重试，请反馈给作者')
+                    await asyncio.sleep(1)
+                    return None
+            return json_rsp
+        elif rsp.status == 403:
+            print('403频繁')
+        return None
+        
+    async def get_text_rsp(self, rsp):
+        if rsp.status == 200:
+            return await rsp.text()
+        elif rsp.status == 403:
+            print('403频繁')
+        return None
 
     async def bili_section_post(self, url, headers=None, data=None):
         while True:
             try:
-                response = await self.bili_section.post(url, headers=headers, data=data)
-                if response.status == 200:
-                    data = await response.read()
-                    json_response = json.loads(data)
-                    if isinstance(json_response, dict):
-                        tag = await replay_request(json_response['code'])
-                        if tag:
-                            continue
-                    return json_response
-                elif response.status == 403:
-                    print('403频繁')
+                async with self.bili_section.post(url, headers=headers, data=data) as response:
+                    json_rsp = await self.get_json_rsp(response)
+                    if json_rsp is not None:
+                        return json_rsp
             except:
                 # print('当前网络不好，正在重试，请反馈开发者!!!!')
                 print(sys.exc_info()[0], sys.exc_info()[1], url)
@@ -106,17 +126,10 @@ class WebHub():
     async def other_session_get(self, url, headers=None, data=None):
         while True:
             try:
-                response = await self.other_session.get(url, headers=headers, data=data)
-                if response.status == 200:
-                    data = await response.read()
-                    json_response = json.loads(data)
-                    if isinstance(json_response, dict) and 'code' in json_response:
-                        tag = await replay_request(json_response['code'])
-                        if tag:
-                            continue
-                    return json_response
-                elif response.status == 403:
-                    print('403频繁')
+                async with self.other_session.get(url, headers=headers, data=data) as response:
+                    json_rsp = await self.get_json_rsp(response)
+                    if json_rsp is not None:
+                        return json_rsp
             except:
                 # print('当前网络不好，正在重试，请反馈开发者!!!!')
                 print(sys.exc_info()[0], sys.exc_info()[1], url)
@@ -125,17 +138,10 @@ class WebHub():
     async def other_session_post(self, url, headers=None, data=None):
         while True:
             try:
-                response = await self.other_session.post(url, headers=headers, data=data)
-                if response.status == 200:
-                    data = await response.read()
-                    json_response = json.loads(data)
-                    if isinstance(json_response, dict) and 'code' in json_response:
-                        tag = await replay_request(json_response['code'])
-                        if tag:
-                            continue
-                    return json_response
-                elif response.status == 403:
-                    print('403频繁')
+                async with self.other_session.post(url, headers=headers, data=data) as response:
+                    json_rsp = await self.get_json_rsp(response)
+                    if json_rsp is not None:
+                        return json_rsp
             except:
                 # print('当前网络不好，正在重试，请反馈开发者!!!!')
                 print(sys.exc_info()[0], sys.exc_info()[1], url)
@@ -144,17 +150,10 @@ class WebHub():
     async def bili_section_get(self, url, headers=None, data=None):
         while True:
             try:
-                response = await self.bili_section.get(url, headers=headers, data=data)
-                if response.status == 200:
-                    data = await response.read()
-                    json_response = json.loads(data)
-                    if isinstance(json_response, dict):
-                        tag = await replay_request(json_response['code'])
-                        if tag:
-                            continue
-                    return json_response
-                elif response.status == 403:
-                    print('403频繁')
+                async with self.bili_section.get(url, headers=headers, data=data) as response:
+                    json_rsp = await self.get_json_rsp(response)
+                    if json_rsp is not None:
+                        return json_rsp
             except:
                 # print('当前网络不好，正在重试，请反馈开发者!!!!')
                 print(sys.exc_info()[0], sys.exc_info()[1], url)
@@ -163,11 +162,10 @@ class WebHub():
     async def session_text_get(self, url, headers=None, data=None):
         while True:
             try:
-                response = await self.other_session.get(url, headers=headers, data=data)
-                if response.status == 200:
-                    return await response.text()
-                elif response.status == 403:
-                    print('403频繁')
+                async with self.other_session.get(url, headers=headers, data=data) as response:
+                    text_rsp = await self.get_text_rsp(response)
+                    if text_rsp is not None:
+                        return text_rsp
             except:
                 # print('当前网络不好，正在重试，请反馈开发者!!!!')
                 print(sys.exc_info()[0], sys.exc_info()[1], url)
@@ -710,18 +708,13 @@ class HostWebHub(WebHub):
                 print('ip切换为', url)
                 i = 5
             try:
-                response = await self.bili_section.post(url, headers={**headers, **(self.headers_host)}, data=data)
-                if response.status == 200:
-                    data = await response.read()
-                    json_response = json.loads(data)
-                    if isinstance(json_response, dict):
-                        tag = await replay_request(json_response['code'])
-                        if tag:
-                            continue
-                    return json_response
-                elif response.status == 403:
-                    print('403频繁')
-                    i = -1
+                async with self.bili_section.post(url, headers={**headers, **(self.headers_host)}, data=data) as response:
+                    json_rsp = await self.get_json_rsp(response)
+                    if json_rsp is not None:
+                        return json_rsp
+                    elif response.status == 403:
+                        print('403频繁')
+                        i = -1
             except:
                 # print('当前网络不好，正在重试，请反馈开发者!!!!')
                 print(sys.exc_info()[0], sys.exc_info()[1], url, self.user_id)
@@ -739,18 +732,13 @@ class HostWebHub(WebHub):
                 print('ip切换为', url)
                 i = 5
             try:
-                response = await self.bili_section.get(url, headers={**headers, **(self.headers_host)}, data=data)
-                if response.status == 200:
-                    data = await response.read()
-                    json_response = json.loads(data)
-                    if isinstance(json_response, dict):
-                        tag = await replay_request(json_response['code'])
-                        if tag:
-                            continue
-                    return json_response
-                elif response.status == 403:
-                    print('403频繁')
-                    i = -1
+                async with self.bili_section.get(url, headers={**headers, **(self.headers_host)}, data=data) as response:
+                    json_rsp = await self.get_json_rsp(response)
+                    if json_rsp is not None:
+                        return json_rsp
+                    elif response.status == 403:
+                        print('403频繁')
+                        i = -1
             except:
                 # print('当前网络不好，正在重试，请反馈开发者!!!!')
                 print(sys.exc_info()[0], sys.exc_info()[1], url, self.user_id)
