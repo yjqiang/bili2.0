@@ -1,5 +1,5 @@
 from web_hub import WebHub, HostWebHub
-from task import RaffleHandler, Task
+from task import Task
 from config_loader import ConfigLoader
 import asyncio
 import time
@@ -18,6 +18,8 @@ import utils
 
 
 class User():
+    black_list = {'handle_1_room_activity', 'handle_1_room_TV', 'handle_1_activity_raffle', 'handle_1_TV_raffle', 'draw_lottery', 'open_silver_box', 'post_watching_history'}
+    
     def __init__(self, user_id, dict_user, dict_bili, task_control, high_concurency):
         if high_concurency:
             self.webhub = HostWebHub(user_id, dict_user, dict_bili)
@@ -26,6 +28,7 @@ class User():
         self.statistics = Statistics()
         self.user_id = user_id
         self.user_name = dict_user['username']
+        self.is_injail = False
         self.task_control = task_control
         if not dict_user['cookie']:
             self.login(dict_user['username'], dict_user['password'])
@@ -75,8 +78,7 @@ class User():
             return False
             
     def fall_in_jail(self):
-        RaffleHandler().remove(self.user_id)
-        Task().remove(self.user_id)
+        self.is_injail = True
         self.printer_with_id([f'抽奖脚本检测{self.user_id}为小黑屋'], True)
                 
     def write_user(self, dict_new):
@@ -85,6 +87,7 @@ class User():
         
     async def get_statistic(self):
         await asyncio.sleep(0)
+        self.printer_with_id([f'小黑屋状态:{self.is_injail}  (True代表进了小黑屋)'], True)
         self.statistics.getlist()
         self.statistics.getresult()
          
@@ -565,7 +568,7 @@ class User():
         try:
             for i in json_response['data']['bag_list']:
                 self.printer_with_id(["# 获得-" + i['bag_name'] + "-成功"])
-        except :
+        except:
             print('hhhhhhjjjjdjdjdjddjdjdjjdjdjdjdjdjdjdjdjddjjddjjdjdjdjdj', json_response)
             printer.warn(f'{json_response}')
         return 21600
@@ -874,9 +877,18 @@ class User():
         
         self.printer_with_id([f'风纪委员会共获取{num_case}件案例，其中有效投票{num_voted}件'], True)
         return 3600
+        
+    def check_status(self, func, value):
+        if func == 'daily_task':
+            func = value[0]
+        if func not in self.black_list:
+            return True
+        else:
+            return (not self.is_injail)
 
     async def update(self, func, value):
-        return await getattr(self, func)(*value)
+        if self.check_status(func, value):
+            return await getattr(self, func)(*value)
         
     async def daily_task(self, task_name):
         time_delay = await getattr(self, task_name)()

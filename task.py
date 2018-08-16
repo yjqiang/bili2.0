@@ -20,40 +20,24 @@ class Messenger():
             cls.instance.loop = loop
             cls.instance._observers = users
             cls.instance._var_super_user = var_super_user
-            cls.instance.dict_user_status = dict()
-            cls.instance.black_list = ['handle_1_room_activity', 'handle_1_room_TV', 'handle_1_activity_raffle', 'handle_1_TV_raffle', 'draw_lottery', 'open_silver_box', 'post_watching_history']
         return cls.instance
 
     def register(self, ob):
         print('register', ob)
         self._observers.append(ob)
 
-    def remove(self, user_id):
-        self.dict_user_status[user_id] = False
-        
-    def check_status(self, func, user_id):
-        if func not in self.black_list:
-            return True
-        else:
-            return self.dict_user_status.get(user_id, True)
-            
-    def print_blacklist(self):
-        print('小黑屋状态:', self.dict_user_status)
-
     async def notify(self, func, value, id=None):
         # print('小黑屋状态:', self.dict_user_status)
         if id is None:
             list_tasks = []
             for i, user in enumerate(self._observers):
-                if self.check_status(func, i):
-                    task = asyncio.ensure_future(user.update(func, value))
-                    list_tasks.append(task)
+                task = asyncio.ensure_future(user.update(func, value))
+                list_tasks.append(task)
             if list_tasks:
                 await asyncio.wait(list_tasks)
         elif id >= 0:
             user = self._observers[id]
-            if self.check_status(func, id):
-                return await user.update(func, value)
+            return await user.update(func, value)
         else:
             user = self._var_super_user
             answer = await user.update(func, value)

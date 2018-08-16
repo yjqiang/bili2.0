@@ -8,7 +8,7 @@ from task import Messenger, Task
 def guide_of_console():
     print('___________________________')
     print('| 欢迎使用本控制台           |')
-    print('|1 输出本次的抽奖结果统计     |')
+    print('|1 输出本次用户统计          |')
     print('|2 查看目前拥有礼物的统计     |')
     print('|3 查看持有勋章状态          |')
     print('|4 获取直播个人的基本信息     |')
@@ -21,7 +21,7 @@ def guide_of_console():
     print('|11 房间号码查看主播         |')
     # print('|12 当前拥有的扭蛋币         |')
     print('|12 开扭蛋币(只能1，10，100) |')
-    print('|14 查看小黑屋的状态         |')
+    # print('|14 查看小黑屋的状态         |')
     print('|15 检测参与正常的实物抽奖    |')
     print('￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣')
     
@@ -108,7 +108,7 @@ class Biliconsole(Messenger):
             '11': preprocess_fetch_liveuser_info,
             '12': preprocess_open_capsule,
             '13': process_watch_living_video,  # input async
-            '14': Task().print_blacklist,
+            # '14': Task().print_blacklist,
             '15': 'handle_1_room_substant',
             '16': preprocess_send_gift,
             'help': guide_of_console,
