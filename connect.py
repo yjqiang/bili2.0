@@ -50,6 +50,7 @@ class connect():
         self.roomid = roomid
         print('已经切换roomid')
         if self.danmuji is not None:
+            self.danmuji.roomid = roomid
             await self.danmuji.close_connection()
         
         

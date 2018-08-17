@@ -48,7 +48,7 @@ raffle = RaffleHandler(users, var_super_user, loop, True)
 normal_task = Task(users, var_super_user, loop)
 
 var_console = bili_console.Biliconsole(users, var_super_user, loop)
-console_thread = threading.Thread(target=var_console.controler)
+console_thread = threading.Thread(target=var_console.cmdloop)
 console_thread.start()
 normal_task.init()
 
