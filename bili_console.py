@@ -2,13 +2,13 @@
 from connect import connect
 from printer import Printer
 import asyncio
-from task import Messenger, Task
+from task import Messenger
 from cmd import Cmd
 
 
 def fetch_real_roomid(roomid):
     if roomid:
-        real_roomid = [['check_room', roomid], Task().call_right_now]
+        real_roomid = [[roomid], 'check_room', -1]
     else:
         real_roomid = connect().roomid
     return real_roomid
@@ -75,7 +75,7 @@ class Biliconsole(Messenger, Cmd):
         roomid = input('请输入要转化的房间号:')
         if not roomid:
             roomid = connect().roomid
-        self.append2list_console([['check_room', roomid], Task().call_right_now])
+        self.append2list_console([[roomid], 'check_room', -1])
         
     def do_9(self, line):
         roomid = input('请输入roomid')
@@ -92,8 +92,8 @@ class Biliconsole(Messenger, Cmd):
     def do_11(self, line):
         roomid = input('请输入roomid')
         real_roomid = fetch_real_roomid(roomid)
-        self.append2list_console([['fetch_liveuser_info', real_roomid], Task().call_right_now])
-        
+        self.append2list_console([[real_roomid], 'fetch_liveuser_info', -1])
+
     def do_12(self, line):
         count = input('请输入要开的扭蛋数目(1或10或100)')
         self.append2list_console([[count], 'open_capsule'])
@@ -101,7 +101,7 @@ class Biliconsole(Messenger, Cmd):
     def do_13(self, line):
         roomid = input('请输入roomid')
         real_roomid = fetch_real_roomid(roomid)
-        self.append2list_console([['watch_living_video', real_roomid], Task().call_right_now])
+        self.append2list_console([[real_roomid], 'watch_living_video', -1])
         
     def do_15(self, line):
         self.append2list_console([[], 'handle_1_room_substant', -1])
@@ -110,19 +110,29 @@ class Biliconsole(Messenger, Cmd):
         roomid = input('请输入roomid')
         real_roomid = fetch_real_roomid(roomid)
         num_wanted = int(input('请输入辣条数目'))
-        self.append2list_console([[real_roomid, num_wanted], Task().send_latiao])
+        self.append2list_console([[real_roomid, num_wanted], self.send_latiao])
             
     def append2list_console(self, request):
         asyncio.run_coroutine_threadsafe(self.excute_async(request), self.loop)
         
+    async def send_latiao(self, room_id, num_wanted):
+        i = 0
+        while True:
+            num_wanted = await self.notify('send_latiao', (room_id, num_wanted), i)
+            i += 1
+            if num_wanted == 0:
+                break
+            await asyncio.sleep(1)
+        
     async def excute_async(self, i):
-        print('00000000000000000000', i)
+        print('bili_console:', i)
         i.append(None)
         if isinstance(i, list):
             for j in range(len(i[0])):
                 if isinstance(i[0][j], list):
                     print('检测')
-                    i[0][j] = await i[0][j][1](*(i[0][j][0]))
+                    # i[0][j] = await i[0][j][1](*(i[0][j][0])
+                    i[0][j] = await self.notify(i[0][j][1], i[0][j][0], i[0][j][2])
             if isinstance(i[1], str):
                 await self.notify(i[1], i[0], i[2])
             else:

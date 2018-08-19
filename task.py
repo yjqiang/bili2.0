@@ -36,6 +36,8 @@ class Messenger():
             if list_tasks:
                 await asyncio.wait(list_tasks)
         elif id >= 0:
+            if id >= len(self._observers):
+                return 0
             user = self._observers[id]
             return await user.update(func, value)
         else:
@@ -100,15 +102,6 @@ class Task(Messenger):
         self.call_after('daily_task', 0, ('judge',), time_range=25)
         self.call_after('daily_task', 0, ('open_silver_box',), time_range=25)
         self.call_after('daily_task', 0, ('heartbeat',), time_range=25)
-        
-    async def send_latiao(self, room_id, num_wanted):
-        i = 0
-        while True:
-            num_wanted = await self.notify('send_latiao', (room_id, num_wanted), i)
-            i += 1
-            if num_wanted == 0:
-                break
-            await asyncio.sleep(1)
                 
     def excute_async(self, i):
         print('执行', i)
