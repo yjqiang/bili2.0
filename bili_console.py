@@ -4,6 +4,7 @@ from printer import Printer
 import asyncio
 from task import Messenger
 from cmd import Cmd
+import getopt
           
               
 class Biliconsole(Messenger, Cmd):
@@ -38,24 +39,41 @@ class Biliconsole(Messenger, Cmd):
         
     def emptyline(self):
         self.guide_of_console()
+        
+    def parse_line(self, line, key_wanted=None):
+        list_opt = getopt.getopt(line.split(), '-u:')[0]
+        if key_wanted is None:
+            return list_opt
+        value_wanted = None
+        for key, value in list_opt:
+            if key == key_wanted:
+                value_wanted = value
+        if key_wanted == '-u' and value_wanted is not None:
+            if value_wanted.isdigit():
+                value_wanted = int(value_wanted)
+            else:
+                value_wanted = None
+                
+        print('list_opt', list_opt)
+        return value_wanted
                 
     def do_1(self, line):
-        self.append2list_console([[], 'get_statistic', None])
+        self.append2list_console([[], 'get_statistic', self.parse_line(line, '-u')])
         
     def do_2(self, line):
-        self.append2list_console([[], 'fetch_bag_list', None])
+        self.append2list_console([[], 'fetch_bag_list', self.parse_line(line, '-u')])
         
     def do_3(self, line):
-        self.append2list_console([[], 'fetch_medal', None])
+        self.append2list_console([[], 'fetch_medal', self.parse_line(line, '-u')])
         
     def do_4(self, line):
-        self.append2list_console([[], 'fetch_user_info', None])
+        self.append2list_console([[], 'fetch_user_info', self.parse_line(line, '-u')])
         
     def do_5(self, line):
-        self.append2list_console([[], 'check_taskinfo', None])
+        self.append2list_console([[], 'check_taskinfo', self.parse_line(line, '-u')])
     
     def do_6(self, line):
-        self.append2list_console([[], 'TitleInfo', None])
+        self.append2list_console([[], 'TitleInfo', self.parse_line(line, '-u')])
         
     def do_7(self, line):
         msg = input('请输入要发送的信息:')
