@@ -4,14 +4,6 @@ from printer import Printer
 import asyncio
 from task import Messenger
 from cmd import Cmd
-
-
-def fetch_real_roomid(roomid):
-    if roomid:
-        real_roomid = [[roomid], 'check_room', -1]
-    else:
-        real_roomid = connect().roomid
-    return real_roomid
           
               
 class Biliconsole(Messenger, Cmd):
@@ -68,7 +60,7 @@ class Biliconsole(Messenger, Cmd):
     def do_7(self, line):
         msg = input('请输入要发送的信息:')
         roomid = input('请输入要发送的房间号:')
-        real_roomid = fetch_real_roomid(roomid)
+        real_roomid = self.fetch_real_roomid(roomid)
         self.append2list_console([[msg, real_roomid], 'send_danmu_msg_web'])
         
     def do_8(self, line):
@@ -79,7 +71,7 @@ class Biliconsole(Messenger, Cmd):
         
     def do_9(self, line):
         roomid = input('请输入roomid')
-        real_roomid = fetch_real_roomid(roomid)
+        real_roomid = self.fetch_real_roomid(roomid)
         self.append2list_console([[real_roomid], connect().reconnect])
         
     def do_10(self, line):
@@ -91,7 +83,7 @@ class Biliconsole(Messenger, Cmd):
             
     def do_11(self, line):
         roomid = input('请输入roomid')
-        real_roomid = fetch_real_roomid(roomid)
+        real_roomid = self.fetch_real_roomid(roomid)
         self.append2list_console([[real_roomid], 'fetch_liveuser_info', -1])
 
     def do_12(self, line):
@@ -100,7 +92,7 @@ class Biliconsole(Messenger, Cmd):
         
     def do_13(self, line):
         roomid = input('请输入roomid')
-        real_roomid = fetch_real_roomid(roomid)
+        real_roomid = self.fetch_real_roomid(roomid)
         self.append2list_console([[real_roomid], 'watch_living_video', -1])
         
     def do_15(self, line):
@@ -108,7 +100,7 @@ class Biliconsole(Messenger, Cmd):
         
     def do_16(self, line):
         roomid = input('请输入roomid')
-        real_roomid = fetch_real_roomid(roomid)
+        real_roomid = self.fetch_real_roomid(roomid)
         num_wanted = int(input('请输入辣条数目'))
         self.append2list_console([[real_roomid, num_wanted], self.send_latiao])
             
@@ -123,6 +115,13 @@ class Biliconsole(Messenger, Cmd):
             if num_wanted == 0:
                 break
             await asyncio.sleep(1)
+            
+    def fetch_real_roomid(self, roomid):
+        if roomid:
+            real_roomid = [[roomid], 'check_room', -1]
+        else:
+            real_roomid = connect().roomid
+        return real_roomid
         
     async def excute_async(self, i):
         print('bili_console:', i)
