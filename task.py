@@ -55,7 +55,7 @@ class RaffleHandler(Messenger):
     async def join_raffle(self):
         while True:
             raffle = await self.queue.get()
-            await asyncio.sleep(4)
+            await asyncio.sleep(3)
             list_raffle0 = [self.queue.get_nowait() for i in range(self.queue.qsize())]
             list_raffle0.append(raffle)
             list_raffle = list(set(list_raffle0))
