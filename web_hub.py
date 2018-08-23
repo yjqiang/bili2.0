@@ -111,10 +111,10 @@ class WebHub():
             print('403频繁')
         return None
 
-    async def bili_section_post(self, url, headers=None, data=None):
+    async def bili_section_post(self, url, headers=None, data=None, params=None):
         while True:
             try:
-                async with self.bili_section.post(url, headers=headers, data=data) as response:
+                async with self.bili_section.post(url, headers=headers, data=data, params=params) as response:
                     json_rsp = await self.get_json_rsp(response)
                     if json_rsp is not None:
                         return json_rsp
@@ -123,10 +123,10 @@ class WebHub():
                 print(sys.exc_info()[0], sys.exc_info()[1], url)
                 continue
 
-    async def other_session_get(self, url, headers=None, data=None):
+    async def other_session_get(self, url, headers=None, data=None, params=None):
         while True:
             try:
-                async with self.other_session.get(url, headers=headers, data=data) as response:
+                async with self.other_session.get(url, headers=headers, data=data, params=params) as response:
                     json_rsp = await self.get_json_rsp(response)
                     if json_rsp is not None:
                         return json_rsp
@@ -135,10 +135,10 @@ class WebHub():
                 print(sys.exc_info()[0], sys.exc_info()[1], url)
                 continue
                 
-    async def other_session_post(self, url, headers=None, data=None):
+    async def other_session_post(self, url, headers=None, data=None, params=None):
         while True:
             try:
-                async with self.other_session.post(url, headers=headers, data=data) as response:
+                async with self.other_session.post(url, headers=headers, data=data, params=params) as response:
                     json_rsp = await self.get_json_rsp(response)
                     if json_rsp is not None:
                         return json_rsp
@@ -147,10 +147,10 @@ class WebHub():
                 print(sys.exc_info()[0], sys.exc_info()[1], url)
                 continue
 
-    async def bili_section_get(self, url, headers=None, data=None):
+    async def bili_section_get(self, url, headers=None, data=None, params=None):
         while True:
             try:
-                async with self.bili_section.get(url, headers=headers, data=data) as response:
+                async with self.bili_section.get(url, headers=headers, data=data, params=params) as response:
                     json_rsp = await self.get_json_rsp(response)
                     if json_rsp is not None:
                         return json_rsp
@@ -159,10 +159,10 @@ class WebHub():
                 print(sys.exc_info()[0], sys.exc_info()[1], url)
                 continue
                 
-    async def session_text_get(self, url, headers=None, data=None):
+    async def session_text_get(self, url, headers=None, data=None, params=None):
         while True:
             try:
-                async with self.other_session.get(url, headers=headers, data=data) as response:
+                async with self.other_session.get(url, headers=headers, data=data, params=params) as response:
                     text_rsp = await self.get_text_rsp(response)
                     if text_rsp is not None:
                         return text_rsp
@@ -344,9 +344,8 @@ class WebHub():
         url = "https://passport.bilibili.com/api/v2/oauth2/login"
         temp_params = f'appkey={self.dict_bili["appkey"]}&password={password}&username={username}'
         sign = self.calc_sign(temp_params)
-        headers = {"Content-type": "application/x-www-form-urlencoded"}
         payload = f'appkey={self.dict_bili["appkey"]}&password={password}&username={username}&sign={sign}'
-        response = requests.post(url, data=payload, headers=headers)
+        response = requests.post(url, params=payload)
         return response
 
     def captcha_login(self, username, password):
@@ -365,9 +364,8 @@ class WebHub():
             temp_params = f'actionKey={self.dict_bili["actionKey"]}&appkey={self.dict_bili["appkey"]}&build={self.dict_bili["build"]}&captcha={captcha}&device={self.dict_bili["device"]}&mobi_app={self.dict_bili["mobi_app"]}&password={password}&platform={self.dict_bili["platform"]}&username={username}'
             sign = self.calc_sign(temp_params)
             payload = f'{temp_params}&sign={sign}'
-            headers['Content-type'] = "application/x-www-form-urlencoded"
             url = "https://passport.bilibili.com/api/v2/oauth2/login"
-            response = s.post(url, data=payload, headers=headers)
+            response = s.post(url, params=payload, headers=headers)
         return response
 
     def check_token(self):
@@ -387,9 +385,7 @@ class WebHub():
         payload = f'{params}&sign={sign}'
         # print(payload)
         url = f'https://passport.bilibili.com/api/v2/oauth2/refresh_token'
-        appheaders = self.dict_bili['appheaders'].copy()
-        appheaders['Content-type'] = "application/x-www-form-urlencoded"
-        response1 = requests.post(url, headers=appheaders, data=payload)
+        response1 = requests.post(url, headers=self.dict_bili['appheaders'], params=payload)
         return response1
 
     async def get_giftlist_of_storm(self, dic):
@@ -412,9 +408,7 @@ class WebHub():
 
     async def get_gift_of_events_web(self, room_id, text2, raffleid):
         headers = {
-            'Accept': 'application/json, text/plain, */*',
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
-            'cookie': self.dict_bili['cookie'],
+            **(self.dict_bili['pcheaders']),
             'referer': text2
         }
         pc_url = f'{self.base_url}/activity/v1/Raffle/join?roomid={room_id}&raffleId={raffleid}'
@@ -424,9 +418,7 @@ class WebHub():
 
     async def get_gift_of_events_app(self, room_id, text2, raffleid):
         headers = {
-            'Accept': 'application/json, text/plain, */*',
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
-            'cookie': self.dict_bili['cookie'],
+            **(self.dict_bili['appheaders']),
             'referer': text2
         }
         temp_params = f'access_key={self.dict_bili["access_key"]}&actionKey={self.dict_bili["actionKey"]}&appkey={self.dict_bili["appkey"]}&build={self.dict_bili["build"]}&device={self.dict_bili["device"]}&event_type=flower_rain-{raffleid}&mobi_app={self.dict_bili["mobi_app"]}&platform={self.dict_bili["platform"]}&room_id={room_id}&ts={CurrentTime()}'
@@ -453,11 +445,9 @@ class WebHub():
         url = f"{self.base_url}/gift/v4/smalltv/getAward"
         temp_params = f'access_key={self.dict_bili["access_key"]}&{self.app_params}&raffleId={raffle_id}&roomid={real_roomid}&ts={CurrentTime()}&type={raffle_type}'
         sign = self.calc_sign(temp_params)
-        appheaders = self.dict_bili['appheaders'].copy()
-        appheaders['Content-type'] = "application/x-www-form-urlencoded"
         payload = f'{temp_params}&sign={sign}'
         # print(payload)
-        response = await self.bili_section_post(url, data=payload, headers=appheaders)
+        response = await self.bili_section_post(url, params=payload, headers=self.dict_bili['appheaders'])
         # print(response)
         return response
 
@@ -484,15 +474,7 @@ class WebHub():
     
     async def get_activity_result(self, activity_roomid, activity_raffleid):
         url = f"{self.base_url}/activity/v1/Raffle/notice?roomid={activity_roomid}&raffleId={activity_raffleid}"
-        headers = {
-            'Accept': 'application/json, text/plain, */*',
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
-            'Accept-Language': 'zh-CN,zh;q=0.9',
-            'accept-encoding': 'gzip, async deflate',
-            'Host': 'api.live.bilibili.com',
-            'cookie': self.dict_bili['cookie'],
-        }
-        response = await self.bili_section_get(url, headers=headers)
+        response = await self.bili_section_get(url, headers=self.dict_bili['pcheaders'])
         return response
     
     async def get_TV_result(self, TV_roomid, TV_raffleid):
@@ -600,8 +582,10 @@ class WebHub():
 
     async def ReqGiveCoin2Av(self, video_id, num):
         url = 'https://api.bilibili.com/x/web-interface/coin/add'
-        pcheaders = self.dict_bili['pcheaders'].copy()
-        pcheaders['referer'] = f'https://www.bilibili.com/video/av{video_id}'
+        pcheaders = {
+            **(self.dict_bili['pcheaders']),
+            'referer': f'https://www.bilibili.com/video/av{video_id}'
+            }
         data = {
             'aid': video_id,
             'multiply': num,
@@ -670,10 +654,7 @@ class WebHub():
         
     async def req_check_voted(self, id):
         headers = {
-            "Host": "api.bilibili.com",
-            "Referer": f'https://www.bilibili.com/judgement/vote/{id}',
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.139 Safari/537.36",
-            "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+            **(self.dict_bili['pcheaders']),
             "Cookie": self.dict_bili['pcheaders']['cookie']
         }
         url = f'https://api.bilibili.com/x/credit/jury/juryCase?jsonp=jsonp&callback=jQuery1720{randomint()}_{CurrentTime()}&cid={id}&_={CurrentTime()}'
