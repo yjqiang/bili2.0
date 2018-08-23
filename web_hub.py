@@ -654,7 +654,7 @@ class WebHub():
     async def req_check_voted(self, id):
         headers = {
             **(self.dict_bili['pcheaders']),
-            "Cookie": self.dict_bili['pcheaders']['cookie']
+            'Referer': f'https://www.bilibili.com/judgement/vote/{id}',
         }
         url = f'https://api.bilibili.com/x/credit/jury/juryCase?jsonp=jsonp&callback=jQuery1720{randomint()}_{CurrentTime()}&cid={id}&_={CurrentTime()}'
         text_rsp = await self.session_text_get(url, headers=headers)
