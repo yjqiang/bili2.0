@@ -83,7 +83,7 @@ class WebHub():
         sign = hash.hexdigest()
         return sign
         
-    async def get_json_rsp(self, rsp):
+    async def get_json_rsp(self, rsp, url):
         if rsp.status == 200:
             # json_response = await response.json(content_type=None)
             data = await rsp.read()
@@ -100,21 +100,21 @@ class WebHub():
                     return None
             return json_rsp
         elif rsp.status == 403:
-            print('403频繁')
+            print('403频繁', url)
         return None
         
-    async def get_text_rsp(self, rsp):
+    async def get_text_rsp(self, rsp, url):
         if rsp.status == 200:
             return await rsp.text()
         elif rsp.status == 403:
-            print('403频繁')
+            print('403频繁', url)
         return None
 
     async def bili_section_post(self, url, headers=None, data=None, params=None):
         while True:
             try:
                 async with self.bili_section.post(url, headers=headers, data=data, params=params) as response:
-                    json_rsp = await self.get_json_rsp(response)
+                    json_rsp = await self.get_json_rsp(response, url)
                     if json_rsp is not None:
                         return json_rsp
             except:
@@ -126,7 +126,7 @@ class WebHub():
         while True:
             try:
                 async with self.other_session.get(url, headers=headers, data=data, params=params) as response:
-                    json_rsp = await self.get_json_rsp(response)
+                    json_rsp = await self.get_json_rsp(response, url)
                     if json_rsp is not None:
                         return json_rsp
             except:
@@ -138,7 +138,7 @@ class WebHub():
         while True:
             try:
                 async with self.other_session.post(url, headers=headers, data=data, params=params) as response:
-                    json_rsp = await self.get_json_rsp(response)
+                    json_rsp = await self.get_json_rsp(response, url)
                     if json_rsp is not None:
                         return json_rsp
             except:
@@ -150,7 +150,7 @@ class WebHub():
         while True:
             try:
                 async with self.bili_section.get(url, headers=headers, data=data, params=params) as response:
-                    json_rsp = await self.get_json_rsp(response)
+                    json_rsp = await self.get_json_rsp(response, url)
                     if json_rsp is not None:
                         return json_rsp
             except:
@@ -162,7 +162,7 @@ class WebHub():
         while True:
             try:
                 async with self.other_session.get(url, headers=headers, data=data, params=params) as response:
-                    text_rsp = await self.get_text_rsp(response)
+                    text_rsp = await self.get_text_rsp(response, url)
                     if text_rsp is not None:
                         return text_rsp
             except:
@@ -676,7 +676,7 @@ class HostWebHub(WebHub):
         self.base_url = f'http://{Host().get_host()}'
         self.headers_host = {'host': 'api.live.bilibili.com'}
     
-    async def bili_section_post(self, url, headers={}, data=None):
+    async def bili_section_post(self, url, headers={}, data=None, parama=None):
         i = 5
         while True:
             i -= 1
@@ -688,8 +688,8 @@ class HostWebHub(WebHub):
                 print('ip切换为', url)
                 i = 5
             try:
-                async with self.bili_section.post(url, headers={**headers, **(self.headers_host)}, data=data) as response:
-                    json_rsp = await self.get_json_rsp(response)
+                async with self.bili_section.post(url, headers={**headers, **(self.headers_host)}, data=data, params=parama) as response:
+                    json_rsp = await self.get_json_rsp(response, url)
                     if json_rsp is not None:
                         return json_rsp
                     elif response.status == 403:
@@ -700,7 +700,7 @@ class HostWebHub(WebHub):
                 print(sys.exc_info()[0], sys.exc_info()[1], url, self.user_id)
                 continue
 
-    async def bili_section_get(self, url, headers={}, data=None):
+    async def bili_section_get(self, url, headers={}, data=None, params=None):
         i = 5
         while True:
             i -= 1
@@ -712,8 +712,8 @@ class HostWebHub(WebHub):
                 print('ip切换为', url)
                 i = 5
             try:
-                async with self.bili_section.get(url, headers={**headers, **(self.headers_host)}, data=data) as response:
-                    json_rsp = await self.get_json_rsp(response)
+                async with self.bili_section.get(url, headers={**headers, **(self.headers_host)}, data=data, params=params) as response:
+                    json_rsp = await self.get_json_rsp(response, url)
                     if json_rsp is not None:
                         return json_rsp
                     elif response.status == 403:
