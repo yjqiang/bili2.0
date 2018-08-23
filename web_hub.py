@@ -1,6 +1,5 @@
 import sys
 import hashlib
-import datetime
 import time
 import requests
 import base64
@@ -13,12 +12,12 @@ from cdn import Host
 
 
 def CurrentTime():
-    currenttime = int(time.mktime(datetime.datetime.now().timetuple()))
+    currenttime = int(time.time())
     return str(currenttime)
 
 
 def randomint():
-    return ''.join(str(random.choice(range(10))) for _ in range(17))
+    return ''.join(str(random.randint(0, 9)) for _ in range(17))
 
 
 def cnn_captcha(img):

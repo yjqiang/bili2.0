@@ -214,7 +214,6 @@ class User():
         return True
     
     async def post_watching_history(self, roomid):
-        print('进入', roomid)
         await self.webhub.post_watching_history(roomid)
                                     
     async def fetch_capsule_info(self):
