@@ -29,18 +29,6 @@ def cnn_captcha(img):
     return captcha
 
 
-async def replay_request(code):
-    if code == 1024:
-        print('b站炸了，暂停所有请求1.5s后重试，请耐心等待')
-        await asyncio.sleep(1.5)
-        return True
-    if code == 0:
-        return False
-    else:
-        # print(json_response)
-        return False
-
-
 class WebHub():
     base_url = 'https://api.live.bilibili.com'
     
