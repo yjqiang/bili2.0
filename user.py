@@ -15,10 +15,17 @@ import json
 from PIL import Image
 from io import BytesIO
 import utils
+from datetime import datetime
 
 
 class User():
-    black_list = {'handle_1_room_activity', 'handle_1_room_TV', 'handle_1_activity_raffle', 'handle_1_TV_raffle', 'draw_lottery', 'open_silver_box', 'post_watching_history'}
+    black_list = {
+        'handle_1_activity_raffle': 2,
+        'handle_1_TV_raffle': 2,
+        'handle_1_substantial_raffle': 2,
+        'open_silver_box': 1,
+        'post_watching_history': 2
+        }
     
     def __init__(self, user_id, dict_user, dict_bili, task_control, high_concurency):
         if high_concurency:
@@ -125,7 +132,7 @@ class User():
             elif json_rsp['code'] == 400:
                 self.printer_with_id(["# 宝箱开启中返回了小黑屋提示"])
                 self.fall_in_jail()
-                return 6 * 3600
+                return 0
                 break
             else:
                 self.printer_with_id(["# 继续等待宝箱冷却..."])
@@ -879,16 +886,35 @@ class User():
         return 3600
         
     def check_status(self, func, value):
+        now = datetime.now()
+        hour_minute = now.hour * 60 + now.minute
+        # 0点到3点 sleep模式
+        if hour_minute < 180:
+            # self.printer_with_id(['sleep模式'], True)
+            if func == 'daily_task':
+                return 1
+            else:
+                return self.black_list.get(func, 0)
+        # 1 sleep
+        # 2 drop
+        # 0 True
         if func == 'daily_task':
             func = value[0]
-        if func not in self.black_list:
-            return True
+        if self.is_injail:
+            return self.black_list.get(func, 0)
         else:
-            return (not self.is_injail)
-
+            return 0
+    
     async def update(self, func, value):
-        if self.check_status(func, value):
+        status = self.check_status(func, value)
+        if not status:
             return await getattr(self, func)(*value)
+        if status == 1:
+            time_delay = 1800
+            Task().call_after(func, time_delay, value, self.user_id)
+            return None
+        elif status == 2:
+            return None
         
     async def daily_task(self, task_name):
         time_delay = await getattr(self, task_name)()
