@@ -55,7 +55,6 @@ class User():
                 if not self.check_token():
                     print('请联系作者!!!!!!!!!')
                     return self.login()
-        self.refresh_token()
         return True
         
     def check_token(self):
