@@ -35,16 +35,68 @@ class User():
         self.statistics = Statistics()
         self.user_id = user_id
         self.user_name = dict_user['username']
+        self.user_password = dict_user['password']
         self.is_injail = False
         self.task_control = task_control
         if not dict_user['cookie']:
-            self.login(dict_user['username'], dict_user['password'])
+            self.login()
+        else:
+            self.handle_login_status()
             
     def printer_with_id(self, list_msg, tag_time=False):
         list_msg[0] += f'(用户id:{self.user_id}  用户名:{self.user_name})'
         printer.info(list_msg, tag_time)
         
-    def login(self, username, password):
+    def handle_login_status(self):
+        if not self.check_token():
+            if not self.refresh_token():
+                return self.login()
+            else:
+                if not self.check_token():
+                    print('请联系作者!!!!!!!!!')
+                    return self.login()
+        self.refresh_token()
+        return True
+        
+    def check_token(self):
+        response = self.webhub.check_token()
+        json_response = response.json()
+        if not json_response['code'] and 'mid' in json_response['data']:
+            print('token有效期检查: 仍有效')
+            # print(json_response)
+            return True
+        print('token可能过期', json_response)
+        return False
+                
+    def refresh_token(self):
+        # return
+        response = self.webhub.refresh_token()
+        json_response = response.json()
+        # print(json_response)
+        
+        if not json_response['code'] and 'mid' in json_response['data']['token_info']:
+            print('token刷新成功')
+            data = json_response['data']
+            access_key = data['token_info']['access_token']
+            refresh_token = data['token_info']['refresh_token']
+            cookie = data['cookie_info']['cookies']
+            generator_cookie = (f'{i["name"]}={i["value"]}' for i in cookie)
+            cookie_format = ';'.join(generator_cookie)
+            dic_saved_session = {
+                'csrf': cookie[0]['value'],
+                'access_key': access_key,
+                'refresh_token': refresh_token,
+                'cookie': cookie_format
+                }
+            self.write_user(dic_saved_session)
+            # 更新token信息
+            return True
+        print('联系作者(token刷新失败，cookie过期)', json_response)
+        return False
+        
+    def login(self):
+        username = self.user_name
+        password = self.user_password
         response = self.webhub.fetch_key()
         value = response.json()['data']
         key = value['key']
