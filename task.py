@@ -74,14 +74,13 @@ class RaffleHandler(Messenger):
             Task().call_after('post_watching_history', 0, (room_id,), time_range=60)
             await self.notify('handle_1_room_TV', (room_id,), -1)
         
-    async def handle_captain_raffle(self, user_name):
-        room_id = await self.notify('find_live_user_roomid', (user_name,), -1)
+    async def handle_guard_raffle(self, room_id):
         if (await self.notify('check_if_normal_room', (room_id,), -1)):
             Task().call_after('post_watching_history', 0, (room_id,), time_range=60)
-            await self.notify('handle_1_room_captain', (room_id,), -1)
+            await self.notify('handle_1_room_guard', (room_id,), -1)
     
     async def handle_1_roomid_raffle(self, i):
-        if i[1] in ['handle_TV_raffle', 'handle_captain_raffle']:
+        if i[1] in ['handle_TV_raffle', 'handle_guard_raffle']:
             await getattr(self, i[1])(*i[0])
         else:
             print('hhjjkskddrsfvsfdfvdfvvfdvdvdfdfffdfsvh', i)

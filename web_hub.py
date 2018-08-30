@@ -438,11 +438,16 @@ class WebHub():
         # print(response)
         return response
 
-    async def get_gift_of_captain(self, roomid, id):
-        join_url = f"{self.base_url}/lottery/v1/lottery/join"
-        payload = {"roomid": roomid, "id": id, "type": "guard", "csrf_token": ''}
-        response2 = await self.bili_section_post(join_url, data=payload, headers=self.dict_bili['pcheaders'])
-        return response2
+    async def get_gift_of_guard(self, roomid, id):
+        url = f"{self.base_url}/lottery/v2/Lottery/join"
+        data = {
+            'roomid': roomid,
+            'id': id,
+            'type': 'guard',
+            'csrf_token': self.dict_bili['csrf']
+        }
+        json_rsp = await self.bili_section_post(url, data=data, headers=self.dict_bili['pcheaders'])
+        return json_rsp
     
     async def get_giftlist_of_events(self, room_id):
         url = f'{self.base_url}/activity/v1/Raffle/check?roomid={room_id}'
@@ -454,10 +459,10 @@ class WebHub():
         response = await self.bili_section_get(url)
         return response
 
-    async def get_giftlist_of_captain(self, roomid):
-        true_url = f'{self.base_url}/lottery/v1/lottery/check?roomid={roomid}'
-        response1 = await self.bili_section_get(true_url)
-        return response1
+    async def get_giftlist_of_guard(self, roomid):
+        url = f'{self.base_url}/lottery/v1/Lottery/check_guard?roomid={roomid}'
+        json_rsp = await self.bili_section_get(url, headers=self.dict_bili['pcheaders'])
+        return json_rsp
     
     async def get_activity_result(self, activity_roomid, activity_raffleid):
         url = f"{self.base_url}/activity/v1/Raffle/notice?roomid={activity_roomid}&raffleId={activity_raffleid}"

@@ -23,6 +23,7 @@ class User():
         'handle_1_activity_raffle': 2,
         'handle_1_TV_raffle': 2,
         'handle_1_substantial_raffle': 2,
+        'handle_1_guard_raffle': 2,
         'open_silver_box': 1,
         'post_watching_history': 2
         }
@@ -238,13 +239,14 @@ class User():
             print(json_response2)
             return True
                 
-    async def handle_1_captain_raffle(self, roomid, raffleid):
+    async def handle_1_guard_raffle(self, roomid, raffleid):
         self.statistics.append_to_captainlist()
-        json_response2 = await self.webhub.get_gift_of_captain(roomid, raffleid)
+        json_response2 = await self.webhub.get_gift_of_guard(roomid, raffleid)
+        print(json_response2)
         if not json_response2['code']:
             print("# 获取到房间 %s 的总督奖励: " % (roomid), json_response2['data']['message'])
             # print(json_response2)
-            self.statistics.append_to_captainlist()
+            self.statistics.append_to_guardlist()
         else:
             print(json_response2)
         return True

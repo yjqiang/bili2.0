@@ -6,7 +6,6 @@ import asyncio
 import websockets
 import struct
 import json
-import re
 import sys
 
 
@@ -187,13 +186,14 @@ class bilibiliClient():
                 RaffleHandler().push2queue((real_roomid,), 'handle_TV_raffle')
                 
         elif cmd == 'GUARD_MSG':
-            a = re.compile(r"(?<=在主播 )\S+(?= 的直播间开通了总督)")
-            print(dic)
-            res = re.search(a, dic['msg'])
-            if res is not None:
-                name = str(res.group())
-                printer.info([f'{self.area_id}号弹幕监控检测到{name:^9}的总督'], True)
-                RaffleHandler().push2queue((name,), 'handle_captain_raffle')
+            if 'buy_type' in dic and dic['buy_type'] == 1:
+                roomid = dic['roomid']
+                printer.info([f'{self.area_id}号弹幕监控检测到{roomid:^9}的总督'], True)
+                RaffleHandler().push2queue((roomid,), 'handle_guard_raffle')
+            if 'buy_type' in dic and dic['buy_type'] != 1:
+                print(dic)
+                printer.info([f'{self.area_id}号弹幕监控检测到{self.roomid:^9}的提督/舰长'], True)
+                RaffleHandler().push2queue((self.roomid,), 'handle_guard_raffle')
                   
                     
                     
