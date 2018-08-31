@@ -9,19 +9,15 @@ import json
 import sys
 
 
-class bilibiliClient():
+class BaseDanmu():
     
-    __slots__ = ('ws', 'roomid', 'area_id', 'loop_func')
+    __slots__ = ('ws', 'roomid', 'area_id')
     structer = struct.Struct('!I2H2I')
 
     def __init__(self, roomid=None, area_id=None):
         self.ws = None
         self.roomid = roomid
         self.area_id = area_id
-        if area_id == 0:
-            self.loop_func = self.printDanMu
-        else:
-            self.loop_func = self.DanMuraffle
 
     # 待确认
     async def close_connection(self):
@@ -122,7 +118,7 @@ class bilibiliClient():
                 elif opt == 5:
                     messages = remain_data.decode('utf-8')
                     dic = json.loads(messages)
-                    state = self.loop_func(dic)
+                    state = self.handle_danmu(dic)
                 # 握手确认
                 elif opt == 8:
                     printer.info([f'{self.area_id}号弹幕监控进入房间（{self.roomid}）'], True)
@@ -132,16 +128,23 @@ class bilibiliClient():
                 if state is not None and not state:
                     return
                 len_read += len_data
+                
+    def handle_danmu(self, dic):
+        return True
     
-    def printDanMu(self, dic):
+    
+class DanmuPrinter(BaseDanmu):
+    def handle_danmu(self, dic):
         cmd = dic['cmd']
         # print(cmd)
         if cmd == 'DANMU_MSG':
             # print(dic)
             Printer().print_danmu(dic)
             return True
-            
-    def DanMuraffle(self, dic):
+
+
+class DanmuRaffleHandler(BaseDanmu):
+    def handle_danmu(self, dic):
         cmd = dic['cmd']
         
         if cmd == 'PREPARING':
@@ -187,6 +190,7 @@ class bilibiliClient():
                 
         elif cmd == 'GUARD_MSG':
             if 'buy_type' in dic and dic['buy_type'] == 1:
+                print(dic)
                 roomid = dic['roomid']
                 printer.info([f'{self.area_id}号弹幕监控检测到{roomid:^9}的总督'], True)
                 RaffleHandler().push2queue((roomid,), 'handle_guard_raffle')

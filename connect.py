@@ -1,5 +1,5 @@
 import asyncio
-from bilibiliCilent import bilibiliClient
+import bilibiliCilent
 from task import Task
 import datetime
 import time
@@ -23,7 +23,7 @@ class connect():
         return cls.instance
         
     async def run(self):
-        self.danmuji = bilibiliClient(self.roomid, 0)
+        self.danmuji = bilibiliCilent.DanmuPrinter(self.roomid, 0)
         while True:
             print('# 正在启动直播监控弹幕姬')
             time_start = int(CurrentTime())
@@ -61,7 +61,7 @@ class RaffleConnect():
         self.areaid = areaid
         
     async def run(self):
-        self.danmuji = bilibiliClient(self.roomid, self.areaid)
+        self.danmuji = bilibiliCilent.DanmuRaffleHandler(self.roomid, self.areaid)
         while True:
             self.danmuji.roomid = await Task().call_right_now('get_one', self.areaid)
             printer.info(['# 正在启动抽奖监控弹幕姬'], True)
