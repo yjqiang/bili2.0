@@ -240,7 +240,6 @@ class User():
             return True
                 
     async def handle_1_guard_raffle(self, roomid, raffleid):
-        self.statistics.append_to_captainlist()
         json_response2 = await self.webhub.get_gift_of_guard(roomid, raffleid)
         print(json_response2)
         if not json_response2['code']:

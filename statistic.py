@@ -27,7 +27,7 @@ class Statistics:
     def append_to_TVlist(self):
         self.append2joined_raffle('电视(合计)')
         
-    def append_to_captainlist(self):
+    def append_to_guardlist(self):
         self.append2joined_raffle('总督(合计)')
         
     def append2joined_raffle(self, type, num=1):
