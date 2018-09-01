@@ -69,7 +69,6 @@ class User():
         return False
                 
     def refresh_token(self):
-        # return
         response = self.webhub.refresh_token()
         json_response = response.json()
         # print(json_response)
@@ -812,7 +811,7 @@ class User():
     
     async def GetVideoExp(self, list_topvideo):
         print('开始获取视频观看经验')
-        aid = list_topvideo[random.randint(0, 19)]
+        aid = random.choice(list_topvideo)
         cid = await self.GetVideoCid(aid)
         await self.webhub.Heartbeat(aid, cid)
     
@@ -827,7 +826,7 @@ class User():
     
     async def GetVideoShareExp(self, list_topvideo):
         print('开始获取视频分享经验')
-        aid = list_topvideo[random.randint(0, 19)]
+        aid = random.choice(list_topvideo)
         await self.webhub.DailyVideoShare(aid)
     
     async def BiliMainTask(self):
