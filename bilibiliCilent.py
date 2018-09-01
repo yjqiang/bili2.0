@@ -3,7 +3,7 @@ from printer import Printer
 from task import RaffleHandler
 from task import Task
 import asyncio
-import websockets
+import aiohttp
 import struct
 import json
 import sys
@@ -11,10 +11,11 @@ import sys
 
 class BaseDanmu():
     
-    __slots__ = ('ws', 'roomid', 'area_id')
+    __slots__ = ('ws', 'roomid', 'area_id', 'session')
     structer = struct.Struct('!I2H2I')
 
     def __init__(self, roomid=None, area_id=None):
+        self.session = aiohttp.ClientSession()
         self.ws = None
         self.roomid = roomid
         self.area_id = area_id
@@ -41,7 +42,7 @@ class BaseDanmu():
     async def connectServer(self):
         try:
             url = 'wss://broadcastlv.chat.bilibili.com/sub'
-            self.ws = await asyncio.wait_for(websockets.connect(url), timeout=3)
+            self.ws = await asyncio.wait_for(self.session.ws_connect(url), timeout=3)
         except:
             print("# 连接无法建立，请检查本地网络状况")
             print(sys.exc_info()[0], sys.exc_info()[1])
@@ -66,10 +67,7 @@ class BaseDanmu():
         header = self.structer.pack(len_data, len_header, ver, opt, seq)
         data = header + remain_data
         try:
-            await self.ws.send(data)
-        except websockets.exceptions.ConnectionClosed:
-            print("# 主动关闭或者远端主动关闭.")
-            return False
+            await self.ws.send_bytes(data)
         except asyncio.CancelledError:
             printer.info([f'{self.area_id}号弹幕监控发送模块主动取消'], True)
             return False
@@ -81,21 +79,16 @@ class BaseDanmu():
     async def ReadSocketData(self):
         bytes_data = None
         try:
-            bytes_data = await asyncio.wait_for(self.ws.recv(), timeout=35.0)
+            msg = await asyncio.wait_for(self.ws.receive(), timeout=35.0)
+            bytes_data = msg.data
         except asyncio.TimeoutError:
             print('# 由于心跳包30s一次，但是发现35内没有收到任何包，说明已经悄悄失联了，主动断开')
             return None
-        except websockets.exceptions.ConnectionClosed:
-            print("# 主动关闭或者远端主动关闭")
-            return None
         except:
-            # websockets.exceptions.ConnectionClosed'>
             print(sys.exc_info()[0], sys.exc_info()[1])
             print('请联系开发者')
             return None
-        # print(tmp)
-           
-        # print('测试0', bytes_data)
+        
         return bytes_data
     
     async def ReceiveMessageLoop(self):
