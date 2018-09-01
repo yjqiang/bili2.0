@@ -943,6 +943,7 @@ class User():
         hour_minute = now.hour * 60 + now.minute
         # 0点到3点 sleep模式
         if hour_minute < 180:
+            self.is_injail = False
             # self.printer_with_id(['sleep模式'], True)
             if func == 'daily_task':
                 return 1
