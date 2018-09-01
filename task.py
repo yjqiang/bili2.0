@@ -95,7 +95,6 @@ class Task(Messenger):
         self.call_after('daily_task', 0, ('Daily_bag',), time_range=25)
         self.call_after('daily_task', 0, ('Daily_Task',), time_range=25)
         self.call_after('daily_task', 0, ('link_sign',), time_range=25)
-        # self.call_after('daily_task', 0, ('send_gift',), time_range=25)
         # self.call_after('daily_task', 0, ('auto_send_gift',), time_range=25)
         self.call_after('daily_task', 0, ('BiliMainTask',), time_range=25)
         self.call_after('daily_task', 0, ('judge',), time_range=25)

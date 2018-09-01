@@ -145,7 +145,8 @@ class User():
         
     async def get_statistic(self):
         await asyncio.sleep(0)
-        self.printer_with_id([f'小黑屋状态:{self.is_injail}  (True代表进了小黑屋)'], True)
+        status = '恭喜中奖' if self.is_injail else '未进入小黑屋'
+        self.printer_with_id([f'小黑屋状态: {status}'], True)
         self.statistics.getlist()
         self.statistics.getresult()
          
@@ -155,9 +156,10 @@ class User():
         self.printer_with_id(['心跳包(5分钟左右间隔)'], True)
         json_response = await self.webhub.pcpost_heartbeat()
         # print(json_response)
-        json_response = await self.webhub.heart_gift()
-        if json_response['code'] == 400:
-            self.fall_in_jail()
+        if not self.is_injail:
+            json_response = await self.webhub.heart_gift()
+            if json_response['code'] == 400:
+                self.fall_in_jail()
         return 260
         # print(json_response)
 
