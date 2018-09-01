@@ -701,7 +701,7 @@ class User():
         self.printer_with_id([f'一共送出{sum}个辣条'], True)
         return num_wanted - sum
     
-    async def send_gift(self):
+    async def send_expiring_gift(self):
         if self.task_control['clean-expiring-gift']:
             argvs = await self.fetch_bag_list(show=False)
             roomID = self.task_control['clean-expiring-gift2room']
@@ -728,15 +728,12 @@ class User():
                 print('未发现即将过期的礼物')
         return 21600
     
-    async def auto_send_gift(self):
-        # await utils.WearingMedalInfo()
-        # return
+    async def send_medal_gift(self):
         list_medal = []
         if self.task_control['send2wearing-medal']:
             list_medal = await self.WearingMedalInfo()
             if not list_medal:
                 print('暂未佩戴任何勋章')
-                # await BiliTimer.append2list_jobs(auto_send_gift, 21600)
         if self.task_control['send2medal']:
             list_medal += await self.fetch_medal(False, self.task_control['send2medal'])
         # print(list_medal)
@@ -750,8 +747,11 @@ class User():
             if (gift_id not in [4, 3, 9, 10]) and left_time is not None:
                 list_gift.append(i[:3])
         await self.full_intimate(list_gift, list_medal)
-                
-        # self.printer_with_id(["# 自动送礼共送出亲密度为%s的礼物" % int(calculate)])
+        return 21600
+        
+    async def auto_send_gift(self):
+        await self.send_expiring_gift()
+        await self.send_medal_gift()
         return 21600
     
     async def full_intimate(self, list_gift, list_medal):
