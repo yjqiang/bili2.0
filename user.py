@@ -750,8 +750,8 @@ class User():
         return 21600
         
     async def auto_send_gift(self):
-        await self.send_expiring_gift()
         await self.send_medal_gift()
+        await self.send_expiring_gift()
         return 21600
     
     async def full_intimate(self, list_gift, list_medal):
