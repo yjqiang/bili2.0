@@ -946,28 +946,33 @@ class User():
             self.is_injail = False
             # self.printer_with_id(['sleep模式'], True)
             if func == 'daily_task':
-                return 1
+                seconds = (3 - now.hour - 1) * 3600 + (60 - now.minute - 1) * 60 + (60 - now.second)
+                sleeptime = seconds + random.uniform(0, 30)
+                return 1, sleeptime
             else:
-                return self.black_list.get(func, 0)
+                return self.black_list.get(func, 0), now
         # 1 sleep
         # 2 drop
         # 0 True
         if func == 'daily_task':
             func = value[0]
         if self.is_injail:
-            return self.black_list.get(func, 0)
+            return self.black_list.get(func, 0), 1800
         else:
-            return 0
+            return 0, None
     
     async def update(self, func, value):
-        status = self.check_status(func, value)
+        status, sleeptime = self.check_status(func, value)
         if not status:
             return await getattr(self, func)(*value)
         if status == 1:
-            time_delay = 1800
+            self.printer_with_id([f'sleep模式, 推迟执行{func} {value}'], True)
+            # 防止负数，不过理论上应该不会的
+            time_delay = max(0, sleeptime)
             Task().call_after(func, time_delay, value, self.user_id)
             return None
         elif status == 2:
+            self.printer_with_id([f'drop模式, 不执行{func} {value}'], True)
             return None
         
     async def daily_task(self, task_name):
