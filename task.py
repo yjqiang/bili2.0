@@ -1,11 +1,11 @@
 import time
-import datetime
 import asyncio
 import random
+from datetime import datetime
 
 
 def CurrentTime():
-    currenttime = int(time.mktime(datetime.datetime.now().timetuple()))
+    currenttime = int(time.time())
     return currenttime
 
 
@@ -100,7 +100,8 @@ class Task(Messenger):
         self.call_after('daily_task', 0, ('judge',), time_range=25)
         self.call_after('daily_task', 0, ('open_silver_box',), time_range=25)
         self.call_after('daily_task', 0, ('heartbeat',), time_range=25)
-                
+        self.call_after('daily_task', 0, ('fetch_heart_gift',), time_range=25)
+                        
     def excute_async(self, i):
         print('执行', i)
         asyncio.ensure_future(self.notify(*i))
@@ -122,5 +123,42 @@ class Task(Messenger):
     async def call_right_now(self, func, value, id=-1):
         # print(func, value)
         return (await self.notify(func, (value,), id))
+        
+        
+class StateTask(Messenger):
+    def wake_up_all(self):
+        for user in (self._observers):
+            user.wake_up()
+            
+    def release_all(self):
+        for user in (self._observers):
+            user.out_of_jail()
+            
+    def sleep_all(self):
+        for user in (self._observers):
+            user.go_to_bed()
+            
+    async def run_workstate(self):
+        while True:
+            await asyncio.sleep(4 * 3600)
+            # await asyncio.sleep(120)
+            self.release_all()
+            
+    async def run_timestate(self):
+        while True:
+            sleeptime = 0
+            now = datetime.now()
+            if now.hour * 60 + now.minute < 180:
+                self.sleep_all()
+                seconds = (3 - now.hour - 1) * 3600 + (60 - now.minute - 1) * 60 + (60 - now.second)
+                # 防止时间卡得过死
+                sleeptime = seconds + random.uniform(60, 90)
+                sleeptime = max(0, seconds)
+            else:
+                self.wake_up_all()
+                seconds = (24 - now.hour - 1) * 3600 + (60 - now.minute - 1) * 60 + (60 - now.second)
+                sleeptime = seconds + random.uniform(60, 90)
+            await asyncio.sleep(sleeptime)
+            
 
 

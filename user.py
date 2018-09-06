@@ -15,19 +15,11 @@ import json
 from PIL import Image
 from io import BytesIO
 import utils
-from datetime import datetime
+from states import UserStates
 
 
 class User():
-    black_list = {
-        'handle_1_activity_raffle': 2,
-        'handle_1_TV_raffle': 2,
-        'handle_1_substantial_raffle': 2,
-        'handle_1_guard_raffle': 2,
-        'open_silver_box': 1,
-        'post_watching_history': 2
-        }
-    
+
     def __init__(self, user_id, dict_user, dict_bili, task_control, high_concurency):
         if high_concurency:
             self.webhub = HostWebHub(user_id, dict_user, dict_bili)
@@ -37,8 +29,8 @@ class User():
         self.user_id = user_id
         self.user_name = dict_user['username']
         self.user_password = dict_user['password']
-        self.is_injail = False
         self.task_control = task_control
+        self.state = UserStates(user_id, self.user_name)
         if not dict_user['cookie']:
             self.login()
         else:
@@ -47,6 +39,25 @@ class User():
     def printer_with_id(self, list_msg, tag_time=False):
         list_msg[0] += f'(用户id:{self.user_id}  用户名:{self.user_name})'
         printer.info(list_msg, tag_time)
+        
+    def go_to_bed(self):
+        self.state.go_to_bed()
+        
+    def wake_up(self):
+        self.state.wake_up()
+              
+    def fall_in_jail(self):
+        self.state.fall_in_jail()
+        self.printer_with_id([f'抽奖脚本检测{self.user_id}为小黑屋'], True)
+        
+    def out_of_jail(self):
+        self.state.out_of_jail()
+        
+    def print_state(self):
+        return self.state.print_state()
+        
+    def check_status(self, func, values):
+        return self.state.check_status(func, values)
         
     def handle_login_status(self):
         if not self.check_token():
@@ -134,19 +145,16 @@ class User():
         else:
             print("[{}] 登录失败,错误信息为:{}".format(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), json_rsp))
             return False
-            
-    def fall_in_jail(self):
-        self.is_injail = True
-        self.printer_with_id([f'抽奖脚本检测{self.user_id}为小黑屋'], True)
-                
+                            
     def write_user(self, dict_new):
         self.webhub.set_status(dict_new)
         ConfigLoader().write_user(dict_new, self.user_id)
         
     async def get_statistic(self):
         await asyncio.sleep(0)
-        status = '恭喜中奖' if self.is_injail else '未进入小黑屋'
-        self.printer_with_id([f'小黑屋状态: {status}'], True)
+        work_state, time_state = self.print_state()
+        self.printer_with_id([f'小黑屋状态: {work_state}'], True)
+        self.printer_with_id([f'工作状态: {time_state}'], True)
         self.statistics.getlist()
         self.statistics.getresult()
          
@@ -156,12 +164,14 @@ class User():
         self.printer_with_id(['心跳包(5分钟左右间隔)'], True)
         json_response = await self.webhub.pcpost_heartbeat()
         # print(json_response)
-        if not self.is_injail:
-            json_response = await self.webhub.heart_gift()
-            if json_response['code'] == 400:
-                self.fall_in_jail()
         return 260
         # print(json_response)
+    
+    async def fetch_heart_gift(self):
+        json_response = await self.webhub.heart_gift()
+        if json_response['code'] == 400:
+            self.fall_in_jail()
+        return 260
 
     async def open_silver_box(self):
         while True:
@@ -937,43 +947,11 @@ class User():
         
         self.printer_with_id([f'风纪委员会共获取{num_case}件案例，其中有效投票{num_voted}件'], True)
         return 3600
-        
-    def check_status(self, func, value):
-        now = datetime.now()
-        hour_minute = now.hour * 60 + now.minute
-        # 0点到3点 sleep模式
-        if hour_minute < 180:
-            self.is_injail = False
-            # self.printer_with_id(['sleep模式'], True)
-            if func == 'daily_task':
-                seconds = (3 - now.hour - 1) * 3600 + (60 - now.minute - 1) * 60 + (60 - now.second)
-                sleeptime = seconds + random.uniform(0, 30)
-                return 1, sleeptime
-            else:
-                return self.black_list.get(func, 0), now
-        # 1 sleep
-        # 2 drop
-        # 0 True
-        if func == 'daily_task':
-            func = value[0]
-        if self.is_injail:
-            return self.black_list.get(func, 0), 1800
-        else:
-            return 0, None
-    
-    async def update(self, func, value):
-        status, sleeptime = self.check_status(func, value)
+            
+    async def update(self, func, values):
+        status = self.check_status(func, values)
         if not status:
-            return await getattr(self, func)(*value)
-        if status == 1:
-            self.printer_with_id([f'sleep模式, 推迟执行{func} {value}'], True)
-            # 防止负数，不过理论上应该不会的
-            time_delay = max(0, sleeptime)
-            Task().call_after(func, time_delay, value, self.user_id)
-            return None
-        elif status == 2:
-            self.printer_with_id([f'drop模式, 不执行{func} {value}'], True)
-            return None
+            return await getattr(self, func)(*values)
         
     async def daily_task(self, task_name):
         time_delay = await getattr(self, task_name)()

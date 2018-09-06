@@ -1,5 +1,5 @@
 from config_loader import ConfigLoader
-from task import RaffleHandler, Task
+from task import RaffleHandler, Task, StateTask
 import os
 import sys
 from user import User
@@ -46,6 +46,7 @@ list_raffle_connection_task = [i.run() for i in list_raffle_connection]
 var_super_user = SuperUser(users[0])
 raffle = RaffleHandler(users, var_super_user, loop, True)
 normal_task = Task(users, var_super_user, loop)
+state_task = StateTask(users, var_super_user, loop)
 
 var_console = bili_console.Biliconsole(users, var_super_user, loop)
 console_thread = threading.Thread(target=var_console.cmdloop)
@@ -56,6 +57,8 @@ tasks = [
     raffle.join_raffle(),
     # normal_task.heartbeat(),
     danmu_connection.run(),
+    state_task.run_workstate(),
+    state_task.run_timestate()
     # normal_task.run(),
     # var_console.run()
 ]
