@@ -47,32 +47,53 @@ class JailState(BaseState):
             return self.black_list.get(value[0], 0), 1800
         else:
             return self.black_list.get(func, 0), 1800
+
    
-                     
 class FreeState(BaseState):
     def check_status(self, func, value):
         # print('因为是个自由人')
         return 0, None
+   
+                     
+class LoginState(BaseState):
+    def check_status(self):
+        # print('因为已经正常登陆')
+        return True
 
+                
+class LogoutState(BaseState):
+    def check_status(self):
+        # print('因为未正常登陆')
+        return False
+        
                 
 class UserStates():
     state_night = NightState()
     state_day = DayState()
     state_jail = JailState()
     state_free = FreeState()
+    state_login = LoginState()
+    state_logout = LogoutState()
     
     def __init__(self, user_id, user_name):
         self.time_state = self.state_day
         self.work_state = self.state_free
+        self.log_state = self.state_login
         self.user_id = user_id
         self.user_name = user_name
         self.delay_tasks = []
+        self.delay_requests = []
                     
     def clean_delay_tasks(self):
         for func, values in self.delay_tasks:
             time_delay = random.uniform(0, 30)
             Task().call_after(func, time_delay, values, self.user_id)
         del self.delay_tasks[:]
+        
+    def clean_delay_requests(self):
+        for future in self.delay_requests:
+            future.set_result(True)
+        del self.delay_requests[:]
 
     def go_to_bed(self):
         # print('{休眠}')
@@ -91,6 +112,15 @@ class UserStates():
         # print('{自由}')
         self.work_state = self.state_free
         self.clean_delay_tasks()
+        
+    def logout(self):
+        print('{未登陆}')
+        self.log_state = self.state_logout
+        
+    def login(self):
+        print('{已经登陆}')
+        self.log_state = self.state_login
+        self.clean_delay_requests()
         
     def printer_with_id(self, list_msg, tag_time=False):
         list_msg[0] += f'(用户id:{self.user_id}  用户名:{self.user_name})'
@@ -121,8 +151,11 @@ class UserStates():
             return 2
         return 0
         
-    async def handle_logout(self):
-        if True:
+    async def check_log_state(self, request):
+        # print('正在检查', request)
+        code = self.log_state.check_status()
+        if not code:
             future = asyncio.Future()
-            self.lists.append(future)
+            self.delay_requests.append(future)
             await future
+        return code

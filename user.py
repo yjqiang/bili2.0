@@ -59,6 +59,27 @@ class User():
     def check_status(self, func, values):
         return self.state.check_status(func, values)
         
+    async def online_request(self, func, *args):
+        rsp = await func(*args)
+        code = await self.state.check_log_state(func)
+        # print(rsp)
+        # 未登陆且未处理
+        if rsp == 3 and code:
+            self.printer_with_id([f'判定出现了登陆失败，且未处理'], True)
+            self.state.logout()
+            # login
+            self.handle_login_status()
+            await asyncio.sleep(10)
+            print(self.state.delay_requests)
+            self.printer_with_id([f'已经登陆了'], True)
+            self.state.login()
+            rsp = await func(*args)
+        # 未登陆，但已处理
+        elif not code:
+            self.printer_with_id([f'判定出现了登陆失败，已经处理'], True)
+            rsp = await func(*args)
+        return rsp
+        
     def handle_login_status(self):
         if not self.check_token():
             if not self.refresh_token():
@@ -159,16 +180,16 @@ class User():
         self.statistics.getresult()
          
     async def heartbeat(self):
-        json_response = await self.webhub.apppost_heartbeat()
+        json_response = await self.online_request(self.webhub.apppost_heartbeat)
         # print(json_response)
         self.printer_with_id(['心跳包(5分钟左右间隔)'], True)
-        json_response = await self.webhub.pcpost_heartbeat()
+        json_response = await self.online_request(self.webhub.pcpost_heartbeat)
         # print(json_response)
         return 260
         # print(json_response)
     
     async def fetch_heart_gift(self):
-        json_response = await self.webhub.heart_gift()
+        json_response = await self.online_request(self.webhub.heart_gift)
         if json_response['code'] == 400:
             self.fall_in_jail()
         return 260
@@ -176,7 +197,7 @@ class User():
     async def open_silver_box(self):
         while True:
             self.printer_with_id(["检查宝箱状态"], True)
-            temp = await self.webhub.get_time_about_silver()
+            temp = await self.online_request(self.webhub.get_time_about_silver)
             # print (temp['code'])    #宝箱领完返回的code为-10017
             if temp['code'] == -10017:
                 self.printer_with_id(["# 今日宝箱领取完毕"])
@@ -184,7 +205,7 @@ class User():
             else:
                 time_start = temp['data']['time_start']
                 time_end = temp['data']['time_end']
-                json_rsp = await self.webhub.get_silver(time_start, time_end)
+                json_rsp = await self.online_request(self.webhub.get_silver, time_start, time_end)
             if json_rsp is None or json_rsp['code'] == -10017 or json_rsp['code'] == -800:
                 sleeptime = (utils.seconds_until_tomorrow() + 300)
                 return sleeptime
@@ -210,12 +231,12 @@ class User():
                 break
                 
     async def handle_1_substantial_raffle(self, i, g):
-        json_response1 = await self.webhub.get_gift_of_lottery(i, g)
+        json_response1 = await self.online_request(self.webhub.get_gift_of_lottery, i, g)
         print("当前时间:", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
         print("参与实物抽奖回显：", json_response1)
         
     async def check_tv_result(self, raffleid, real_roomid):
-        json_response = await self.webhub.get_TV_result(real_roomid, raffleid)
+        json_response = await self.online_request(self.webhub.get_TV_result, real_roomid, raffleid)
         # print(json_response)
         if not json_response['code']:
             # {'code': 0, 'msg': '正在抽奖中..', 'message': '正在抽奖中..', 'data': {'gift_id': '-1', 'gift_name': '', 'gift_num': 0, 'gift_from': '', 'gift_type': 0, 'gift_content': '', 'status': 3}}
@@ -229,7 +250,7 @@ class User():
         
     async def handle_1_TV_raffle(self, real_roomid, raffleid, raffle_type):
         print('参与', raffleid)
-        json_response2 = await self.webhub.get_gift_of_TV(real_roomid, raffleid)
+        json_response2 = await self.online_request(self.webhub.get_gift_of_TV, real_roomid, raffleid)
         self.statistics.append_to_TVlist()
         self.printer_with_id([f'参与了房间{real_roomid:^9}的道具抽奖'], True)
         self.printer_with_id([f'# 道具抽奖状态: {json_response2["msg"]}'])
@@ -251,7 +272,7 @@ class User():
             return True
                 
     async def handle_1_guard_raffle(self, roomid, raffleid):
-        json_response2 = await self.webhub.get_gift_of_guard(roomid, raffleid)
+        json_response2 = await self.online_request(self.webhub.get_gift_of_guard, roomid, raffleid)
         print(json_response2)
         if not json_response2['code']:
             print("# 获取到房间 %s 的总督奖励: " % (roomid), json_response2['data']['message'])
@@ -263,8 +284,8 @@ class User():
                                                 
     async def handle_1_activity_raffle(self, room_id, text2, raffleid):
         # print('参与')
-        json_response1 = await self.webhub.get_gift_of_events_app(room_id, text2, raffleid)
-        json_pc_response = await self.webhub.get_gift_of_events_web(room_id, text2, raffleid)
+        json_response1 = await self.online_request(self.webhub.get_gift_of_events_app, room_id, text2, raffleid)
+        json_pc_response = await self.online_request(self.webhub.get_gift_of_events_web, room_id, text2, raffleid)
         
         self.printer_with_id([f'参与了房间{room_id:^9}的活动抽奖'], True)
     
@@ -284,10 +305,10 @@ class User():
         return True
     
     async def post_watching_history(self, roomid):
-        await self.webhub.post_watching_history(roomid)
+        await self.online_request(self.webhub.post_watching_history, roomid)
                                     
     async def fetch_capsule_info(self):
-        json_response = await self.webhub.fetch_capsule()
+        json_response = await self.online_request(self.webhub.fetch_capsule)
         # print(json_response)
         if not json_response['code']:
             data = json_response['data']
@@ -303,7 +324,7 @@ class User():
                 print('普通扭蛋币暂不可用')
     
     async def open_capsule(self, count):
-        json_response = await self.webhub.open_capsule(count)
+        json_response = await self.online_request(self.webhub.open_capsule, count)
         # print(json_response)
         if not json_response['code']:
             # print(json_response['data']['text'])
@@ -311,8 +332,8 @@ class User():
                 print(i)
     
     async def fetch_user_info(self):
-        json_response = await self.webhub.fetch_user_info()
-        json_response_ios = await self.webhub.fetch_user_infor_ios()
+        json_response = await self.online_request(self.webhub.fetch_user_info)
+        json_response_ios = await self.online_request(self.webhub.fetch_user_infor_ios)
         print('[{}] 查询用户信息'.format(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))))
         if not json_response_ios['code']:
             gold_ios = json_response_ios['data']['gold']
@@ -337,7 +358,7 @@ class User():
             bili_coins = userCoinIfo['bili_coins']
             print('# 用户名', uname)
             size = 100, 100
-            response_face = await self.webhub.load_img(userInfo['face'])
+            response_face = await self.online_request(self.webhub.load_img, userInfo['face'])
             img = Image.open(BytesIO(await response_face.read()))
             img.thumbnail(size)
             try:
@@ -362,7 +383,7 @@ class User():
             print('# 等级榜', user_level_rank)
     
     async def fetch_bag_list(self, verbose=False, bagid=None, show=True):
-        json_response = await self.webhub.fetch_bag_list()
+        json_response = await self.online_request(self.webhub.fetch_bag_list)
         gift_list = []
         # print(json_response)
         if show:
@@ -393,7 +414,7 @@ class User():
         return gift_list
     
     async def check_taskinfo(self):
-        json_response = await self.webhub.check_taskinfo()
+        json_response = await self.online_request(self.webhub.check_taskinfo)
         # print(json_response)
         if not json_response['code']:
             data = json_response['data']
@@ -443,7 +464,7 @@ class User():
                 print('# 未完成(目前本项目未实现自动完成直播任务)')
     
     async def check_room(self, roomid):
-        json_response = await self.webhub.check_room(roomid)
+        json_response = await self.online_request(self.webhub.check_room, roomid)
         if not json_response['code']:
             # print(json_response)
             print('查询结果:')
@@ -463,11 +484,11 @@ class User():
         if giftid is None:
             giftid, num_owned = await self.fetch_bag_list(False, bagid)
             num_wanted = min(num_owned, num_wanted)
-        json_response = await self.webhub.check_room(roomid)
+        json_response = await self.online_request(self.webhub.check_room, roomid)
         ruid = json_response['data']['uid']
         biz_id = json_response['data']['room_id']
         # 200027 不足数目
-        json_response1 = await self.webhub.send_gift_web(giftid, num_wanted, bagid, ruid, biz_id)
+        json_response1 = await self.online_request(self.webhub.send_gift_web, giftid, num_wanted, bagid, ruid, biz_id)
         if not json_response1['code']:
             # print(json_response1['data'])
             print(f'# 送出礼物: {json_response1["data"]["gift_name"]}X{json_response1["data"]["gift_num"]}')
@@ -475,14 +496,14 @@ class User():
             print("# 错误", json_response1['msg'])
     
     async def fetch_liveuser_info(self, real_roomid):
-        json_response = await self.webhub.fetch_liveuser_info(real_roomid)
+        json_response = await self.online_request(self.webhub.fetch_liveuser_info, real_roomid)
         if not json_response['code']:
             data = json_response['data']
             # print(data)
             print(f'# 主播姓名 {data["info"]["uname"]}')
     
             uid = data['level']['uid']  # str
-            json_response_fan = await self.webhub.fetch_fan(real_roomid, uid)
+            json_response_fan = await self.online_request(self.webhub.fetch_fan, real_roomid, uid)
             # print(json_response_fan)
             data_fan = json_response_fan['data']
             if not json_response_fan['code'] and data_fan['medal']['status'] == 2:
@@ -491,7 +512,7 @@ class User():
                 print('# 该主播暂时没有开通勋章')  # print(json_response_fan)
     
             size = 100, 100
-            response_face = await self.webhub.load_img(data['info']['face'])
+            response_face = await self.online_request(self.webhub.load_img, data['info']['face'])
             img = Image.open(BytesIO(await response_face.read()))
             img.thumbnail(size)
             try:
@@ -505,7 +526,7 @@ class User():
         # 10004 稿件已经被删除
         # 34005 超过，满了
         # -104 不足硬币
-        json_rsp = await self.webhub.ReqGiveCoin2Av(video_id, num)
+        json_rsp = await self.online_request(self.webhub.ReqGiveCoin2Av, video_id, num)
         code = json_rsp['code']
         if not code:
             print(f'给视频av{video_id}投{num}枚硬币成功')
@@ -517,7 +538,7 @@ class User():
             return False
     
     async def GetTopVideoList(self):
-        text_rsp = await self.webhub.req_fetch_av()
+        text_rsp = await self.online_request(self.webhub.req_fetch_av)
         # print(text_rsp)
         list_av = re.findall(r'(?<=www.bilibili.com/video/av)\d+(?=/)', text_rsp)
         list_av = list(set(list_av))
@@ -526,14 +547,14 @@ class User():
     async def fetch_uper_video(self, list_mid):
         list_av = []
         for mid in list_mid:
-            json_rsp = await self.webhub.req_fetch_uper_video(mid, 1)
+            json_rsp = await self.online_request(self.webhub.req_fetch_uper_video, mid, 1)
             # print(json_rsp)
             data = json_rsp['data']
             pages = data['pages']
             if data['vlist']:
                 list_av += [av['aid'] for av in data['vlist']]
             for page in range(2, pages + 1):
-                json_rsp = await self.webhub.req_fetch_uper_video(mid, page)
+                json_rsp = await self.online_request(self.webhub.req_fetch_uper_video, mid, page)
                 # print(json_rsp)
                 data = json_rsp['data']
                 list_av += [av['aid'] for av in data['vlist']]
@@ -541,17 +562,18 @@ class User():
         return list_av
     
     async def GetVideoCid(self, video_aid):
-        json_rsp = await self.webhub.ReqVideoCid(video_aid)
+        json_rsp = await self.online_request(self.webhub.ReqVideoCid, video_aid)
         # print(json_rsp[0]['cid'])
         return (json_rsp[0]['cid'])
     
     async def GetRewardInfo(self, show=True):
-        json_rsp = await self.webhub.ReqMasterInfo()
-        login = json_rsp['login']
-        watch_av = json_rsp['watch_av']
-        coins_av = json_rsp['coins_av']
-        share_av = json_rsp['share_av']
-        level_info = json_rsp["level_info"]
+        json_rsp = await self.online_request(self.webhub.ReqMasterInfo)
+        data = json_rsp['data']
+        login = data['login']
+        watch_av = data['watch_av']
+        coins_av = data['coins_av']
+        share_av = data['share_av']
+        level_info = data["level_info"]
         current_exp = level_info['current_exp']
         next_exp = level_info['next_exp']
         if next_exp == -1:
@@ -569,7 +591,7 @@ class User():
         return login, watch_av, coins_av, share_av
                         
     async def WearingMedalInfo(self):
-        json_response = await self.webhub.ReqWearingMedal()
+        json_response = await self.online_request(self.webhub.ReqWearingMedal)
         if not json_response['code']:
             data = json_response['data']
             if data:
@@ -581,7 +603,7 @@ class User():
             # web api返回值信息少
     
     async def TitleInfo(self):
-        json_response = await self.webhub.ReqTitleInfo()
+        json_response = await self.online_request(self.webhub.ReqTitleInfo)
         # print(json_response)
         if not json_response['code']:
             data = json_response['data']
@@ -601,7 +623,7 @@ class User():
                 '{} {} {:^12} {:^10} {} {:^6} '.format(utils. adjust_for_chinese('勋章'), utils. adjust_for_chinese('主播昵称'), '亲密度',
                                                        '今日的亲密度', utils. adjust_for_chinese('排名'), '勋章状态'))
         dic_worn = {'1': '正在佩戴', '0': '待机状态'}
-        json_response = await self.webhub.fetchmedal()
+        json_response = await self.online_request(self.webhub.fetchmedal)
         # print(json_response)
         if not json_response['code']:
             for i in json_response['data']['fansMedalList']:
@@ -629,11 +651,11 @@ class User():
             return list_return_medal
     
     async def send_danmu_msg_web(self, msg, roomId):
-        json_response = await self.webhub.send_danmu_msg_web(msg, roomId)
+        json_response = await self.online_request(self.webhub.send_danmu_msg_web, msg, roomId)
         print(json_response)
                                     
     async def Daily_bag(self):
-        json_response = await self.webhub.get_dailybag()
+        json_response = await self.online_request(self.webhub.get_dailybag)
         # no done code
         try:
             for i in json_response['data']['bag_list']:
@@ -646,7 +668,7 @@ class User():
     # 签到功能
     async def DoSign(self):
         # -500 done
-        temp = await self.webhub.get_dosign()
+        temp = await self.online_request(self.webhub.get_dosign)
         self.printer_with_id([f'# 签到状态: {temp["msg"]}'])
         if temp['code'] == -500 and '已' in temp['msg']:
             sleeptime = (utils.seconds_until_tomorrow() + 300)
@@ -657,7 +679,7 @@ class User():
     # 领取每日任务奖励
     async def Daily_Task(self):
         # -400 done/not yet
-        json_response2 = await self.webhub.get_dailytask()
+        json_response2 = await self.online_request(self.webhub.get_dailytask)
         self.printer_with_id([f'# 双端观看直播:  {json_response2["msg"]}'])
         if json_response2['code'] == -400 and '已' in json_response2['msg']:
             sleeptime = (utils.seconds_until_tomorrow() + 300)
@@ -666,7 +688,7 @@ class User():
         return sleeptime
     
     async def Sign1Group(self, i1, i2):
-        json_response = await self.webhub.assign_group(i1, i2)
+        json_response = await self.online_request(self.webhub.assign_group, i1, i2)
         if not json_response['code']:
             if json_response['data']['status']:
                 self.printer_with_id([f'# 应援团 {i1} 已应援过'])
@@ -677,7 +699,7 @@ class User():
     
     # 应援团签到
     async def link_sign(self):
-        json_rsp = await self.webhub.get_grouplist()
+        json_rsp = await self.online_request(self.webhub.get_grouplist)
         list_check = json_rsp['data']['list']
         id_list = ((i['group_id'], i['owner_uid']) for i in list_check)
         if list_check:
@@ -766,7 +788,7 @@ class User():
         return 21600
     
     async def full_intimate(self, list_gift, list_medal):
-        json_res = await self.webhub.gift_list()
+        json_res = await self.online_request(self.webhub.gift_list)
         dic_gift = {j['id']: (j['price'] / 100) for j in json_res['data']}
         for roomid, left_intimate, medal_name in list_medal:
             calculate = 0
@@ -791,17 +813,17 @@ class User():
         
     async def doublegain_coin2silver(self):
         if self.task_control['doublegain_coin2silver']:
-            json_response0 = await self.webhub.doublegain_coin2silver()
-            json_response1 = await self.webhub.doublegain_coin2silver()
+            json_response0 = await self.online_request(self.webhub.doublegain_coin2silver)
+            json_response1 = await self.online_request(self.webhub.doublegain_coin2silver)
             print(json_response0['msg'], json_response1['msg'])
         return 21600
     
     async def sliver2coin(self):
         if self.task_control['silver2coin']:
             # 403 done
-            json_response1 = await self.webhub.silver2coin_app()
+            json_response1 = await self.online_request(self.webhub.silver2coin_app)
             # -403 done
-            json_response = await self.webhub.silver2coin_web()
+            json_response = await self.online_request(self.webhub.silver2coin_web)
             self.printer_with_id([f'#  {json_response["msg"]}'])
             self.printer_with_id([f'#  {json_response1["msg"]}'])
             if json_response['code'] == -403 and '只' in json_response['msg']:
@@ -825,7 +847,7 @@ class User():
         print('开始获取视频观看经验')
         aid = random.choice(list_topvideo)
         cid = await self.GetVideoCid(aid)
-        await self.webhub.Heartbeat(aid, cid)
+        await self.online_request(self.webhub.Heartbeat, aid, cid)
     
     async def GiveCoinTask(self, coin_remain, list_topvideo):
         while coin_remain > 0:
@@ -839,7 +861,7 @@ class User():
     async def GetVideoShareExp(self, list_topvideo):
         print('开始获取视频分享经验')
         aid = random.choice(list_topvideo)
-        await self.webhub.DailyVideoShare(aid)
+        await self.online_request(self.webhub.DailyVideoShare, aid)
     
     async def BiliMainTask(self):
         login, watch_av, num, share_av = await self.GetRewardInfo()
@@ -864,7 +886,7 @@ class User():
         # 2 否 voterule
         # 4 删除 votedelete
         # 1 封杀 votebreak
-        text_rsp = await self.webhub.req_check_voted(id)
+        text_rsp = await self.online_request(self.webhub.req_check_voted, id)
         # print(response.text)
             
         pattern = re.compile(r'\((.+)\)')
@@ -912,7 +934,7 @@ class User():
         num_case = 0
         num_voted = 0
         while True:
-            temp = await self.webhub.req_fetch_case()
+            temp = await self.online_request(self.webhub.req_fetch_case)
             if not temp['code']:
                 id = temp['data']['id']
             else:
@@ -935,7 +957,7 @@ class User():
                 print('超时失败，请联系作者')
             else:
                 print('投票决策', id, vote)
-                json_rsp = await self.webhub.req_vote_case(id, vote)
+                json_rsp = await self.online_request(self.webhub.req_vote_case, id, vote)
                 if not json_rsp['code']:
                     print(f'投票{id}成功')
                     num_voted += 1

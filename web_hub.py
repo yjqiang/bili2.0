@@ -82,10 +82,10 @@ class WebHub():
                     print('b站炸了，暂停所有请求1.5s后重试，请耐心等待')
                     await asyncio.sleep(1.5)
                     return None
-                elif code == 3:
+                elif code == 3 or code == -401 or code == 1003 or code == -101:
                     print('api错误，稍后重试，请反馈给作者')
                     await asyncio.sleep(1)
-                    return None
+                    return 3
             return json_rsp
         elif rsp.status == 403:
             print('403频繁', url)
@@ -598,7 +598,7 @@ class WebHub():
     async def ReqMasterInfo(self):
         url = 'https://account.bilibili.com/home/reward'
         json_rsp = await self.other_session_get(url, headers=self.dict_bili['pcheaders'])
-        return json_rsp['data']
+        return json_rsp
 
     async def ReqVideoCid(self, video_aid):
         url = f'https://www.bilibili.com/widget/getPageList?aid={video_aid}'
