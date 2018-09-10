@@ -1,13 +1,12 @@
 import asyncio
 import bilibiliCilent
 from task import Task
-import datetime
 import time
 import printer
 
 
 def CurrentTime():
-    currenttime = int(time.mktime(datetime.datetime.now().timetuple()))
+    currenttime = int(time.time())
     return currenttime
 
 
