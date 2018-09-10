@@ -1,17 +1,19 @@
-import webcolors
+from matplotlib import colors
 import toml
 
 
 # "#969696"
 def hex_to_rgb_percent(hex_str):
-    color = webcolors.hex_to_rgb_percent(hex_str)
-    return [float(i.strip('%'))/100.0 for i in color]
+    rgb_pct_color = colors.hex2color(hex_str)
+    return rgb_pct_color
 
 
 # "255 255 255"
 def rgb_to_percent(rgb_list):
-    color = webcolors.rgb_to_rgb_percent(rgb_list)
-    return [float(i.strip('%'))/100.0 for i in color]
+    hex_color = f'#{rgb_list[0]:02x}{rgb_list[1]:02x}{rgb_list[2]:02x}'
+    # hex_1 = '#%02x%02x%02x' % (rgb_0[0], rgb_0[1], rgb_0[2])
+    rgb_pct_color = colors.hex2color(hex_color)
+    return rgb_pct_color
     
     
 class ConfigLoader():
