@@ -7,6 +7,8 @@ from base_user import BaseUser
 
 class LoginUser(BaseUser):
     def handle_login_status(self):
+        if not self.webhub.cookie_existed():
+            self.login()
         if not self.check_token():
             if not self.refresh_token():
                 return self.login()

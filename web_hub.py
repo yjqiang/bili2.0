@@ -50,6 +50,11 @@ class WebHub():
     def print_status(self):
         print(self.dict_bili)
         
+    def cookie_existed(self):
+        if self.dict_bili['pcheaders']['cookie'] and self.dict_bili['appheaders']['cookie']:
+            return True
+        return False
+        
     @property
     def bili_section(self):
         if self.bili_session is None:
