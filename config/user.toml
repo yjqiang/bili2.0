@@ -37,3 +37,4 @@ mid = [ 207539637,]
 
 [other_control]
 default_monitor_roomid = 23058
+raffle_minitor_roomid = 0

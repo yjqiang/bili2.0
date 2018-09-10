@@ -47,6 +47,7 @@ loop.run_until_complete(asyncio.wait([login_all()]))
 danmu_connection = connect.connect(dict_user['other_control']['default_monitor_roomid'])
 list_raffle_connection = [connect.RaffleConnect(i) for i in range(1, 5)]
 list_raffle_connection_task = [i.run() for i in list_raffle_connection]
+yjconnection = connect.YjConnection(dict_user['other_control']['raffle_minitor_roomid'])
 
 var_super_user = SuperUser(users[0])
 raffle = RaffleHandler(users, var_super_user, loop, True)
@@ -60,12 +61,10 @@ normal_task.init()
 
 tasks = [
     raffle.join_raffle(),
-    # normal_task.heartbeat(),
     danmu_connection.run(),
     state_task.run_workstate(),
-    state_task.run_timestate()
-    # normal_task.run(),
-    # var_console.run()
+    state_task.run_timestate(),
+    yjconnection.run()
 ]
 
 
