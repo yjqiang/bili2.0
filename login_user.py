@@ -6,21 +6,20 @@ from base_user import BaseUser
 
 
 class LoginUser(BaseUser):
-    def handle_login_status(self):
+    async def handle_login_status(self):
         if not self.webhub.cookie_existed():
-            self.login()
-        if not self.check_token():
-            if not self.refresh_token():
-                return self.login()
+            await self.login()
+        if not (await self.check_token()):
+            if not (await self.refresh_token()):
+                return await self.login()
             else:
-                if not self.check_token():
+                if not (await self.check_token()):
                     print('请联系作者!!!!!!!!!')
-                    return self.login()
+                    return await self.login()
         return True
         
-    def check_token(self):
-        response = self.webhub.check_token()
-        json_response = response.json()
+    async def check_token(self):
+        json_response = await self.webhub.check_token()
         if not json_response['code'] and 'mid' in json_response['data']:
             print('token有效期检查: 仍有效')
             # print(json_response)
@@ -28,9 +27,9 @@ class LoginUser(BaseUser):
         print('token可能过期', json_response)
         return False
                 
-    def refresh_token(self):
-        response = self.webhub.refresh_token()
-        json_response = response.json()
+    async def refresh_token(self):
+        json_response = await self.webhub.refresh_token()
+        
         # print(json_response)
         
         if not json_response['code'] and 'mid' in json_response['data']['token_info']:
@@ -53,11 +52,11 @@ class LoginUser(BaseUser):
         print('联系作者(token刷新失败，cookie过期)', json_response)
         return False
         
-    def login(self):
+    async def login(self):
         username = self.user_name
         password = self.user_password
-        response = self.webhub.fetch_key()
-        value = response.json()['data']
+        json_rsp = await self.webhub.fetch_key()
+        value = json_rsp['data']
         key = value['key']
         Hash = str(value['hash'])
         pubkey = rsa.PublicKey.load_pkcs1_openssl_pem(key.encode())
@@ -65,11 +64,13 @@ class LoginUser(BaseUser):
         url_password = parse.quote_plus(hashed_password)
         url_username = parse.quote_plus(username)
         
-        response = self.webhub.normal_login(url_username, url_password)
+        json_rsp = await self.webhub.normal_login(url_username, url_password)
+        # print(json_rsp)
         
-        while response.json()['code'] == -105:
-            response = self.webhub.captcha_login(url_username, url_password)
-        json_rsp = response.json()
+        while json_rsp['code'] == -105:
+            json_rsp = await self.webhub.captcha_login(url_username, url_password)
+            # print(json_rsp)
+                
         # print(json_rsp)
         if not json_rsp['code'] and not json_rsp['data']['status']:
             data = json_rsp['data']

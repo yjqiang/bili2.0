@@ -44,8 +44,8 @@ class BaseUser:
             self.printer_with_id([f'判定出现了登陆失败，且未处理'], True)
             self.state.logout()
             # login
-            self.handle_login_status()
-            await asyncio.sleep(10)
+            await self.handle_login_status()
+            # await asyncio.sleep(10)
             print(self.state.delay_requests)
             self.printer_with_id([f'已经登陆了'], True)
             self.state.login()
