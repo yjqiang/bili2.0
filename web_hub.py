@@ -716,6 +716,7 @@ class HostWebHub(WebHub):
         self.user_id = id
         self.bili_session = None
         self.var_other_session = None
+        self.var_login_session = None
         if dict_bili:
             self.app_params = f'actionKey={dict_bili["actionKey"]}&appkey={dict_bili["appkey"]}&build={dict_bili["build"]}&device={dict_bili["device"]}&mobi_app={dict_bili["mobi_app"]}&platform={dict_bili["platform"]}'
         self.base_url = f'http://{Host().get_host()}'
