@@ -95,7 +95,7 @@ class WebHub():
         sign = hash.hexdigest()
         return sign
         
-    async def get_json_rsp(self, rsp, url):
+    async def get_json_rsp(self, rsp, url, is_login=False):
         if rsp.status == 200:
             # json_response = await response.json(content_type=None)
             data = await rsp.read()
@@ -110,7 +110,10 @@ class WebHub():
                     print('api错误，稍后重试，请反馈给作者')
                     await asyncio.sleep(1)
                     print(json_rsp)
-                    return 3
+                    if not is_login:
+                        return 3
+                    else:
+                        return json_rsp
             return json_rsp
         elif rsp.status == 403:
             print('403频繁', url)
@@ -187,7 +190,7 @@ class WebHub():
         while True:
             try:
                 async with self.login_session.get(url, headers=headers, data=data, params=params) as response:
-                    json_rsp = await self.get_json_rsp(response, url)
+                    json_rsp = await self.get_json_rsp(response, url, True)
                     if json_rsp is not None:
                         return json_rsp
             except:
@@ -199,7 +202,7 @@ class WebHub():
         while True:
             try:
                 async with self.login_session.post(url, headers=headers, data=data, params=params) as response:
-                    json_rsp = await self.get_json_rsp(response, url)
+                    json_rsp = await self.get_json_rsp(response, url, True)
                     if json_rsp is not None:
                         return json_rsp
             except:
