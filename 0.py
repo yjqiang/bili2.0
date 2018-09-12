@@ -38,11 +38,11 @@ else:
     loop.run_until_complete(host.proxies_filter())
     users = [User(i, user_info, dict_bili, task_control, True) for i, user_info in enumerate(dict_user['users'])]
 
-async def login_all():
+async def login_all(users):
     for user in users:
         await user.handle_login_status()
         
-loop.run_until_complete(asyncio.wait([login_all()]))
+loop.run_until_complete(asyncio.wait([login_all(users)]))
 
 danmu_connection = connect.connect(dict_user['other_control']['default_monitor_roomid'])
 list_raffle_connection = [connect.RaffleConnect(i) for i in range(1, 5)]
