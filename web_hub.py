@@ -109,6 +109,7 @@ class WebHub():
                 elif code == 3 or code == -401 or code == 1003 or code == -101:
                     print('api错误，稍后重试，请反馈给作者')
                     await asyncio.sleep(1)
+                    print(json_rsp)
                     return 3
             return json_rsp
         elif rsp.status == 403:
