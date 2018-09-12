@@ -40,7 +40,8 @@ else:
 
 async def login_all(users):
     for user in users:
-        await user.handle_login_status()
+        if not (await user.handle_login_status()):
+            sys.exit(-1)
         
 loop.run_until_complete(asyncio.wait([login_all(users)]))
 

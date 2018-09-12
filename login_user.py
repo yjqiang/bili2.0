@@ -1,5 +1,4 @@
 import rsa
-import time
 import base64
 from urllib import parse
 from base_user import BaseUser
@@ -8,7 +7,7 @@ from base_user import BaseUser
 class LoginUser(BaseUser):
     async def handle_login_status(self):
         if not self.webhub.cookie_existed():
-            await self.login()
+            return await self.login()
         if not (await self.check_token()):
             if not (await self.refresh_token()):
                 return await self.login()
@@ -89,10 +88,10 @@ class LoginUser(BaseUser):
             # print(dic_saved_session)
             
             self.write_user(dic_saved_session)
-            print("[{}] {}".format(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), '密码登陆成功'))
+            self.printer_with_id(['登陆成功'], True)
             return True
             
         else:
-            print("[{}] 登录失败,错误信息为:{}".format(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), json_rsp))
+            self.printer_with_id([f'登录失败,错误信息为:{json_rsp}'], True)
             return False
     
