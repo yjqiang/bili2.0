@@ -227,21 +227,18 @@ class DailyJobUser(UtilsUser):
     async def sliver2coin(self):
         if self.task_control['silver2coin']:
             # 403 done
-            json_response1 = await self.online_request(self.webhub.silver2coin_app)
+            # json_response1 = await self.online_request(self.webhub.silver2coin_app)
             # -403 done
             json_response = await self.online_request(self.webhub.silver2coin_web)
             self.printer_with_id([f'#  {json_response["msg"]}'])
-            self.printer_with_id([f'#  {json_response1["msg"]}'])
-            if json_response['code'] == -403 and '只' in json_response['msg']:
+            # self.printer_with_id([f'#  {json_response1["msg"]}'])
+            if json_response['code'] == 403 and '最多' in json_response['msg']:
                 finish_web = True
             else:
                 finish_web = False
     
-            if json_response1['code'] == 403 and '最多' in json_response1['msg']:
-                finish_app = True
-            else:
-                finish_app = False
-            if finish_app and finish_web:
+            
+            if finish_web:
                 sleeptime = (utils.seconds_until_tomorrow() + 300)
                 return sleeptime
             else:

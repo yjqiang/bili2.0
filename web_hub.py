@@ -107,8 +107,7 @@ class WebHub():
                     await asyncio.sleep(1.5)
                     return None
                 elif code == 3 or code == -401 or code == 1003 or code == -101:
-                    print('api错误，稍后重试，请反馈给作者')
-                    await asyncio.sleep(1)
+                    print('api提示没有登录')
                     print(json_rsp)
                     if not is_login:
                         return 3
@@ -276,8 +275,12 @@ class WebHub():
         return response
     
     async def silver2coin_web(self):
-        url = f"{self.base_url}/exchange/silver2coin"
-        response = await self.bili_section_post(url, headers=self.dict_bili['pcheaders'])
+        url = f"{self.base_url}/pay/v1/Exchange/silver2coin"
+        data = {
+            "platform": 'pc',
+            "csrf_token": self.dict_bili['csrf']
+        }
+        response = await self.bili_section_post(url, headers=self.dict_bili['pcheaders'], data=data)
         return response
     
     async def silver2coin_app(self):
