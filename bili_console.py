@@ -128,7 +128,7 @@ class Biliconsole(Messenger, Cmd):
     async def send_latiao(self, room_id, num_wanted):
         i = 0
         while True:
-            num_wanted = await self.notify('send_latiao', (room_id, num_wanted), i)
+            num_wanted = await self.call('send_latiao', (room_id, num_wanted), i)
             i += 1
             if num_wanted == 0:
                 break
@@ -149,9 +149,9 @@ class Biliconsole(Messenger, Cmd):
                 if isinstance(i[0][j], list):
                     print('检测')
                     # i[0][j] = await i[0][j][1](*(i[0][j][0])
-                    i[0][j] = await self.notify(i[0][j][1], i[0][j][0], i[0][j][2])
+                    i[0][j] = await self.call(i[0][j][1], i[0][j][0], i[0][j][2])
             if isinstance(i[1], str):
-                await self.notify(i[1], i[0], i[2])
+                await self.call(i[1], i[0], i[2])
             else:
                 await i[1](*i[0])
         else:

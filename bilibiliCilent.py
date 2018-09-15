@@ -205,7 +205,6 @@ class YjMonitorHandler(BaseDanmu):
         
     def handle_danmu(self, dic):
         cmd = dic['cmd']
-        print(cmd)
         if cmd == 'DANMU_MSG':
             msg = dic['info'][1]
             if '-' in msg:

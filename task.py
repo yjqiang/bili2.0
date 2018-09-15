@@ -9,24 +9,24 @@ def CurrentTime():
     return currenttime
 
 
-class Messenger():
-    instance = None
+class Singleton(type):
+    _instances = {}
     
-    def __new__(cls, users=None, var_super_user=None, loop=None, is_need_queue=False):
-        if not cls.instance:
-            cls.instance = super(Messenger, cls).__new__(cls)
-            if is_need_queue:
-                cls.instance.queue = asyncio.Queue()
-            cls.instance.loop = loop
-            cls.instance._observers = users
-            cls.instance._var_super_user = var_super_user
-        return cls.instance
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
 
-    def register(self, ob):
-        print('register', ob)
-        self._observers.append(ob)
 
-    async def notify(self, func, value, id=None):
+class Messenger(metaclass=Singleton):
+    def __init__(self, users=None, var_super_user=None, loop=None, is_need_queue=False):
+        if is_need_queue:
+            self.queue = asyncio.Queue()
+        self.loop = loop
+        self._observers = users
+        self._var_super_user = var_super_user
+
+    async def call(self, func, value, id=None):
         # print('小黑屋状态:', self.dict_user_status)
         if id is None:
             list_tasks = []
@@ -44,6 +44,24 @@ class Messenger():
             user = self._var_super_user
             answer = await user.update(func, value)
             return answer
+            
+    def call_backgroud(self, i):
+        print('执行', i)
+        asyncio.ensure_future(self.call(*i))
+                
+    def call_after(self, func, delay, tuple_values, id=None, time_range=None):
+        if time_range is None:
+            value = (func, tuple_values, id)
+            self.loop.call_later(delay, self.call_backgroud, value)
+        else:
+            for id, add_time in self.set_delay_times(time_range):
+                value = (func, tuple_values, id)
+                self.loop.call_later(delay + add_time, self.call_backgroud, value)
+        
+    def call_at(self, func, time_expected, tuple_values, id=None, time_range=None):
+        current_time = CurrentTime()
+        delay = time_expected - current_time
+        self.call_after(func, delay, tuple_values, id=id, time_range=time_range)
             
     def set_delay_times(self, time_range):
         return ((i, random.uniform(0, time_range)) for i in range(len(self._observers)))
@@ -66,18 +84,18 @@ class RaffleHandler(Messenger):
                 tasklist.append(task)
             await asyncio.wait(tasklist)
         
-    def push2queue(self,  value, func, id=None):
+    def push2queue(self, value, func, id=None):
         self.queue.put_nowait((value, func, id))
         
     async def handle_TV_raffle(self, room_id):
-        if (await self.notify('check_if_normal_room', (room_id,), -1)):
-            Task().call_after('post_watching_history', 0, (room_id,), time_range=60)
-            await self.notify('handle_1_room_TV', (room_id,), -1)
+        if (await self.call('check_if_normal_room', (room_id,), -1)):
+            self.call_after('post_watching_history', 0, (room_id,), time_range=60)
+            await self.call('handle_1_room_TV', (room_id,), -1)
         
     async def handle_guard_raffle(self, room_id):
-        if (await self.notify('check_if_normal_room', (room_id,), -1)):
-            Task().call_after('post_watching_history', 0, (room_id,), time_range=60)
-            await self.notify('handle_1_room_guard', (room_id,), -1)
+        if (await self.call('check_if_normal_room', (room_id,), -1)):
+            self.call_after('post_watching_history', 0, (room_id,), time_range=60)
+            await self.call('handle_1_room_guard', (room_id,), -1)
     
     async def handle_1_roomid_raffle(self, i):
         if i[1] in ['handle_TV_raffle', 'handle_guard_raffle']:
@@ -101,28 +119,10 @@ class Task(Messenger):
         self.call_after('daily_task', 0, ('open_silver_box',), time_range=25)
         self.call_after('daily_task', 0, ('heartbeat',), time_range=25)
         self.call_after('daily_task', 0, ('fetch_heart_gift',), time_range=25)
-                        
-    def excute_async(self, i):
-        print('执行', i)
-        asyncio.ensure_future(self.notify(*i))
-                
-    def call_after(self, func, delay, tuple_values, id=None, time_range=None):
-        if time_range is None:
-            value = (func, tuple_values, id)
-            self.loop.call_later(delay, self.excute_async, value)
-        else:
-            for id, add_time in self.set_delay_times(time_range):
-                value = (func, tuple_values, id)
-                self.loop.call_later(delay + add_time, self.excute_async, value)
-        
-    def call_at(self, func, time_expected, tuple_values, id=None, time_range=None):
-        current_time = CurrentTime()
-        delay = time_expected - current_time
-        self.call_after(func, delay, tuple_values, id=id, time_range=time_range)
         
     async def call_right_now(self, func, value, id=-1):
         # print(func, value)
-        return (await self.notify(func, (value,), id))
+        return (await self.call(func, (value,), id))
         
         
 class StateTask(Messenger):
