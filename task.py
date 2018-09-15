@@ -92,7 +92,11 @@ class RaffleHandler(Messenger):
             self.call_after('post_watching_history', 0, (room_id,), time_range=60)
             await self.call('handle_1_room_TV', (room_id,), -1)
         
-    async def handle_guard_raffle(self, room_id):
+    async def handle_guard_raffle(self, room_id, raffle_id=None):
+        if raffle_id is not None:
+            self.call_after('post_watching_history', 0, (room_id,), time_range=60)
+            await self.call('handle_1_room_guard', (room_id, raffle_id), -1)
+            return
         if (await self.call('check_if_normal_room', (room_id,), -1)):
             self.call_after('post_watching_history', 0, (room_id,), time_range=60)
             await self.call('handle_1_room_guard', (room_id,), -1)

@@ -264,32 +264,28 @@ class SuperUser():
         for tuple_values, max_wait in list_available_raffleid:
             Task().call_after('handle_1_TV_raffle', 0, tuple_values, time_range=max_wait)
                 
-    async def handle_1_room_guard(self, roomid):
-        print('初步测试', roomid)
-        while True:
-            json_response1 = await self.webhub.get_giftlist_of_guard(roomid)
-            print(json_response1)
-            if json_response1['data']:
-                break
-            await asyncio.sleep(1)
-        if not json_response1['data']:
-            print(f'{roomid}没有guard或者guard已经领取')
-            return
+    async def handle_1_room_guard(self, roomid, raffleid=None):
+        if raffleid is not None:
+            json_response1 = {'data': [{'id': raffleid, 'time': 65}]}
+        else:
+            while True:
+                json_response1 = await self.webhub.get_giftlist_of_guard(roomid)
+                print(json_response1)
+                if json_response1['data']:
+                    break
+                await asyncio.sleep(1)
+            if not json_response1['data']:
+                print(f'{roomid}没有guard或者guard已经领取')
+                return
         list_available_raffleid = []
         # guard这里领取后，list对应会消失，其实就没有status了，这里是为了统一
         for j in json_response1['data']:
             id = j['id']
-            status = j['status']
             # 总督长达一天，额外处理
             max_wait = min(j['time'] - 10, 240)
-            if status == 1:
-                # print('未参加')
+            if not self.check_duplicate(id):
+                self.add2raffle_id(id)
                 list_available_raffleid.append(((roomid, id), max_wait))
-            elif status == 2:
-                # print('过滤')
-                pass
-            else:
-                print(json_response1)
             
         for tuple_values, max_wait in list_available_raffleid:
             Task().call_after('handle_1_guard_raffle', 0, tuple_values, time_range=max_wait)
