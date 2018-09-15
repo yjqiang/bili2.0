@@ -6,7 +6,7 @@ def seconds_until_tomorrow():
     today = datetime.date.today()
     tomorrow = today + datetime.timedelta(days=1)
     tomorrow_start_time = int(time.mktime(time.strptime(str(tomorrow), '%Y-%m-%d')))
-    current_time = int(time.mktime(datetime.datetime.now().timetuple()))
+    current_time = int(time.time())
     return tomorrow_start_time - current_time
     
     
