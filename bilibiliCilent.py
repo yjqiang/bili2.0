@@ -207,8 +207,8 @@ class YjMonitorHandler(BaseDanmu):
         cmd = dic['cmd']
         if cmd == 'DANMU_MSG':
             msg = dic['info'][1]
-            if '<' in msg:
-                list_word = msg.split('<')
+            if '+' in msg:
+                list_word = msg.split('+')
                 try:
                     roomid = self.base2dec(list_word[0], 62)
                     raffleid = self.base2dec(list_word[1], 62)
