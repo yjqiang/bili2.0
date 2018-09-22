@@ -1,72 +1,19 @@
-import sys
-import hashlib
-import time
-import requests
-import base64
-import aiohttp
-import asyncio
-import random
 import copy
-import json
-from cdn import Host
-from PIL import Image
-from io import BytesIO
+import sys
+import aiohttp
+from webhub.base_web_hub import BaseWebHub
 
 
-def CurrentTime():
-    currenttime = int(time.time())
-    return str(currenttime)
-
-
-def randomint():
-    return ''.join(str(random.randint(0, 9)) for _ in range(17))
-
-
-def cnn_captcha(content):
-    img = base64.b64encode(content)
-    url = "http://47.95.255.188:5000/code"
-    data = {"image": img}
-    rsp = requests.post(url, data=data)
-    captcha = rsp.text
-    print(f'此次登录出现验证码,识别结果为{captcha}')
-    return captcha
-    
-    
-def input_captcha(content):
-    img = Image.open(BytesIO(content))
-    # img.thumbnail(size)
-    img.show()
-    captcha = input('手动输入验证码')
-    return captcha
-
-
-class WebHub():
-    base_url = 'https://api.live.bilibili.com'
+class BiliWebHub(BaseWebHub):
     
     def __init__(self, id, dict_new, dict_bili):
         self.dict_bili = copy.deepcopy(dict_bili)
+        self.base_url = 'https://api.live.bilibili.com'
         self.set_status(dict_new)
         self.bili_session = None
-        self.var_other_session = None
-        self.var_login_session = None
         if dict_bili:
             self.app_params = f'actionKey={dict_bili["actionKey"]}&appkey={dict_bili["appkey"]}&build={dict_bili["build"]}&device={dict_bili["device"]}&mobi_app={dict_bili["mobi_app"]}&platform={dict_bili["platform"]}'
-    
-    def set_status(self, dict_new):
-        for i, value in dict_new.items():
-            self.dict_bili[i] = value
-            if i == 'cookie':
-                self.dict_bili['pcheaders']['cookie'] = value
-                self.dict_bili['appheaders']['cookie'] = value
-    
-    def print_status(self):
-        print(self.dict_bili)
-        
-    def cookie_existed(self):
-        if self.dict_bili['pcheaders']['cookie'] and self.dict_bili['appheaders']['cookie']:
-            return True
-        return False
-        
+            
     @property
     def bili_section(self):
         if self.bili_session is None:
@@ -74,57 +21,6 @@ class WebHub():
             # print(0)
         return self.bili_session
         
-    @property
-    def other_session(self):
-        if self.var_other_session is None:
-            self.var_other_session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=2.5))
-            # print(0)
-        return self.var_other_session
-        
-    @property
-    def login_session(self):
-        if self.var_login_session is None:
-            self.var_login_session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=2.5))
-            # print(0)
-        return self.var_login_session
-
-    def calc_sign(self, str):
-        str = f'{str}{self.dict_bili["app_secret"]}'
-        hash = hashlib.md5()
-        hash.update(str.encode('utf-8'))
-        sign = hash.hexdigest()
-        return sign
-        
-    async def get_json_rsp(self, rsp, url, is_login=False):
-        if rsp.status == 200:
-            # json_response = await response.json(content_type=None)
-            data = await rsp.read()
-            json_rsp = json.loads(data)
-            if isinstance(json_rsp, dict) and 'code' in json_rsp:
-                code = json_rsp['code']
-                if code == 1024:
-                    print('b站炸了，暂停所有请求1.5s后重试，请耐心等待')
-                    await asyncio.sleep(1.5)
-                    return None
-                elif code == 3 or code == -401 or code == 1003 or code == -101:
-                    print('api提示没有登录')
-                    print(json_rsp)
-                    if not is_login:
-                        return 3
-                    else:
-                        return json_rsp
-            return json_rsp
-        elif rsp.status == 403:
-            print('403频繁', url)
-        return None
-        
-    async def get_text_rsp(self, rsp, url):
-        if rsp.status == 200:
-            return await rsp.text()
-        elif rsp.status == 403:
-            print('403频繁', url)
-        return None
-
     async def bili_section_post(self, url, headers=None, data=None, params=None):
         while True:
             try:
@@ -136,31 +32,7 @@ class WebHub():
                 # print('当前网络不好，正在重试，请反馈开发者!!!!')
                 print(sys.exc_info()[0], sys.exc_info()[1], url)
                 continue
-
-    async def other_session_get(self, url, headers=None, data=None, params=None):
-        while True:
-            try:
-                async with self.other_session.get(url, headers=headers, data=data, params=params) as response:
-                    json_rsp = await self.get_json_rsp(response, url)
-                    if json_rsp is not None:
-                        return json_rsp
-            except:
-                # print('当前网络不好，正在重试，请反馈开发者!!!!')
-                print(sys.exc_info()[0], sys.exc_info()[1], url)
-                continue
                 
-    async def other_session_post(self, url, headers=None, data=None, params=None):
-        while True:
-            try:
-                async with self.other_session.post(url, headers=headers, data=data, params=params) as response:
-                    json_rsp = await self.get_json_rsp(response, url)
-                    if json_rsp is not None:
-                        return json_rsp
-            except:
-                # print('当前网络不好，正在重试，请反馈开发者!!!!')
-                print(sys.exc_info()[0], sys.exc_info()[1], url)
-                continue
-
     async def bili_section_get(self, url, headers=None, data=None, params=None):
         while True:
             try:
@@ -173,70 +45,13 @@ class WebHub():
                 print(sys.exc_info()[0], sys.exc_info()[1], url)
                 continue
                 
-    async def session_text_get(self, url, headers=None, data=None, params=None):
-        while True:
-            try:
-                async with self.other_session.get(url, headers=headers, data=data, params=params) as response:
-                    text_rsp = await self.get_text_rsp(response, url)
-                    if text_rsp is not None:
-                        return text_rsp
-            except:
-                # print('当前网络不好，正在重试，请反馈开发者!!!!')
-                print(sys.exc_info()[0], sys.exc_info()[1], url)
-                continue
-                
-    async def login_session_get(self, url, headers=None, data=None, params=None):
-        while True:
-            try:
-                async with self.login_session.get(url, headers=headers, data=data, params=params) as response:
-                    json_rsp = await self.get_json_rsp(response, url, True)
-                    if json_rsp is not None:
-                        return json_rsp
-            except:
-                # print('当前网络不好，正在重试，请反馈开发者!!!!')
-                print(sys.exc_info()[0], sys.exc_info()[1], url)
-                continue
-                
-    async def login_session_post(self, url, headers=None, data=None, params=None):
-        while True:
-            try:
-                async with self.login_session.post(url, headers=headers, data=data, params=params) as response:
-                    json_rsp = await self.get_json_rsp(response, url, True)
-                    if json_rsp is not None:
-                        return json_rsp
-            except:
-                # print('当前网络不好，正在重试，请反馈开发者!!!!')
-                print(sys.exc_info()[0], sys.exc_info()[1], url)
-                continue
-                
-    async def login_session_get_binary(self, url, headers=None, data=None, params=None):
-        while True:
-            try:
-                async with self.login_session.get(url, headers=headers, data=data, params=params) as response:
-                    if response.status == 200:
-                        return await response.read()
-            except:
-                # print('当前网络不好，正在重试，请反馈开发者!!!!')
-                print(sys.exc_info()[0], sys.exc_info()[1], url)
-                continue
-
     async def playurl(self, cid):
         # cid real_roomid
         # url = 'http://api.live.bilibili.com/room/v1/Room/playUrl?'
         url = f'{self.base_url}/api/playurl?device=phone&platform=ios&scale=3&build=10000&cid={cid}&otype=json&platform=h5'
         response = await self.bili_section_get(url)
         return response
-
-    async def search_liveuser(self, name):
-        search_url = f'https://search.bilibili.com/api/search?search_type=live_user&keyword={name}&page=1'
-        json_rsp = await self.other_session_get(search_url)
-        return json_rsp
-
-    async def search_biliuser(self, name):
-        search_url = f"https://search.bilibili.com/api/search?search_type=bili_user&keyword={name}"
-        json_rsp = await self.other_session_get(search_url)
-        return json_rsp
-
+        
     async def fetch_capsule(self):
         url = f"{self.base_url}/api/ajaxCapsule"
         response = await self.bili_section_get(url, headers=self.dict_bili['pcheaders'])
@@ -251,12 +66,7 @@ class WebHub():
         }
         response = await self.bili_section_post(url, data=data, headers=self.dict_bili['pcheaders'])
         return response
-
-    async def logout(self):
-        url = 'https://passport.bilibili.com/login?act=exit'
-        json_rsp = await self.login_session_get(url, headers=self.dict_bili['pcheaders'])
-        return json_rsp
-
+        
     # 1:900兑换
     async def doublegain_coin2silver(self):
         # url: "/exchange/coin2silver",
@@ -284,7 +94,7 @@ class WebHub():
         return response
     
     async def silver2coin_app(self):
-        temp_params = f'access_key={self.dict_bili["access_key"]}&{self.app_params}&ts={CurrentTime()}'
+        temp_params = f'access_key={self.dict_bili["access_key"]}&{self.app_params}&ts={self.CurrentTime()}'
         sign = self.calc_sign(temp_params)
         app_url = f"{self.base_url}/AppExchange/silver2coin?{temp_params}&sign={sign}"
         response1 = await self.bili_section_post(app_url, headers=self.dict_bili['appheaders'])
@@ -321,7 +131,7 @@ class WebHub():
             'platform': 'pc',
             'biz_code': 'live',
             'biz_id': biz_id,
-            'rnd': CurrentTime(),
+            'rnd': self.CurrentTime(),
             'storm_beat_id': '0',
             'metadata': '',
             'price': '0',
@@ -345,10 +155,7 @@ class WebHub():
         url = f'{self.base_url}/live_user/v1/UserInfo/get_anchor_in_room?roomid={real_roomid}'
         response = await self.bili_section_get(url)
         return response
-    
-    async def load_img(self, url):
-        return await self.other_session.get(url)
-    
+        
     async def send_danmu_msg_web(self, msg, roomId):
         url = f'{self.base_url}/msg/send'
         data = {
@@ -384,56 +191,7 @@ class WebHub():
         url = f'{self.base_url}/appUser/myTitleList?{temp_params}&sign={sign}'
         response = await self.bili_section_get(url, headers=self.dict_bili['appheaders'])
         return response
-
-    async def fetch_key(self):
-        url = 'https://passport.bilibili.com/api/oauth2/getKey'
-        temp_params = f'appkey={self.dict_bili["appkey"]}'
-        sign = self.calc_sign(temp_params)
-        params = {'appkey': self.dict_bili['appkey'], 'sign': sign}
-        json_rsp = await self.login_session_post(url, data=params)
-        return json_rsp
-
-    async def normal_login(self, username, password):
-        url = "https://passport.bilibili.com/api/v2/oauth2/login"
-        temp_params = f'appkey={self.dict_bili["appkey"]}&password={password}&username={username}'
-        sign = self.calc_sign(temp_params)
-        payload = f'appkey={self.dict_bili["appkey"]}&password={password}&username={username}&sign={sign}'
-        json_rsp = await self.login_session_post(url, params=payload)
-        return json_rsp
-
-    async def captcha_login(self, username, password):
-        url = "https://passport.bilibili.com/captcha"
-        binary_rsp = await self.login_session_get_binary(url)
-        # print(binary_rsp)
-
-        captcha = cnn_captcha(binary_rsp)
-        temp_params = f'actionKey={self.dict_bili["actionKey"]}&appkey={self.dict_bili["appkey"]}&build={self.dict_bili["build"]}&captcha={captcha}&device={self.dict_bili["device"]}&mobi_app={self.dict_bili["mobi_app"]}&password={password}&platform={self.dict_bili["platform"]}&username={username}'
-        sign = self.calc_sign(temp_params)
-        payload = f'{temp_params}&sign={sign}'
-        url = "https://passport.bilibili.com/api/v2/oauth2/login"
-        json_rsp = await self.login_session_post(url, params=payload)
-        return json_rsp
-
-    async def check_token(self):
-        list_url = f'access_key={self.dict_bili["access_key"]}&{self.app_params}&ts={CurrentTime()}'
-        list_cookie = self.dict_bili['cookie'].split(';')
-        params = ('&'.join(sorted(list_url.split('&') + list_cookie)))
-        sign = self.calc_sign(params)
-        true_url = f'https://passport.bilibili.com/api/v2/oauth2/info?{params}&sign={sign}'
-        json_rsp = await self.login_session_get(true_url, headers=self.dict_bili['appheaders'])
-        return json_rsp
-
-    async def refresh_token(self):
-        list_url = f'access_key={self.dict_bili["access_key"]}&access_token={self.dict_bili["access_key"]}&{self.app_params}&refresh_token={self.dict_bili["refresh_token"]}&ts={CurrentTime()}'
-        list_cookie = self.dict_bili['cookie'].split(';')
-        params = ('&'.join(sorted(list_url.split('&') + list_cookie)))
-        sign = self.calc_sign(params)
-        payload = f'{params}&sign={sign}'
-        # print(payload)
-        url = f'https://passport.bilibili.com/api/v2/oauth2/refresh_token'
-        json_rsp = await self.login_session_post(url, headers=self.dict_bili['appheaders'], params=payload)
-        return json_rsp
-
+        
     async def get_giftlist_of_storm(self, dic):
         roomid = dic['roomid']
         get_url = f"{self.base_url}/lottery/v1/Storm/check?roomid={roomid}"
@@ -467,7 +225,7 @@ class WebHub():
             **(self.dict_bili['appheaders']),
             'referer': text2
         }
-        temp_params = f'access_key={self.dict_bili["access_key"]}&actionKey={self.dict_bili["actionKey"]}&appkey={self.dict_bili["appkey"]}&build={self.dict_bili["build"]}&device={self.dict_bili["device"]}&event_type=flower_rain-{raffleid}&mobi_app={self.dict_bili["mobi_app"]}&platform={self.dict_bili["platform"]}&room_id={room_id}&ts={CurrentTime()}'
+        temp_params = f'access_key={self.dict_bili["access_key"]}&actionKey={self.dict_bili["actionKey"]}&appkey={self.dict_bili["appkey"]}&build={self.dict_bili["build"]}&device={self.dict_bili["device"]}&event_type=flower_rain-{raffleid}&mobi_app={self.dict_bili["mobi_app"]}&platform={self.dict_bili["platform"]}&room_id={room_id}&ts={self.CurrentTime()}'
         # params = temp_params + self.dict_bili['app_secret']
         sign = self.calc_sign(temp_params)
         true_url = f'{self.base_url}/YunYing/roomEvent?{temp_params}&sign={sign}'
@@ -489,7 +247,7 @@ class WebHub():
         
     async def get_gift_of_TV_app(self, real_roomid, raffle_id, raffle_type):
         url = f"{self.base_url}/gift/v4/smalltv/getAward"
-        temp_params = f'access_key={self.dict_bili["access_key"]}&{self.app_params}&raffleId={raffle_id}&roomid={real_roomid}&ts={CurrentTime()}&type={raffle_type}'
+        temp_params = f'access_key={self.dict_bili["access_key"]}&{self.app_params}&raffleId={raffle_id}&roomid={real_roomid}&ts={self.CurrentTime()}&type={raffle_type}'
         sign = self.calc_sign(temp_params)
         payload = f'{temp_params}&sign={sign}'
         # print(payload)
@@ -543,7 +301,7 @@ class WebHub():
     
     async def apppost_heartbeat(self):
         
-        time = CurrentTime()
+        time = self.CurrentTime()
         temp_params = f'access_key={self.dict_bili["access_key"]}&{self.app_params}&ts={time}'
         sign = self.calc_sign(temp_params)
         url = f'{self.base_url}/mobile/userOnlineHeart?{temp_params}&sign={sign}'
@@ -568,7 +326,7 @@ class WebHub():
         return response1
 
     async def get_time_about_silver(self):
-        time = CurrentTime()
+        time = self.CurrentTime()
         temp_params = f'access_key={self.dict_bili["access_key"]}&{self.app_params}&ts={time}'
         sign = self.calc_sign(temp_params)
         GetTask_url = f'{self.base_url}/mobile/freeSilverCurrentTask?{temp_params}&sign={sign}'
@@ -576,7 +334,7 @@ class WebHub():
         return response
     
     async def get_silver(self, timestart, timeend):
-        time = CurrentTime()
+        time = self.CurrentTime()
         temp_params = f'access_key={self.dict_bili["access_key"]}&{self.app_params}&time_end={timeend}&time_start={timestart}&ts={time}'
         sign = self.calc_sign(temp_params)
         url = f'{self.base_url}/mobile/freeSilverAward?{temp_params}&sign={sign}'
@@ -598,19 +356,7 @@ class WebHub():
         payload2 = {'task_id': 'double_watch_task'}
         response2 = await self.bili_section_post(url, data=payload2, headers=self.dict_bili['appheaders'])
         return response2
-    
-    async def get_grouplist(self):
-        url = "https://api.vc.bilibili.com/link_group/v1/member/my_groups"
-        json_rsp = await self.other_session_get(url, headers=self.dict_bili['pcheaders'])
-        return json_rsp
-    
-    async def assign_group(self, i1, i2):
-        temp_params = f'access_key={self.dict_bili["access_key"]}&actionKey={self.dict_bili["actionKey"]}&appkey={self.dict_bili["appkey"]}&build={self.dict_bili["build"]}&device={self.dict_bili["device"]}&group_id={i1}&mobi_app={self.dict_bili["mobi_app"]}&owner_id={i2}&platform={self.dict_bili["platform"]}&ts={CurrentTime()}'
-        sign = self.calc_sign(temp_params)
-        url = f'https://api.vc.bilibili.com/link_setting/v1/link_setting/sign_in?{temp_params}&sign={sign}'
-        json_rsp = await self.other_session_get(url, headers=self.dict_bili['appheaders'])
-        return json_rsp
-    
+        
     async def gift_list(self):
         url = f"{self.base_url}/gift/v3/live/gift_config"
         res = await self.bili_section_get(url)
@@ -630,111 +376,27 @@ class WebHub():
         url = f"{self.base_url}/room/v1/Room/get_info?room_id={roomid}"
         res = await self.bili_section_get(url)
         return res
-
-    async def ReqGiveCoin2Av(self, video_id, num):
-        url = 'https://api.bilibili.com/x/web-interface/coin/add'
-        pcheaders = {
-            **(self.dict_bili['pcheaders']),
-            'referer': f'https://www.bilibili.com/video/av{video_id}'
-            }
-        data = {
-            'aid': video_id,
-            'multiply': num,
-            'cross_domain': 'true',
-            'csrf': self.dict_bili['csrf']
-        }
-        json_rsp = await self.other_session_post(url, headers=pcheaders, data=data)
-        return json_rsp
-
-    async def Heartbeat(self, aid, cid):
-        url = 'https://api.bilibili.com/x/report/web/heartbeat'
-        data = {'aid': aid, 'cid': cid, 'mid': self.dict_bili['uid'], 'csrf': self.dict_bili['csrf'],
-                'played_time': 0, 'realtime': 0,
-                'start_ts': int(time.time()), 'type': 3, 'dt': 2, 'play_type': 1}
-        json_rsp = await self.other_session_post(url, data=data, headers=self.dict_bili['pcheaders'])
-        return json_rsp
-
-    async def ReqMasterInfo(self):
-        url = 'https://account.bilibili.com/home/reward'
-        json_rsp = await self.other_session_get(url, headers=self.dict_bili['pcheaders'])
-        return json_rsp
-
-    async def ReqVideoCid(self, video_aid):
-        url = f'https://www.bilibili.com/widget/getPageList?aid={video_aid}'
-        json_rsp = await self.other_session_get(url)
-        return json_rsp
-
-    async def DailyVideoShare(self, video_aid):
-        url = 'https://api.bilibili.com/x/web-interface/share/add'
-        data = {'aid': video_aid, 'jsonp': 'jsonp', 'csrf': self.dict_bili['csrf']}
-        json_rsp = await self.other_session_post(url, data=data, headers=self.dict_bili['pcheaders'])
-        return json_rsp
+        
+class HostBiliWebHub(BiliWebHub):
     
-    async def req_fetch_uper_video(self, mid, page):
-        url = f'https://space.bilibili.com/ajax/member/getSubmitVideos?mid={mid}&pagesize=100&page={page}'
-        json_rsp = await self.other_session_get(url)
-        return json_rsp
-                
-    async def req_fetch_av(self):
-        text_tsp = await self.session_text_get('https://www.bilibili.com/ranking/all/0/0/1/')
-        return text_tsp
-    
-    async def req_vote_case(self, id, vote):
-        url = 'http://api.bilibili.com/x/credit/jury/vote'
-        payload = {
-            "jsonp": "jsonp",
-            "cid": id,
-            "vote": vote,
-            "content": "",
-            "likes": "",
-            "hates": "",
-            "attr": "1",
-            "csrf": self.dict_bili['csrf']
-        }
-        json_rsp = await self.other_session_post(url, headers=self.dict_bili['pcheaders'], data=payload)
-        return json_rsp
-        
-    async def req_fetch_case(self):
-        url = 'http://api.bilibili.com/x/credit/jury/caseObtain'
-        payload = {
-            "jsonp": "jsonp",
-            "csrf": self.dict_bili['csrf']
-        }
-        json_rsp = await self.other_session_post(url, headers=self.dict_bili['pcheaders'], data=payload)
-        return json_rsp
-        
-    async def req_check_voted(self, id):
-        headers = {
-            **(self.dict_bili['pcheaders']),
-            'Referer': f'https://www.bilibili.com/judgement/vote/{id}',
-        }
-        url = f'https://api.bilibili.com/x/credit/jury/juryCase?jsonp=jsonp&callback=jQuery1720{randomint()}_{CurrentTime()}&cid={id}&_={CurrentTime()}'
-        text_rsp = await self.session_text_get(url, headers=headers)
-        # print(text_rsp)
-        return text_rsp
-        
-        
-class HostWebHub(WebHub):
-    base_url = 'https://api.live.bilibili.com'
-    
-    def __init__(self, id, dict_new, dict_bili):
+    def __init__(self, id, dict_new, dict_bili, host):
         self.dict_bili = copy.deepcopy(dict_bili)
         self.set_status(dict_new)
         self.user_id = id
         self.bili_session = None
-        self.var_other_session = None
-        self.var_login_session = None
         if dict_bili:
             self.app_params = f'actionKey={dict_bili["actionKey"]}&appkey={dict_bili["appkey"]}&build={dict_bili["build"]}&device={dict_bili["device"]}&mobi_app={dict_bili["mobi_app"]}&platform={dict_bili["platform"]}'
-        self.base_url = f'http://{Host().get_host()}'
+        self.host = host
+        self.base_url = f'http://{self.host.get_host()}'
         self.headers_host = {'host': 'api.live.bilibili.com'}
     
     async def bili_section_post(self, url, headers={}, data=None, parama=None):
+        print(url)
         i = 5
         while True:
             i -= 1
             if i < 0:
-                self.base_url = f'http://{Host().get_host()}'
+                self.base_url = f'http://{self.host.get_host()}'
                 list_words = url.split('/')
                 list_words[2] = self.base_url
                 url = '/'.join(list_words[2:])
@@ -758,7 +420,7 @@ class HostWebHub(WebHub):
         while True:
             i -= 1
             if i < 0:
-                self.base_url = f'http://{Host().get_host()}'
+                self.base_url = f'http://{self.host.get_host()}'
                 list_words = url.split('/')
                 list_words[2] = self.base_url
                 url = '/'.join(list_words[2:])
@@ -776,5 +438,5 @@ class HostWebHub(WebHub):
                 # print('当前网络不好，正在重试，请反馈开发者!!!!')
                 print(sys.exc_info()[0], sys.exc_info()[1], url, self.user_id)
                 continue
-                
+    
     

@@ -1,7 +1,7 @@
 import rsa
 import base64
 from urllib import parse
-from base_user import BaseUser
+from user.base_user import BaseUser
 
 
 class LoginUser(BaseUser):
