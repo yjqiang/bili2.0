@@ -16,8 +16,8 @@ def CurrentTime():
 
 class SuperUser():
         
-    def __init__(self, user):
-        self.webhub = user.webhub
+    def __init__(self, webhub):
+        self.webhub = webhub
         self.user_id = -1
         self.list_raffle_id = []
         

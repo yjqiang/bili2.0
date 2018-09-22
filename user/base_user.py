@@ -1,5 +1,4 @@
 import asyncio
-from web_hub import WebHub, HostWebHub
 from states import UserStates
 from statistic import Statistics
 import printer
@@ -7,11 +6,8 @@ from config_loader import ConfigLoader
 
 
 class BaseUser:
-    def __init__(self, user_id, dict_user, dict_bili, task_control, high_concurency):
-        if high_concurency:
-            self.webhub = HostWebHub(user_id, dict_user, dict_bili)
-        else:
-            self.webhub = WebHub(user_id, dict_user, dict_bili)
+    def __init__(self, user_id, dict_user, web_hub, task_control):
+        self.webhub = web_hub
         self.statistics = Statistics()
         self.user_id = user_id
         self.user_name = dict_user['username']

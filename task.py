@@ -44,6 +44,24 @@ class Messenger(metaclass=Singleton):
             user = self._var_super_user
             answer = await user.update(func, value)
             return answer
+    
+    async def call_one_by_one(self, func, values, id=None):
+        if id is None:
+            list_tasks = []
+            for i, user in enumerate(self._observers):
+                task = asyncio.ensure_future(user.update(func, values))
+                list_tasks.append(task)
+            if list_tasks:
+                await asyncio.wait(list_tasks)
+        elif id >= 0:
+            if id >= len(self._observers):
+                return 0
+            user = self._observers[id]
+            return await user.update(func, values)
+        else:
+            user = self._var_super_user
+            answer = await user.update(func, values)
+            return answer
             
     def call_backgroud(self, i):
         print('执行', i)
