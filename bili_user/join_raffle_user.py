@@ -1,4 +1,4 @@
-from user.base_user import BaseUser
+from bili_user.base_user import BaseUser
 import time
 from task import Task
 

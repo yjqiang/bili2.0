@@ -3,14 +3,14 @@ from task import RaffleHandler, Task, StateTask
 from webhub.web_hub import WebHub, HostWebHub
 import os
 import sys
-from user.user import User
+from bili_user.user import User
 import asyncio
 from printer import Printer
 import connect
 import bili_console
 import threading
 from cdn import Host
-from user.super_user import SuperUser
+from bili_user.super_user import SuperUser
 
 if sys.platform == 'win32':
     loop = asyncio.ProactorEventLoop()
@@ -34,13 +34,13 @@ users = []
 task_control = dict_user['task_control']
 if len(dict_user['users']) < 0:
     for i, user_info in enumerate(dict_user['users']):
-        webhub = WebHub(i, dict_user, dict_bili)
+        webhub = WebHub(i, user_info, dict_bili)
         users.append(User(i, user_info, webhub, task_control))
 else:
     host = Host(dict_ip['list_ips'])
     loop.run_until_complete(host.proxies_filter())
     for i, user_info in enumerate(dict_user['users']):
-        webhub = HostWebHub(i, dict_user, dict_bili, host)
+        webhub = HostWebHub(i, user_info, dict_bili, host)
         users.append(User(i, user_info, webhub, task_control))
 
 danmu_connection = connect.connect(dict_user['other_control']['default_monitor_roomid'])

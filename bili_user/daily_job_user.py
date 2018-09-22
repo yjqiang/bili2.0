@@ -3,7 +3,7 @@ import json
 import asyncio
 import random
 import utils
-from user.utils_user import UtilsUser
+from bili_user.utils_user import UtilsUser
 import printer
 from task import Task
 

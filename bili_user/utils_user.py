@@ -3,7 +3,7 @@ import re
 from operator import itemgetter
 from io import BytesIO
 from PIL import Image
-from user.base_user import BaseUser
+from bili_user.base_user import BaseUser
 import utils
 
 
