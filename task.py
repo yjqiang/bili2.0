@@ -142,10 +142,6 @@ class Task(Messenger):
         self.call_after('daily_task', 0, ('heartbeat',), time_range=25)
         self.call_after('daily_task', 0, ('fetch_heart_gift',), time_range=25)
         
-    async def call_right_now(self, func, value, id=-1):
-        # print(func, value)
-        return (await self.call(func, (value,), id))
-        
         
 class StateTask(Messenger):
     def wake_up_all(self):

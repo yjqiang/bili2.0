@@ -29,17 +29,6 @@ class BaseDanmu():
             print('请联系开发者', sys.exc_info()[0], sys.exc_info()[1])
         printer.info([f'{self.area_id}号弹幕收尾模块状态{self.ws.closed}'], True)
         
-    async def CheckArea(self):
-        try:
-            while True:
-                area_id = await asyncio.shield(Task().call_right_now('FetchRoomArea', self.roomid))
-                if area_id != self.area_id:
-                    printer.info([f'{self.roomid}更换分区{self.area_id}为{area_id}，即将切换房间'], True)
-                    return
-                await asyncio.sleep(300)
-        except asyncio.CancelledError:
-            printer.info([f'{self.area_id}号弹幕监控分区检测模块主动取消'], True)
-        
     async def connectServer(self):
         try:
             url = 'wss://broadcastlv.chat.bilibili.com/sub'
@@ -138,6 +127,20 @@ class DanmuPrinter(BaseDanmu):
 
 
 class DanmuRaffleHandler(BaseDanmu):
+    async def reset_roomid(self):
+        self.roomid = await Task().call('get_one', (self.area_id,), -1)
+        
+    async def CheckArea(self):
+        try:
+            while True:
+                area_id = await asyncio.shield(Task().call('FetchRoomArea', (self.roomid,), -1))
+                if area_id != self.area_id:
+                    printer.info([f'{self.roomid}更换分区{self.area_id}为{area_id}，即将切换房间'], True)
+                    return
+                await asyncio.sleep(300)
+        except asyncio.CancelledError:
+            printer.info([f'{self.area_id}号弹幕监控分区检测模块主动取消'], True)
+            
     def handle_danmu(self, dic):
         cmd = dic['cmd']
         

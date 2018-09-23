@@ -1,6 +1,5 @@
 import asyncio
 import bilibiliCilent
-from task import Task
 import time
 import printer
 
@@ -62,7 +61,7 @@ class RaffleConnect():
     async def run(self):
         self.danmuji = bilibiliCilent.DanmuRaffleHandler(self.roomid, self.areaid)
         while True:
-            self.danmuji.roomid = await Task().call_right_now('get_one', self.areaid)
+            await self.danmuji.reset_roomid()
             printer.info(['# 正在启动抽奖监控弹幕姬'], True)
             time_start = int(CurrentTime())
             connect_results = await self.danmuji.connectServer()
@@ -86,7 +85,8 @@ class RaffleConnect():
             if time_end - time_start < 5:
                 print('# 当前网络不稳定，为避免频繁不必要尝试，将自动在5秒后重试')
                 await asyncio.sleep(5)
-                
+
+                                
 class YjConnection():
     def __init__(self, roomid):
         self.danmuji = None

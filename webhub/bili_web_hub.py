@@ -391,7 +391,7 @@ class HostBiliWebHub(BiliWebHub):
         self.headers_host = {'host': 'api.live.bilibili.com'}
     
     async def bili_section_post(self, url, headers={}, data=None, parama=None):
-        print(url)
+        # print(url)
         i = 5
         while True:
             i -= 1
