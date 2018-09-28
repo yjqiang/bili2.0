@@ -32,7 +32,7 @@ Printer(dict_color, dict_user['print_control']['danmu'], dict_user['platform']['
 
 users = []
 task_control = dict_user['task_control']
-if len(dict_user['users']) < 0:
+if len(dict_user['users']) < 10:
     for i, user_info in enumerate(dict_user['users']):
         webhub = WebHub(i, user_info, dict_bili)
         users.append(User(i, user_info, webhub, task_control))

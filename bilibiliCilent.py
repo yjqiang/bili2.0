@@ -42,7 +42,6 @@ class BaseDanmu():
         return (await self.SendSocketData(opt=7, body=body))
 
     async def HeartbeatLoop(self):
-        printer.info([f'{self.area_id}号弹幕监控开始心跳（心跳间隔30s，后续不再提示）'], True)
         try:
             while True:
                 if not (await self.SendSocketData(opt=2, body='')):
