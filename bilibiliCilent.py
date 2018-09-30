@@ -7,7 +7,6 @@ import aiohttp
 import struct
 import json
 import sys
-import string
 
 
 class BaseDanmu():
@@ -196,24 +195,25 @@ class DanmuRaffleHandler(BaseDanmu):
                 RaffleHandler().push2queue((self.roomid,), 'handle_guard_raffle')
                   
                     
-class YjMonitorHandler(BaseDanmu):
-    digs = string.digits + string.ascii_letters
+class YjMonitorHandler(BaseDanmu):    
+    digs = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
     
-    def base2dec(self, str_num, base):
+    def base2dec(self, str_num, base=62):
         result = 0
         for i in str_num:
             result = result * base + self.digs.index(i)
         return result
+    
+    def get_origin(self, words, gap):
+        return map(self.base2dec, words.replace('?', '').split(gap))
         
     def handle_danmu(self, dic):
         cmd = dic['cmd']
         if cmd == 'DANMU_MSG':
             msg = dic['info'][1]
             if '+' in msg:
-                list_word = msg.split('+')
                 try:
-                    roomid = self.base2dec(list_word[0], 62)
-                    raffleid = self.base2dec(list_word[1], 62)
+                    roomid, raffleid = self.get_origin(msg, '+')
                     printer.info([f'弹幕监控检测到{roomid:^9}的提督/舰长{raffleid}'], True)
                     RaffleHandler().push2queue((roomid, raffleid), 'handle_guard_raffle')
                 except ValueError:
