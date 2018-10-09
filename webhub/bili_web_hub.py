@@ -17,7 +17,7 @@ class BiliWebHub(BaseWebHub):
     @property
     def bili_section(self):
         if self.bili_session is None:
-            self.bili_session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=2.5))
+            self.bili_session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=3))
             # print(0)
         return self.bili_session
         

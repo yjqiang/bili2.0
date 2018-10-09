@@ -17,7 +17,7 @@ class OtherWebHub(BaseWebHub):
     @property
     def other_session(self):
         if self.var_other_session is None:
-            self.var_other_session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=2.5))
+            self.var_other_session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=3))
             # print(0)
         return self.var_other_session
         

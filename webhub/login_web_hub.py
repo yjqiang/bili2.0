@@ -37,7 +37,7 @@ class LoginWebHub(BaseWebHub):
     @property
     def login_session(self):
         if self.var_login_session is None:
-            self.var_login_session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=2.5))
+            self.var_login_session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=3))
             # print(0)
         return self.var_login_session
         
