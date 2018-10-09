@@ -143,7 +143,7 @@ class UserStates():
           
         # print('+++++++++++++++++++++++')
         if code == 1:
-            self.printer_with_id([f'sleep模式, 推迟执行{func} {values}'], True)
+            # self.printer_with_id([f'sleep模式, 推迟执行{func} {values}'], True)
             self.delay_tasks.append((func, values))
             return 1
         elif code == 2:

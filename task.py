@@ -64,7 +64,6 @@ class Messenger(metaclass=Singleton):
             return answer
             
     def call_backgroud(self, i):
-        print('执行', i)
         asyncio.ensure_future(self.call(*i))
                 
     def call_after(self, func, delay, tuple_values, id=None, time_range=None):
