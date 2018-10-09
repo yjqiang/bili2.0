@@ -17,7 +17,7 @@ class Host():
         url = f'http://{ip}/room/v1/Room/room_init?id=6'
         # url = f'http://{ip}/gift/v3/live/gift_config'
         headers = {'host': 'api.live.bilibili.com'}
-        timeout = aiohttp.ClientTimeout(total=1.5)
+        timeout = aiohttp.ClientTimeout(total=3)
         async with aiohttp.ClientSession(timeout=timeout) as session:
             num_won = 0
             for i in range(10):
