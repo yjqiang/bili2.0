@@ -92,6 +92,16 @@ class LoginUser(BaseUser):
             return True
             
         else:
+            dic_saved_session = {
+                'csrf': f'{json_rsp}',
+                'access_key': '',
+                'refresh_token': '',
+                'cookie': '',
+                'uid': 'NULL'
+                }
+            # print(dic_saved_session)
+            
+            self.write_user(dic_saved_session)
             self.printer_with_id([f'登录失败,错误信息为:{json_rsp}'], True)
             return False
     
