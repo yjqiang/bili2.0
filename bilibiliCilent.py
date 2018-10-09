@@ -87,7 +87,6 @@ class BaseDanmu():
             len_read = 0
             len_bytes_datas = len(bytes_datas)
             while len_read != len_bytes_datas:
-                state = None
                 split_header = self.structer.unpack(bytes_datas[len_read:16+len_read])
                 len_data, len_header, ver, opt, seq = split_header
                 remain_data = bytes_datas[len_read+16:len_read+len_data]
@@ -99,15 +98,13 @@ class BaseDanmu():
                 elif opt == 5:
                     messages = remain_data.decode('utf-8')
                     dic = json.loads(messages)
-                    state = self.handle_danmu(dic)
+                    if not self.handle_danmu(dic):
+                        return
                 # 握手确认
                 elif opt == 8:
                     printer.info([f'{self.area_id}号弹幕监控进入房间（{self.roomid}）'], True)
                 else:
                     printer.warn(bytes_datas[len_read:len_read + len_data])
-                            
-                if state is not None and not state:
-                    return
                 len_read += len_data
                 
     def handle_danmu(self, dic):
@@ -121,7 +118,7 @@ class DanmuPrinter(BaseDanmu):
         if cmd == 'DANMU_MSG':
             # print(dic)
             Printer().print_danmu(dic)
-            return True
+        return True
 
 
 class DanmuRaffleHandler(BaseDanmu):
@@ -175,7 +172,6 @@ class DanmuRaffleHandler(BaseDanmu):
                     
             else:
                 printer.info(['普通送礼提示', dic['msg_text']])
-            return
         elif cmd == 'SYS_MSG':
             if 'real_roomid' in dic:
                 real_roomid = dic['real_roomid']
@@ -193,9 +189,9 @@ class DanmuRaffleHandler(BaseDanmu):
                 print(dic)
                 printer.info([f'{self.area_id}号弹幕监控检测到{self.roomid:^9}的提督/舰长'], True)
                 RaffleHandler().push2queue((self.roomid,), 'handle_guard_raffle')
-                  
+        return True
                     
-class YjMonitorHandler(BaseDanmu):    
+class YjMonitorHandler(BaseDanmu):
     digs = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
     
     def base2dec(self, str_num, base=62):
@@ -219,6 +215,7 @@ class YjMonitorHandler(BaseDanmu):
                 except ValueError:
                     print(msg)
             Printer().print_danmu(dic)
+        return True
                
     
 

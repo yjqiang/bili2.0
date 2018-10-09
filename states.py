@@ -147,7 +147,7 @@ class UserStates():
             self.delay_tasks.append((func, values))
             return 1
         elif code == 2:
-            self.printer_with_id([f'drop模式, 不执行{func} {values}'], True)
+            # self.printer_with_id([f'drop模式, 不执行{func} {values}'], True)
             return 2
         return 0
         
