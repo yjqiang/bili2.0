@@ -48,7 +48,6 @@ class LoginUser(BaseUser):
             self.write_user(dic_saved_session)
             # 更新token信息
             return True
-        print('联系作者(token刷新失败，cookie过期)', json_response)
         return False
         
     async def login(self):
