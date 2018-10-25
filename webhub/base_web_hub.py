@@ -47,6 +47,8 @@ class BaseWebHub():
         if rsp.status == 200:
             # json_response = await response.json(content_type=None)
             data = await rsp.read()
+            if not data:
+                return None
             json_rsp = json.loads(data)
             if isinstance(json_rsp, dict) and 'code' in json_rsp:
                 code = json_rsp['code']
