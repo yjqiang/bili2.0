@@ -84,7 +84,7 @@ class Biliconsole(Messenger, Cmd):
     def do_8(self, line):
         roomid = input('请输入要转化的房间号:')
         if not roomid:
-            roomid = connect().roomid
+            roomid = connect().room_id
         self.append2list_console([[roomid], 'check_room', -1])
         
     def do_9(self, line):
@@ -138,7 +138,7 @@ class Biliconsole(Messenger, Cmd):
         if roomid:
             real_roomid = [[roomid], 'check_room', -1]
         else:
-            real_roomid = connect().roomid
+            real_roomid = connect().room_id
         return real_roomid
         
     async def excute_async(self, i):

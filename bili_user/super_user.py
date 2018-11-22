@@ -53,13 +53,24 @@ class SuperUser():
                 printer.info([f'{areaid}号弹幕监控选择房间（{roomid}）'], True)
                 return roomid
             
-    async def FetchRoomArea(self, roomid):
-        json_response = await self.webhub.ReqRoomInfo(roomid)
-    
-        if not json_response['code']:
-            # print(json_response)
-            # print(json_response['data']['parent_area_id'])
-            return json_response['data']['parent_area_id']
+    async def check_room_for_danmu(self, room_id, area_id):
+        json_response = await self.webhub.check_room(room_id)
+        data = json_response['data']
+        is_hidden = data['is_hidden']
+        is_locked = data['is_locked']
+        is_encrypted = data['encrypted']
+        if any((is_hidden, is_locked, is_encrypted)):
+            is_normal = False
+        else:
+            is_normal = True
+                
+        json_response = await self.webhub.ReqRoomInfo(room_id)
+        data = json_response['data']
+        is_open = True if data['live_status'] == 1 else False
+        current_area_id = data['parent_area_id']
+        # print(is_hidden, is_locked, is_encrypted, is_open, current_area_id)
+        is_ok = (area_id == current_area_id) and is_normal and is_open
+        return is_ok
             
     async def find_live_user_roomid(self, wanted_name):
         print('发现名字', wanted_name)
