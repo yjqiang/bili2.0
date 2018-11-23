@@ -7,6 +7,7 @@ import aiohttp
 import struct
 import json
 import sys
+import bili_stats
 
 
 class BaseDanmu():
@@ -189,20 +190,21 @@ class DanmuRaffleHandler(BaseDanmu):
                 printer.info([f'{self._area_id}号弹幕监控检测到{real_roomid:^9}的{raffle_name}'], True)
                 RaffleHandler().push2queue((real_roomid,), 'handle_TV_raffle')
                 broadcast_type = 0 if broadcast == '全区' else 1
-                # Statistics.add2pushed_raffle(raffle_name, broadcast_type)
+                bili_stats.add2pushed_raffles(raffle_name, broadcast_type)
             elif msg_type == 3:
                 raffle_name = msg_common.split('开通了')[-1][:2]
                 printer.info([f'{self._area_id}号弹幕监控检测到{real_roomid:^9}的{raffle_name}'], True)
                 RaffleHandler().push2queue((real_roomid,), 'handle_guard_raffle')
                 broadcast_type = 0 if raffle_name == '总督' else 2
-                # Statistics.add2pushed_raffle(raffle_name, broadcast_type)
+                bili_stats.add2pushed_raffles(raffle_name, broadcast_type)
             elif msg_type == 6:
                 raffle_name = '二十倍节奏风暴'
                 printer.info([f'{self._area_id}号弹幕监控检测到{real_roomid:^9}的{raffle_name}'], True)
                 # rafflehandler.Rafflehandler.Put2Queue((real_roomid,), rafflehandler.handle_1_room_storm)
-                # Statistics.add2pushed_raffle(raffle_name)
+                bili_stats.add2pushed_raffles(raffle_name)
         return True
-                    
+
+                                        
 class YjMonitorHandler(BaseDanmu):
     def __init__(self, room_id, area_id):
         super().__init__(room_id, area_id)
@@ -267,7 +269,7 @@ class YjMonitorHandler(BaseDanmu):
                 if type == '+':
                     printer.info([f'{self._area_id}号弹幕监控检测到{room_id:^9}的大航海(id: {raffle_id})'], True)
                     RaffleHandler().push2queue((room_id, raffle_id), 'handle_guard_raffle')
-                    # Statistics.add2pushed_raffle('Yj协同大航海', 2)
+                    bili_stats.add2pushed_raffles('Yj协同大航海', 2)
             except Exception:
                 printer.warn(f'Yj监控房间内可能有恶意干扰{uid}: {ori}')
         return True

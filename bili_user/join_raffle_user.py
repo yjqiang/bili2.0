@@ -1,6 +1,7 @@
 from bili_user.base_user import BaseUser
 import time
 from task import Task
+import bili_stats
 
 
 class JoinRaffleUser(BaseUser):
@@ -19,20 +20,19 @@ class JoinRaffleUser(BaseUser):
                 return
             elif json_response['data']['gift_id'] != '-1':
                 data = json_response['data']
-                self.printer_with_id([f'# 房间{real_roomid:^9}道具抽奖结果: {data["gift_name"]}X{data["gift_num"]}'], True)
-                self.statistics.add_to_result(data['gift_name'], int(data['gift_num']))
+                self.printer_with_id([f'# 房间{real_roomid:^9}小电视抽奖结果: {data["gift_name"]}X{data["gift_num"]}'], True)
+                bili_stats.add2results(data['gift_name'], self.user_id, data['gift_num'])
         
     async def handle_1_TV_raffle(self, real_roomid, raffleid, raffle_type):
         print('参与', raffleid)
         json_response2 = await self.online_request(self.webhub.get_gift_of_TV, real_roomid, raffleid)
-        self.statistics.append_to_TVlist()
-        self.printer_with_id([f'参与了房间{real_roomid:^9}的道具抽奖'], True)
-        self.printer_with_id([f'# 道具抽奖状态: {json_response2["msg"]}'])
+        bili_stats.add2joined_raffles('小电视(合计)', self.user_id)
+        self.printer_with_id([f'参与了房间{real_roomid:^9}的小电视抽奖'], True)
+        self.printer_with_id([f'# 小电视抽奖状态: {json_response2["msg"]}'])
         # -400不存在
         # -500繁忙
         code = json_response2['code']
         if not code:
-            # Statistics.append_to_TVlist(raffleid, real_roomid)
             Task().call_after('check_tv_result', 190, (raffleid, real_roomid), id=self.user_id)
             return True
         elif code == -500:
@@ -47,11 +47,10 @@ class JoinRaffleUser(BaseUser):
                 
     async def handle_1_guard_raffle(self, roomid, raffleid):
         json_response2 = await self.online_request(self.webhub.get_gift_of_guard, roomid, raffleid)
-        print(json_response2)
+        self.printer_with_id([f'参与了房间{roomid:^9}的大航海抽奖'], True)
         if not json_response2['code']:
-            print("# 获取到房间 %s 的总督奖励: " % (roomid), json_response2['data']['message'])
-            # print(json_response2)
-            self.statistics.append_to_guardlist()
+            self.printer_with_id([f'# 房间{roomid:^9}大航海抽奖结果: {json_response2["data"]["message"]}'])
+            bili_stats.add2joined_raffles('大航海(合计)', self.user_id)
         else:
             print(json_response2)
         return True
@@ -65,7 +64,8 @@ class JoinRaffleUser(BaseUser):
     
         if not json_response1['code']:
             self.printer_with_id([f'# 移动端活动抽奖结果: {json_response1["data"]["gift_desc"]}'])
-            self.statistics.add_to_result(*(json_response1['data']['gift_desc'].split('X')))
+            gift_name, gift_num = json_response1['data']['gift_desc'].split('X')
+            bili_stats.add2results(gift_name, self.user_id, gift_num)
         else:
             print(json_response1)
             self.printer_with_id([f'# 移动端活动抽奖结果: {json_response1}'])
@@ -73,7 +73,7 @@ class JoinRaffleUser(BaseUser):
         self.printer_with_id(
                 [f'# 网页端活动抽奖状态:  {json_pc_response}'])
         if not json_pc_response['code']:
-            self.statistics.append_to_activitylist()
+            bili_stats.add2joined_raffles('活动(合计)', self.user_id)
         else:
             print(json_pc_response)
         return True

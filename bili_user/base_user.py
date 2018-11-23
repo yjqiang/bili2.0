@@ -1,6 +1,6 @@
 import asyncio
 from states import UserStates
-from statistic import Statistics
+import bili_stats
 import printer
 from config_loader import ConfigLoader
 
@@ -8,7 +8,6 @@ from config_loader import ConfigLoader
 class BaseUser:
     def __init__(self, user_id, dict_user, web_hub, task_control):
         self.webhub = web_hub
-        self.statistics = Statistics()
         self.user_id = user_id
         self.user_name = dict_user['username']
         self.user_password = dict_user['password']
@@ -28,8 +27,7 @@ class BaseUser:
         work_state, time_state = self.print_state()
         self.printer_with_id([f'小黑屋状态: {work_state}'], True)
         self.printer_with_id([f'工作状态: {time_state}'], True)
-        self.statistics.getlist()
-        self.statistics.getresult()
+        bili_stats.print_stats(self.user_id)
         
     async def online_request(self, func, *args):
         rsp = await func(*args)

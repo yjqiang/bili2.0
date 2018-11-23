@@ -9,6 +9,7 @@ from printer import Printer
 import connect
 import bili_console
 import threading
+import bili_stats
 from cdn import Host
 from bili_user.super_user import SuperUser
 
@@ -45,6 +46,7 @@ else:
 
 danmu_connection = connect.connect(dict_user['other_control']['default_monitor_roomid'])
 list_raffle_connection = [connect.RaffleConnect(i) for i in range(1, 5)]
+bili_stats.init_area_num(4)
 list_raffle_connection_task = [i.run() for i in list_raffle_connection]
 yjconnection = connect.YjConnection(dict_user['other_control']['raffle_minitor_roomid'])
 
