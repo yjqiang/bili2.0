@@ -1,5 +1,4 @@
 import printer
-from printer import Printer
 from task import RaffleHandler
 from task import Task
 import asyncio
@@ -137,7 +136,7 @@ class DanmuPrinter(BaseDanmu):
         # print(cmd)
         if cmd == 'DANMU_MSG':
             # print(dic)
-            Printer().print_danmu(dic)
+            printer.print_danmu(dic)
         return True
 
 

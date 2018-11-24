@@ -5,7 +5,7 @@ import os
 import sys
 from bili_user.user import User
 import asyncio
-from printer import Printer
+import printer
 import connect
 import bili_console
 import threading
@@ -29,7 +29,7 @@ dict_user = cfg.read_user()
 dict_bili = cfg.read_bili()
 dict_color = cfg.read_color()
 dict_ip = cfg.read_ip()
-Printer(dict_color, dict_user['print_control']['danmu'], dict_user['platform']['platform'])
+printer.init_config(dict_color, dict_user['print_control']['danmu'])
 
 users = []
 task_control = dict_user['task_control']

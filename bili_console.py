@@ -1,6 +1,6 @@
 
 from connect import connect
-from printer import Printer
+import printer
 import asyncio
 from task import Messenger
 from cmd import Cmd
@@ -95,9 +95,9 @@ class Biliconsole(Messenger, Cmd):
     def do_10(self, line):
         new_words = input('弹幕控制')
         if new_words == 'T':
-            Printer().print_control_danmu = True
+            printer.control_printer(True)
         else:
-            Printer().print_control_danmu = False
+            printer.control_printer(False)
             
     def do_11(self, line):
         roomid = input('请输入roomid')
