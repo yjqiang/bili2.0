@@ -1,6 +1,5 @@
 import sys
 import time
-import codecs
 if sys.platform == 'ios':
     import console
 
@@ -26,7 +25,7 @@ class BasePrinter():
             
     def warn(self, msg):
         print(msg, file=sys.stderr)
-        with codecs.open(r'bili.log', 'a', encoding='utf-8') as f:
+        with open('bili.log', 'a', encoding='utf-8') as f:
             f.write(f'{self.timestamp()} {msg}\n')
         
     def debug(self, msg):
