@@ -59,8 +59,8 @@ class UtilsUser(BaseUser):
             bili_coins = userCoinIfo['bili_coins']
             print('# 用户名', uname)
             size = 100, 100
-            response_face = await self.online_request(self.webhub.load_img, userInfo['face'])
-            img = Image.open(BytesIO(await response_face.read()))
+            binary_body = await self.online_request(self.webhub.load_img, userInfo['face'])
+            img = Image.open(BytesIO(binary_body))
             img.thumbnail(size)
             try:
                 img.show()

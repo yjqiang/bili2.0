@@ -1,8 +1,6 @@
 import copy
 import hashlib
 import time
-import json
-import asyncio
 import random
 
 
@@ -42,35 +40,3 @@ class BaseWebHub():
     
     def randomint(self):
         return ''.join(str(random.randint(0, 9)) for _ in range(17))
-        
-    async def get_json_rsp(self, rsp, url, is_login=False):
-        if rsp.status == 200:
-            # json_response = await response.json(content_type=None)
-            data = await rsp.read()
-            if not data:
-                return None
-            json_rsp = json.loads(data)
-            if isinstance(json_rsp, dict) and 'code' in json_rsp:
-                code = json_rsp['code']
-                if code == 1024:
-                    print('b站炸了，暂停所有请求1.5s后重试，请耐心等待')
-                    await asyncio.sleep(1.5)
-                    return None
-                elif code == 3 or code == -401 or code == 1003 or code == -101:
-                    print('api提示没有登录')
-                    print(json_rsp)
-                    if not is_login:
-                        return 3
-                    else:
-                        return json_rsp
-            return json_rsp
-        elif rsp.status == 403:
-            print('403频繁', url)
-        return None
-        
-    async def get_text_rsp(self, rsp, url):
-        if rsp.status == 200:
-            return await rsp.text()
-        elif rsp.status == 403:
-            print('403频繁', url)
-        return None

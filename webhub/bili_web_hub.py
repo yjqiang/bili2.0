@@ -1,7 +1,6 @@
 import copy
-import sys
-import aiohttp
 from webhub.base_web_hub import BaseWebHub
+from webhub.web_session import WebSession
 
 
 class BiliWebHub(BaseWebHub):
@@ -10,51 +9,31 @@ class BiliWebHub(BaseWebHub):
         self.dict_bili = copy.deepcopy(dict_bili)
         self.base_url = 'https://api.live.bilibili.com'
         self.set_status(dict_new)
-        self.bili_session = None
+        self._bili_session = None
         if dict_bili:
             self.app_params = f'actionKey={dict_bili["actionKey"]}&appkey={dict_bili["appkey"]}&build={dict_bili["build"]}&device={dict_bili["device"]}&mobi_app={dict_bili["mobi_app"]}&platform={dict_bili["platform"]}'
             
     @property
-    def bili_section(self):
-        if self.bili_session is None:
-            self.bili_session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=3))
+    def bili_session(self):
+        if self._bili_session is None:
+            self._bili_session = WebSession()
             # print(0)
-        return self.bili_session
-        
-    async def bili_section_post(self, url, headers=None, data=None, params=None):
-        while True:
-            try:
-                async with self.bili_section.post(url, headers=headers, data=data, params=params) as response:
-                    json_rsp = await self.get_json_rsp(response, url)
-                    if json_rsp is not None:
-                        return json_rsp
-            except:
-                # print('当前网络不好，正在重试，请反馈开发者!!!!')
-                print(sys.exc_info()[0], sys.exc_info()[1], url)
-                continue
+        return self._bili_session
                 
-    async def bili_section_get(self, url, headers=None, data=None, params=None):
-        while True:
-            try:
-                async with self.bili_section.get(url, headers=headers, data=data, params=params) as response:
-                    json_rsp = await self.get_json_rsp(response, url)
-                    if json_rsp is not None:
-                        return json_rsp
-            except:
-                # print('当前网络不好，正在重试，请反馈开发者!!!!')
-                print(sys.exc_info()[0], sys.exc_info()[1], url)
-                continue
+    async def bili_req_json(self, method, url, headers=None, data=None, params=None):
+        json_body = await self.bili_session.request_json(method, url, headers=headers, data=data, params=params)
+        return json_body    
                 
     async def playurl(self, cid):
         # cid real_roomid
         # url = 'http://api.live.bilibili.com/room/v1/Room/playUrl?'
         url = f'{self.base_url}/api/playurl?device=phone&platform=ios&scale=3&build=10000&cid={cid}&otype=json&platform=h5'
-        response = await self.bili_section_get(url)
+        response = await self.bili_req_json('GET', url)
         return response
         
     async def fetch_capsule(self):
         url = f"{self.base_url}/api/ajaxCapsule"
-        response = await self.bili_section_get(url, headers=self.dict_bili['pcheaders'])
+        response = await self.bili_req_json('GET', url, headers=self.dict_bili['pcheaders'])
         return response
 
     async def open_capsule(self, count):
@@ -64,7 +43,7 @@ class BiliWebHub(BaseWebHub):
             "count": count,
             "csrf_token": self.dict_bili['csrf']
         }
-        response = await self.bili_section_post(url, data=data, headers=self.dict_bili['pcheaders'])
+        response = await self.bili_req_json('POST', url, data=data, headers=self.dict_bili['pcheaders'])
         return response
         
     # 1:900兑换
@@ -72,7 +51,7 @@ class BiliWebHub(BaseWebHub):
         # url: "/exchange/coin2silver",
         data = {'coin': 10}
         url = f"{self.base_url}/exchange/coin2silver"
-        response = await self.bili_section_post(url, data=data, headers=self.dict_bili['pcheaders'])
+        response = await self.bili_req_json('POST', url, data=data, headers=self.dict_bili['pcheaders'])
         return response
 
     async def post_watching_history(self, room_id):
@@ -81,7 +60,7 @@ class BiliWebHub(BaseWebHub):
             "csrf_token": self.dict_bili['csrf']
         }
         url = f"{self.base_url}/room/v1/Room/room_entry_action"
-        response = await self.bili_section_post(url, data=data, headers=self.dict_bili['pcheaders'])
+        response = await self.bili_req_json('POST', url, data=data, headers=self.dict_bili['pcheaders'])
         return response
     
     async def silver2coin_web(self):
@@ -90,34 +69,34 @@ class BiliWebHub(BaseWebHub):
             "platform": 'pc',
             "csrf_token": self.dict_bili['csrf']
         }
-        response = await self.bili_section_post(url, headers=self.dict_bili['pcheaders'], data=data)
+        response = await self.bili_req_json('POST', url, headers=self.dict_bili['pcheaders'], data=data)
         return response
     
     async def silver2coin_app(self):
         temp_params = f'access_key={self.dict_bili["access_key"]}&{self.app_params}&ts={self.CurrentTime()}'
         sign = self.calc_sign(temp_params)
         app_url = f"{self.base_url}/AppExchange/silver2coin?{temp_params}&sign={sign}"
-        response1 = await self.bili_section_post(app_url, headers=self.dict_bili['appheaders'])
+        response1 = await self.bili_req_json('POST', app_url, headers=self.dict_bili['appheaders'])
         return response1
     
     async def fetch_fan(self, real_roomid, uid):
         url = f'{self.base_url}/rankdb/v1/RoomRank/webMedalRank?roomid={real_roomid}&ruid={uid}'
-        response = await self.bili_section_get(url)
+        response = await self.bili_req_json('GET', url)
         return response
     
     async def check_room(self, roomid):
         url = f"{self.base_url}/room/v1/Room/room_init?id={roomid}"
-        response = await self.bili_section_get(url)
+        response = await self.bili_req_json('GET', url)
         return response
     
     async def fetch_bag_list(self):
         url = f"{self.base_url}/gift/v2/gift/bag_list"
-        response = await self.bili_section_get(url, headers=self.dict_bili['pcheaders'])
+        response = await self.bili_req_json('GET', url, headers=self.dict_bili['pcheaders'])
         return response
     
     async def check_taskinfo(self):
         url = f'{self.base_url}/i/api/taskInfo'
-        response = await self.bili_section_get(url, headers=self.dict_bili['pcheaders'])
+        response = await self.bili_req_json('GET', url, headers=self.dict_bili['pcheaders'])
         return response
     
     async def send_gift_web(self, giftid, giftnum, bagid, ruid, biz_id):
@@ -137,23 +116,23 @@ class BiliWebHub(BaseWebHub):
             'price': '0',
             'csrf_token': self.dict_bili['csrf']
         }
-        response = await self.bili_section_post(url, headers=self.dict_bili['pcheaders'], data=data)
+        response = await self.bili_req_json('POST', url, headers=self.dict_bili['pcheaders'], data=data)
         return response
     
     async def fetch_user_info(self):
         url = f"{self.base_url}/i/api/liveinfo"
-        response = await self.bili_section_get(url, headers=self.dict_bili['pcheaders'])
+        response = await self.bili_req_json('GET', url, headers=self.dict_bili['pcheaders'])
         return response
     
     async def fetch_user_infor_ios(self):
         temp_params = f'access_key={self.dict_bili["access_key"]}&platform=ios'
         url = f'{self.base_url}/mobile/getUser?{temp_params}'
-        response = await self.bili_section_get(url)
+        response = await self.bili_req_json('GET', url)
         return response
     
     async def fetch_liveuser_info(self, real_roomid):
         url = f'{self.base_url}/live_user/v1/UserInfo/get_anchor_in_room?roomid={real_roomid}'
-        response = await self.bili_section_get(url)
+        response = await self.bili_req_json('GET', url)
         return response
         
     async def send_danmu_msg_web(self, msg, roomId):
@@ -168,12 +147,12 @@ class BiliWebHub(BaseWebHub):
             'csrf_token': self.dict_bili['csrf']
         }
 
-        response = await self.bili_section_post(url, headers=self.dict_bili['pcheaders'], data=data)
+        response = await self.bili_req_json('POST', url, headers=self.dict_bili['pcheaders'], data=data)
         return response
     
     async def fetchmedal(self):
         url = f'{self.base_url}/i/api/medal?page=1&pageSize=50'
-        response = await self.bili_section_post(url, headers=self.dict_bili['pcheaders'])
+        response = await self.bili_req_json('POST', url, headers=self.dict_bili['pcheaders'])
         return response
     
     async def ReqWearingMedal(self):
@@ -182,20 +161,20 @@ class BiliWebHub(BaseWebHub):
             'uid': self.dict_bili['uid'],
             'csrf_token': ''
         }
-        response = await self.bili_section_post(url, data=data, headers=self.dict_bili['pcheaders'])
+        response = await self.bili_req_json('POST', url, data=data, headers=self.dict_bili['pcheaders'])
         return response
 
     async def ReqTitleInfo(self):
         temp_params = f'access_key={self.dict_bili["access_key"]}&{self.app_params}'
         sign = self.calc_sign(temp_params)
         url = f'{self.base_url}/appUser/myTitleList?{temp_params}&sign={sign}'
-        response = await self.bili_section_get(url, headers=self.dict_bili['appheaders'])
+        response = await self.bili_req_json('GET', url, headers=self.dict_bili['appheaders'])
         return response
         
     async def get_giftlist_of_storm(self, dic):
         roomid = dic['roomid']
         get_url = f"{self.base_url}/lottery/v1/Storm/check?roomid={roomid}"
-        response = await self.bili_section_get(get_url, headers=self.dict_bili['pcheaders'])
+        response = await self.bili_req_json('GET', get_url, headers=self.dict_bili['pcheaders'])
         return response
 
     async def get_gift_of_storm(self, id):
@@ -207,7 +186,7 @@ class BiliWebHub(BaseWebHub):
             "captcha_phrase": "",
             "token": "",
             "csrf_token": self.dict_bili['csrf']}
-        response1 = await self.bili_section_post(storm_url, data=payload, headers=self.dict_bili['pcheaders'])
+        response1 = await self.bili_req_json('POST', storm_url, data=payload, headers=self.dict_bili['pcheaders'])
         return response1
 
     async def get_gift_of_events_web(self, room_id, text2, raffleid):
@@ -216,7 +195,7 @@ class BiliWebHub(BaseWebHub):
             'referer': text2
         }
         pc_url = f'{self.base_url}/activity/v1/Raffle/join?roomid={room_id}&raffleId={raffleid}'
-        pc_response = await self.bili_section_get(pc_url, headers=headers)
+        pc_response = await self.bili_req_json('GET', pc_url, headers=headers)
 
         return pc_response
 
@@ -229,8 +208,8 @@ class BiliWebHub(BaseWebHub):
         # params = temp_params + self.dict_bili['app_secret']
         sign = self.calc_sign(temp_params)
         true_url = f'{self.base_url}/YunYing/roomEvent?{temp_params}&sign={sign}'
-        # response1 = await self.bili_section_get(true_url, params=params, headers=headers)
-        response1 = await self.bili_section_get(true_url, headers=headers)
+        # response1 = await self.bili_req_json('GET', true_url, params=params, headers=headers)
+        response1 = await self.bili_req_json('GET', true_url, headers=headers)
         return response1
    
     async def get_gift_of_TV(self, real_roomid, TV_raffleid):
@@ -242,7 +221,7 @@ class BiliWebHub(BaseWebHub):
             "csrf_token": ''
             }
             
-        response = await self.bili_section_post(url, data=payload, headers=self.dict_bili['pcheaders'])
+        response = await self.bili_req_json('POST', url, data=payload, headers=self.dict_bili['pcheaders'])
         return response
         
     async def get_gift_of_TV_app(self, real_roomid, raffle_id, raffle_type):
@@ -251,7 +230,7 @@ class BiliWebHub(BaseWebHub):
         sign = self.calc_sign(temp_params)
         payload = f'{temp_params}&sign={sign}'
         # print(payload)
-        response = await self.bili_section_post(url, params=payload, headers=self.dict_bili['appheaders'])
+        response = await self.bili_req_json('POST', url, params=payload, headers=self.dict_bili['appheaders'])
         # print(response)
         return response
 
@@ -263,38 +242,38 @@ class BiliWebHub(BaseWebHub):
             'type': 'guard',
             'csrf_token': self.dict_bili['csrf']
         }
-        json_rsp = await self.bili_section_post(url, data=data, headers=self.dict_bili['pcheaders'])
+        json_rsp = await self.bili_req_json('POST', url, data=data, headers=self.dict_bili['pcheaders'])
         return json_rsp
     
     async def get_giftlist_of_events(self, room_id):
         url = f'{self.base_url}/activity/v1/Raffle/check?roomid={room_id}'
-        response = await self.bili_section_get(url, headers=self.dict_bili['pcheaders'])
+        response = await self.bili_req_json('GET', url, headers=self.dict_bili['pcheaders'])
         return response
 
     async def get_giftlist_of_TV(self, real_roomid):
         url = f"{self.base_url}/gift/v3/smalltv/check?roomid={real_roomid}"
-        response = await self.bili_section_get(url)
+        response = await self.bili_req_json('GET', url)
         return response
 
     async def get_giftlist_of_guard(self, roomid):
         url = f'{self.base_url}/lottery/v1/Lottery/check_guard?roomid={roomid}'
-        json_rsp = await self.bili_section_get(url, headers=self.dict_bili['pcheaders'])
+        json_rsp = await self.bili_req_json('GET', url, headers=self.dict_bili['pcheaders'])
         return json_rsp
     
     async def get_activity_result(self, activity_roomid, activity_raffleid):
         url = f"{self.base_url}/activity/v1/Raffle/notice?roomid={activity_roomid}&raffleId={activity_raffleid}"
-        response = await self.bili_section_get(url, headers=self.dict_bili['pcheaders'])
+        response = await self.bili_req_json('GET', url, headers=self.dict_bili['pcheaders'])
         return response
     
     async def get_TV_result(self, TV_roomid, TV_raffleid):
         url = f"{self.base_url}/gift/v3/smalltv/notice?type=small_tv&raffleId={TV_raffleid}"
-        response = await self.bili_section_get(url, headers=self.dict_bili['pcheaders'])
+        response = await self.bili_req_json('GET', url, headers=self.dict_bili['pcheaders'])
         return response
 
     async def pcpost_heartbeat(self):
         
         url = f'{self.base_url}/User/userOnlineHeart'
-        response = await self.bili_section_post(url, headers=self.dict_bili['pcheaders'])
+        response = await self.bili_req_json('POST', url, headers=self.dict_bili['pcheaders'])
         return response
 
     # 发送app心跳包
@@ -306,23 +285,23 @@ class BiliWebHub(BaseWebHub):
         sign = self.calc_sign(temp_params)
         url = f'{self.base_url}/mobile/userOnlineHeart?{temp_params}&sign={sign}'
         payload = {'roomid': 23058, 'scale': 'xhdpi'}
-        response = await self.bili_section_post(url, data=payload, headers=self.dict_bili['appheaders'])
+        response = await self.bili_req_json('POST', url, data=payload, headers=self.dict_bili['appheaders'])
         return response
 
     # 心跳礼物
     async def heart_gift(self):
         url = f"{self.base_url}/gift/v2/live/heart_gift_receive?roomid=3&area_v2_id=34"
-        response = await self.bili_section_get(url, headers=self.dict_bili['pcheaders'])
+        response = await self.bili_req_json('GET', url, headers=self.dict_bili['pcheaders'])
         return response
     
     async def get_lotterylist(self, i):
         url = f"{self.base_url}/lottery/v1/box/getStatus?aid={i}"
-        response = await self.bili_section_get(url, headers=self.dict_bili['pcheaders'])
+        response = await self.bili_req_json('GET', url, headers=self.dict_bili['pcheaders'])
         return response
 
     async def get_gift_of_lottery(self, i, g):
         url1 = f'{self.base_url}/lottery/v1/box/draw?aid={i}&number={g + 1}'
-        response1 = await self.bili_section_get(url1, headers=self.dict_bili['pcheaders'])
+        response1 = await self.bili_req_json('GET', url1, headers=self.dict_bili['pcheaders'])
         return response1
 
     async def get_time_about_silver(self):
@@ -330,7 +309,7 @@ class BiliWebHub(BaseWebHub):
         temp_params = f'access_key={self.dict_bili["access_key"]}&{self.app_params}&ts={time}'
         sign = self.calc_sign(temp_params)
         GetTask_url = f'{self.base_url}/mobile/freeSilverCurrentTask?{temp_params}&sign={sign}'
-        response = await self.bili_section_get(GetTask_url, headers=self.dict_bili['appheaders'])
+        response = await self.bili_req_json('GET', GetTask_url, headers=self.dict_bili['appheaders'])
         return response
     
     async def get_silver(self, timestart, timeend):
@@ -338,59 +317,60 @@ class BiliWebHub(BaseWebHub):
         temp_params = f'access_key={self.dict_bili["access_key"]}&{self.app_params}&time_end={timeend}&time_start={timestart}&ts={time}'
         sign = self.calc_sign(temp_params)
         url = f'{self.base_url}/mobile/freeSilverAward?{temp_params}&sign={sign}'
-        response = await self.bili_section_get(url, headers=self.dict_bili['appheaders'])
+        response = await self.bili_req_json('GET', url, headers=self.dict_bili['appheaders'])
         return response
 
     async def get_dailybag(self):
         url = f'{self.base_url}/gift/v2/live/receive_daily_bag'
-        response = await self.bili_section_get(url, headers=self.dict_bili['pcheaders'])
+        response = await self.bili_req_json('GET', url, headers=self.dict_bili['pcheaders'])
         return response
     
     async def get_dosign(self):
         url = f'{self.base_url}/sign/doSign'
-        response = await self.bili_section_get(url, headers=self.dict_bili['pcheaders'])
+        response = await self.bili_req_json('GET', url, headers=self.dict_bili['pcheaders'])
         return response
     
     async def get_dailytask(self):
         url = f'{self.base_url}/activity/v1/task/receive_award'
         payload2 = {'task_id': 'double_watch_task'}
-        response2 = await self.bili_section_post(url, data=payload2, headers=self.dict_bili['appheaders'])
+        response2 = await self.bili_req_json('POST', url, data=payload2, headers=self.dict_bili['appheaders'])
         return response2
         
     async def gift_list(self):
         url = f"{self.base_url}/gift/v3/live/gift_config"
-        res = await self.bili_section_get(url)
+        res = await self.bili_req_json('GET', url)
         return res
             
     async def req_realroomid(self, areaid):
         url = f'{self.base_url}/room/v1/area/getRoomList?platform=web&parent_area_id={areaid}&cate_id=0&area_id=0&sort_type=online&page=1&page_size=30'
-        json_rsp = await self.bili_section_get(url)
+        json_rsp = await self.bili_req_json('GET', url)
         return json_rsp
          
     async def req_room_init(self, roomid):
         url = f'{self.base_url}/room/v1/Room/room_init?id={roomid}'
-        json_rsp = await self.bili_section_get(url)
+        json_rsp = await self.bili_req_json('GET', url)
         return json_rsp
         
     async def ReqRoomInfo(self, roomid):
         url = f"{self.base_url}/room/v1/Room/get_info?room_id={roomid}"
-        res = await self.bili_section_get(url)
+        res = await self.bili_req_json('GET', url)
         return res
         
+
 class HostBiliWebHub(BiliWebHub):
     
     def __init__(self, id, dict_new, dict_bili, host):
         self.dict_bili = copy.deepcopy(dict_bili)
         self.set_status(dict_new)
         self.user_id = id
-        self.bili_session = None
+        self._bili_session = None
         if dict_bili:
             self.app_params = f'actionKey={dict_bili["actionKey"]}&appkey={dict_bili["appkey"]}&build={dict_bili["build"]}&device={dict_bili["device"]}&mobi_app={dict_bili["mobi_app"]}&platform={dict_bili["platform"]}'
         self.host = host
         self.base_url = f'http://{self.host.get_host()}'
         self.headers_host = {'host': 'api.live.bilibili.com'}
     
-    async def bili_section_post(self, url, headers={}, data=None, parama=None):
+    async def bili_req_json(self, method, url, headers={}, data=None, parama=None):
         # print(url)
         i = 5
         while True:
@@ -402,41 +382,9 @@ class HostBiliWebHub(BiliWebHub):
                 url = '/'.join(list_words[2:])
                 print('ip切换为', url)
                 i = 5
-            try:
-                async with self.bili_section.post(url, headers={**headers, **(self.headers_host)}, data=data, params=parama) as response:
-                    json_rsp = await self.get_json_rsp(response, url)
-                    if json_rsp is not None:
-                        return json_rsp
-                    elif response.status == 403:
-                        print('403频繁')
-                        i = -1
-            except:
-                # print('当前网络不好，正在重试，请反馈开发者!!!!')
-                print(sys.exc_info()[0], sys.exc_info()[1], url, self.user_id)
-                continue
-
-    async def bili_section_get(self, url, headers={}, data=None, params=None):
-        i = 5
-        while True:
-            i -= 1
-            if i < 0:
-                self.base_url = f'http://{self.host.get_host()}'
-                list_words = url.split('/')
-                list_words[2] = self.base_url
-                url = '/'.join(list_words[2:])
-                print('ip切换为', url)
-                i = 5
-            try:
-                async with self.bili_section.get(url, headers={**headers, **(self.headers_host)}, data=data, params=params) as response:
-                    json_rsp = await self.get_json_rsp(response, url)
-                    if json_rsp is not None:
-                        return json_rsp
-                    elif response.status == 403:
-                        print('403频繁')
-                        i = -1
-            except:
-                # print('当前网络不好，正在重试，请反馈开发者!!!!')
-                print(sys.exc_info()[0], sys.exc_info()[1], url, self.user_id)
-                continue
-    
+            json_body = await self.bili_session.request_json(method, url, headers={**headers, **(self.headers_host)}, data=data, params=parama, is_none_allowed=True)
+            if json_body is not None:
+                return json_body
+            
+            
     
