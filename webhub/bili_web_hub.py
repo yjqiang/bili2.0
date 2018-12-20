@@ -144,7 +144,8 @@ class BiliWebHub(BaseWebHub):
             'msg': msg,
             'rnd': '0',
             'roomid': int(roomId),
-            'csrf_token': self.dict_bili['csrf']
+            'csrf_token': self.dict_bili['csrf']，
+            'csrf': self.dict_bili['csrf']
         }
 
         response = await self.bili_req_json('POST', url, headers=self.dict_bili['pcheaders'], data=data)
