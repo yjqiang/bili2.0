@@ -144,7 +144,7 @@ class BiliWebHub(BaseWebHub):
             'msg': msg,
             'rnd': '0',
             'roomid': int(roomId),
-            'csrf_token': self.dict_bili['csrf']，
+            'csrf_token': self.dict_bili['csrf'],
             'csrf': self.dict_bili['csrf']
         }
 
