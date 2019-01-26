@@ -1,5 +1,4 @@
 import re
-import json
 import random
 from datetime import datetime
 import utils
@@ -65,9 +64,7 @@ class JudgeCaseTask:
         # 2 否 voterule
         # 4 删除 votedelete
         # 1 封杀 votebreak
-        text_rsp = await user.req_s(JudgeCaseReq.check_case_status, user, case_id)
-        result = re.search(r'\((.+)\)', text_rsp).group(1)
-        json_rsp = json.loads(result)
+        json_rsp = await user.req_s(JudgeCaseReq.check_case_status, user, case_id)
         data = json_rsp['data']
         votebreak = data['voteBreak']
         voteDelete = data['voteDelete']

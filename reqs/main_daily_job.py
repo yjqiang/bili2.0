@@ -34,10 +34,9 @@ class JudgeCaseReq:
             **(user.dict_bili['pcheaders']),
             'Referer': f'https://www.bilibili.com/judgement/vote/{case_id}',
         }
-        url = f'https://api.bilibili.com/x/credit/jury/juryCase?jsonp=jsonp&callback=jQuery1720{UtilsReq.randomint()}_{UtilsReq.curr_time()}&cid={case_id}&_={UtilsReq.curr_time()}'
-        text_rsp = await user.other_session.request_text('GET', url, headers=headers)
-        # print(text_rsp)
-        return text_rsp
+        url = f'https://api.bilibili.com/x/credit/jury/juryCase?callback=jQuery1720{UtilsReq.randomint()}_{UtilsReq.curr_time()}&cid={case_id}&_={UtilsReq.curr_time()}'
+        json_rsp = await user.other_session.request_json('GET', url, headers=headers)
+        return json_rsp
         
     @staticmethod
     async def fetch_judged_cases(user):
