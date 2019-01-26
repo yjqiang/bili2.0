@@ -7,6 +7,7 @@ import conf_loader
 import notifier
 import raffle_handler
 import bili_statistics
+import web_session
 from bili_console import Biliconsole
 import printer
 from user import User
@@ -37,6 +38,7 @@ if sys.platform == 'win32':
     asyncio.set_event_loop(loop)
 else:
     loop = asyncio.get_event_loop()
+web_session.sem = asyncio.Semaphore(3)
         
 dict_user = conf_loader.read_user()
 dict_bili = conf_loader.read_bili()
