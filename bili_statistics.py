@@ -14,7 +14,10 @@ class BiliStatistics:
     def print_statistics(self, id):
         print('本次推送抽奖统计：')
         for k, v in self.pushed_raffles.items():
-            print(f'{v:^5} X {k}')
+            if isinstance(v, int):
+                print(f'{v:^5} X {k}')
+            else:
+                print(f'{v:^5.2f} X {k}')
         print()
         
         if id == -2:
@@ -63,7 +66,7 @@ class BiliStatistics:
         # 定期清理，防止炸掉
         if len(self.raffle_ids) > 150:
             del self.raffle_ids[:75]
-            print(self.raffle_ids)
+            # print(self.raffle_ids)
     
     def is_raffleid_duplicate(self, raffle_id):
         return (raffle_id in self.raffle_ids)
