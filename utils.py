@@ -1,16 +1,13 @@
-import datetime
 import time
+from datetime import datetime
 
 
 def seconds_until_tomorrow():
-    today = datetime.date.today()
-    tomorrow = today + datetime.timedelta(days=1)
-    tomorrow_start_time = int(time.mktime(time.strptime(str(tomorrow), '%Y-%m-%d')))
-    current_time = int(time.time())
-    return tomorrow_start_time - current_time
+    dt = datetime.now()
+    return (23 - dt.hour) * 3600 + (59 - dt.minute) * 60 + 60 - dt.second
+     
     
-    
-def adjust_for_chinese(str):
+def adjust_for_chinese(str, format_control=10):
     SPACE = '\N{IDEOGRAPHIC SPACE}'
     EXCLA = '\N{FULLWIDTH EXCLAMATION MARK}'
     TILDE = '\N{FULLWIDTH TILDE}'
@@ -22,5 +19,17 @@ def adjust_for_chinese(str):
     # build the translation table
     full = str.maketrans(west, east)
     str = str.translate(full).rstrip().split('\n')
-    md = f'{str[0]:^10}'
+    md = f'{str[0]:^{format_control}}'
     return md.translate(full)
+    
+
+def print_progress(finished_exp, sum_exp, num_sum=30):
+    num_arrow = int(finished_exp / sum_exp * num_sum)
+    num_line = num_sum - num_arrow
+    percent = finished_exp / sum_exp * 100
+    process_bar = f'[{">" * num_arrow}{"-" * num_line}] {percent:.2f}%'
+    print(process_bar)
+    
+    
+def curr_time():
+    return int(time.time())

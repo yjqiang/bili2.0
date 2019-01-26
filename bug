@@ -1,0 +1,10 @@
+ None https://www.bilibili.com/widget/getPageList?aid=41272272
+404返回  妈的sbb站
+
+存在一个可能卡死的地方，但是到现在都找不到，不确定是否与上面的重复
+
+41272272
+输入数目1
+give_coin
+{'code': 10003, 'message': '不存在该稿件', 'ttl': 1, 'data': {'like': False}}
+

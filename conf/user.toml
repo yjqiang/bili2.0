@@ -7,34 +7,23 @@ csrf = ""
 uid = ""
 refresh_token = ""
 
-[[users]]
-username = ""
-password = ""
-access_key = ""
-cookie = ""
-csrf = ""
-uid = ""
-refresh_token = ""
-
-[platform]
-platform = "ios_pythonista"
-
 [print_control]
 danmu = false
 
 [task_control]
 clean-expiring-gift = false
-set-expiring-time = 43200
+set-expiring-time = 0
 clean_expiring_gift2all_medal = false
 clean-expiring-gift2room = 0
 silver2coin = false
-send2wearing-medal = false
+send2wearing-medal = true
 send2medal = []
 doublegain_coin2silver = false
-givecoin = 0
+givecoin = 5
 fetchrule = "bilitop"
 mid = [ 207539637,]
 
 [other_control]
 default_monitor_roomid = 23058
-raffle_minitor_roomid = 0
+raffle_minitor_roomid = 1823260
+area_ids = [ 1, 2, 3, 4, 5,]

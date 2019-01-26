@@ -1,4 +1,4 @@
-class BiliStats:
+class BiliStatistics:
     def __init__(self, area_num=0):
         self.area_num = area_num
         # 只有一个(可以认为id为-1的super user)
@@ -8,13 +8,16 @@ class BiliStats:
         self.joined_raffles = {}
         self.raffle_results = {}
         
-    def print_stats(self, id):
+        # 这是用于重复问题
+        self.raffle_ids = []
+        
+    def print_statistics(self, id):
         print('本次推送抽奖统计：')
         for k, v in self.pushed_raffles.items():
             print(f'{v:^5} X {k}')
         print()
         
-        if id is None:
+        if id == -2:
             print('暂时不支持全部打印，考虑到用户可能很多')
         else:
             self.__print_one_stats(id)
@@ -53,26 +56,45 @@ class BiliStats:
             self.raffle_results[id] = {}
         results_of_id = self.raffle_results[id]
         results_of_id[gift_name] = results_of_id.get(gift_name, 0) + num
+        
+    # raffle_id int
+    def add2raffle_ids(self, raffle_id):
+        self.raffle_ids.append(raffle_id)
+        # 定期清理，防止炸掉
+        if len(self.raffle_ids) > 150:
+            del self.raffle_ids[:75]
+            print(self.raffle_ids)
+    
+    def is_raffleid_duplicate(self, raffle_id):
+        return (raffle_id in self.raffle_ids)
 
                 
-var_bili_stats = BiliStats()
+var = BiliStatistics()
 
 
 def init_area_num(area_num):
-    var_bili_stats.area_num = area_num
+    var.area_num = area_num
     
 
 def add2pushed_raffles(raffle_name, broadcast_type=0, num=1):
-    var_bili_stats.add2pushed_raffles(raffle_name, broadcast_type, int(num))
+    var.add2pushed_raffles(raffle_name, broadcast_type, int(num))
         
         
 def add2joined_raffles(raffle_name, id, num=1):
-    var_bili_stats.add2joined_raffles(raffle_name, id, int(num))
+    var.add2joined_raffles(raffle_name, id, int(num))
  
        
 def add2results(gift_name, id, num=1):
-    var_bili_stats.add2results(gift_name, id, int(num))
+    var.add2results(gift_name, id, int(num))
     
 
-def print_stats(id=None):
-    var_bili_stats.print_stats(id)
+def add2raffle_ids(raffle_id):
+    var.add2raffle_ids(int(raffle_id))
+    
+    
+def is_raffleid_duplicate(raffle_id):
+    return var.is_raffleid_duplicate(int(raffle_id))
+    
+
+def print_statistics(id=None):
+    var.print_statistics(id)

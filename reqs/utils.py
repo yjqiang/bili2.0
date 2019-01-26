@@ -1,0 +1,163 @@
+# 不具有任何意义,仅仅是常见func
+
+import time
+from random import randint
+from bili_global import API_LIVE
+
+
+class UtilsReq:
+    @staticmethod
+    def randomint():
+        return ''.join(str(randint(0, 9)) for _ in range(17))
+        
+    @staticmethod
+    def curr_time():
+        return int(time.time())
+        
+    @staticmethod
+    async def post_watching_history(user, room_id):
+        data = {
+            "room_id": room_id,
+            "csrf_token": user.dict_bili['csrf']
+        }
+        url = f"{API_LIVE}/room/v1/Room/room_entry_action"
+        response = await user.bililive_session.request_json('POST', url, data=data, headers=user.dict_bili['pcheaders'])
+        return response
+        
+    @staticmethod
+    async def init_room(user, roomid):
+        url = f"{API_LIVE}/room/v1/Room/room_init?id={roomid}"
+        response = await user.bililive_session.request_json('GET', url)
+        return response
+        
+    @staticmethod
+    async def get_rooms_by_area(user, areaid):
+        url = f'{API_LIVE}/room/v1/area/getRoomList?platform=web&parent_area_id={areaid}&cate_id=0&area_id=0&sort_type=online&page=1&page_size=15'
+        json_rsp = await user.bililive_session.request_json('GET', url)
+        return json_rsp
+        
+    @staticmethod
+    async def get_room_info(user, roomid):
+        url = f"{API_LIVE}/room/v1/Room/get_info?room_id={roomid}"
+        json_rsp = await user.bililive_session.request_json('GET', url)
+        return json_rsp
+    
+    @staticmethod
+    async def fetch_giftbags(user):
+        url = f'{API_LIVE}/gift/v2/gift/bag_list'
+        json_rsp = await user.bililive_session.request_json('GET', url, headers=user.dict_bili['pcheaders'])
+        return json_rsp
+        
+    @staticmethod
+    async def send_gift(user, gift_id, num_sent, bag_id, ruid, biz_id):
+        url = f'{API_LIVE}/gift/v2/live/bag_send'
+        data = {
+            'uid': user.dict_bili['uid'],
+            'gift_id': gift_id,
+            'ruid': ruid,
+            'gift_num': num_sent,
+            'bag_id': bag_id,
+            'platform': 'pc',
+            'biz_code': 'live',
+            'biz_id': biz_id,
+            'rnd': UtilsReq.curr_time(),
+            'storm_beat_id': '0',
+            'metadata': '',
+            'price': '0',
+            'csrf_token': user.dict_bili['csrf']
+        }
+        json_rsp = await user.bililive_session.request_json('POST', url, headers=user.dict_bili['pcheaders'], data=data)
+        return json_rsp
+        
+    @staticmethod
+    async def buy_gift(user, gift_id, num_sent, ruid, biz_id, coin_type):
+        url = f'{API_LIVE}/gift/v2/gift/send'
+        data = {
+            'uid': user.dict_bili['uid'],
+            'gift_id': gift_id,
+            'ruid': ruid,
+            'gift_num': num_sent,
+            'coin_type': coin_type,
+            'bag_id': 0,
+            'platform': 'pc',
+            'biz_code': 'live',
+            'biz_id': biz_id,
+            'rnd': UtilsReq.curr_time(),
+            'storm_beat_id': '0',
+            'metadata': '',
+            'price': '0',
+            'csrf_token': user.dict_bili['csrf']
+        }
+        json_rsp = await user.bililive_session.request_json('POST', url, headers=user.dict_bili['pcheaders'], data=data)
+        return json_rsp
+ 
+    @staticmethod
+    async def fetch_medals(user):
+        url = f'{API_LIVE}/i/api/medal?page=1&pageSize=50'
+        json_rsp = await user.bililive_session.request_json('POST', url, headers=user.dict_bili['pcheaders'])
+        return json_rsp
+        
+    @staticmethod
+    async def fetch_bilimain_tasks(user):
+        url = 'https://account.bilibili.com/home/reward'
+        json_rsp = await user.other_session.request_json('GET', url, headers=user.dict_bili['pcheaders'])
+        return json_rsp
+        
+    @staticmethod
+    async def fetch_livebili_tasks(user):
+        url = f'{API_LIVE}/i/api/taskInfo'
+        json_rsp = await user.bililive_session.request_json('GET', url, headers=user.dict_bili['pcheaders'])
+        return json_rsp
+        
+    # 有个其他的api，主页那里，但是类似于judge查询那样，json隐藏在text里面，恶心
+    @staticmethod
+    async def fetch_bilimain_userinfo(user):
+        url = 'https://account.bilibili.com/home/userInfo'
+        json_rsp = await user.other_session.request_json('GET', url, headers=user.dict_bili['pcheaders'])
+        return json_rsp
+    
+    @staticmethod
+    async def fetch_livebili_userinfo_pc(user):
+        url = f"{API_LIVE}/i/api/liveinfo"
+        json_rsp = await user.bililive_session.request_json('GET', url, headers=user.dict_bili['pcheaders'])
+        return json_rsp
+    
+    @staticmethod
+    async def fetch_livebili_userinfo_ios(user):
+        url = f'{API_LIVE}/mobile/getUser?access_key={user.dict_bili["access_key"]}&platform=ios'
+        json_rsp = await user.bililive_session.request_json('GET', url)
+        return json_rsp
+        
+    @staticmethod
+    async def fetch_capsule_info(user):
+        url = f'{API_LIVE}/xlive/web-ucenter/v1/capsule/get_detail?from=web'
+        json_rsp = await user.bililive_session.request_json('GET', url, headers=user.dict_bili['pcheaders'])
+        return json_rsp
+
+    @staticmethod
+    async def open_capsule(user, num_opened):
+        url = f'{API_LIVE}/xlive/web-ucenter/v1/capsule/open_capsule'
+        data = {
+            'type': 'normal',
+            "count": num_opened,
+            'csrf_token': user.dict_bili['csrf'],
+            'csrf': user.dict_bili['csrf']
+        }
+        json_rsp = await user.bililive_session.request_json('POST', url, data=data, headers=user.dict_bili['pcheaders'])
+        return json_rsp
+        
+    @staticmethod
+    async def send_danmu(user, msg, room_id):
+        url = f'{API_LIVE}/msg/send'
+        data = {
+            'color': '16777215',
+            'fontsize': '25',
+            'mode': '1',
+            'msg': msg,
+            'rnd': '0',
+            'roomid': int(room_id),
+            'csrf_token': user.dict_bili['csrf'],
+            'csrf': user.dict_bili['csrf']
+        }
+        json_rsp = await user.bililive_session.request_json('POST', url, headers=user.dict_bili['pcheaders'], data=data)
+        return json_rsp

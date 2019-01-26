@@ -9,17 +9,11 @@ def CurrentTime():
     return currenttime
 
 
-class connect():
-    __slots__ = ('danmuji', 'room_id', 'area_id')
-    instance = None
-    
-    def __new__(cls, room_id=None):
-        if not cls.instance:
-            cls.instance = super(connect, cls).__new__(cls)
-            cls.instance.danmuji = None
-            cls.instance.room_id = room_id
-            cls.instance.area_id = -1
-        return cls.instance
+class DanmuConnect():
+    def __init__(self, room_id):
+        self.danmuji = None
+        self.room_id = room_id
+        self.area_id = -1
         
     async def run(self):
         self.danmuji = danmu.DanmuPrinter(self.room_id, self.area_id)
@@ -47,6 +41,7 @@ class connect():
     async def reconnect(self, room_id):
         self.room_id = room_id
         print('已经切换room_id')
+        # 其实这里仍然不够安全，如果在未初始化完毕的时候调用，还是会出错误
         if self.danmuji is not None:
             self.danmuji.room_id = room_id
             await self.danmuji.close()
@@ -118,7 +113,21 @@ class YjConnection():
             await asyncio.wait(pending)
             printer.info(['Yj弹幕姬退出，剩余任务处理完毕'], True)
             
-            
-
-        
                     
+var_danmu_connect = DanmuConnect(0)
+
+
+def init_danmu_roomid(real_roomid):
+    var_danmu_connect.room_id = real_roomid
+
+
+async def reconnect_danmu(real_roomid):
+    await var_danmu_connect.reconnect(real_roomid)
+
+
+def get_default_roomid():
+    return var_danmu_connect.room_id
+    
+    
+async def run_danmu():
+    await var_danmu_connect.run()

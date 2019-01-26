@@ -1,37 +1,44 @@
-
-from connect import connect
+import bili_statistics
+import connect
 import printer
 import asyncio
-from task import Messenger
+import notifier
 from cmd import Cmd
 import getopt
+from tasks.utils import UtilsTask
+from tasks.custom import SendLatiaoTask, BuyLatiaoTask
+from tasks.main_daily_job import JudgeCaseTask
           
               
-class Biliconsole(Messenger, Cmd):
+class Biliconsole(Cmd):
+    prompt = ''
     
-    def preloop(self):
-        Cmd.__init__(self)
-        self.prompt = ''
-        
+    def __init__(self, loop):
+        self.loop = loop
+        super().__init__()
+    
     def guide_of_console(self):
-        print('___________________________')
-        print('| 欢迎使用本控制台           |')
-        print('|1 输出本次用户统计          |')
-        print('|2 查看目前拥有礼物的统计     |')
-        print('|3 查看持有勋章状态          |')
-        print('|4 获取直播个人的基本信息     |')
-        print('|5 检查今日任务的完成情况     |')
-    
-        print('|7 模拟电脑网页端发送弹幕     |')
-        print('|8 直播间的长短号码的转化     |')
-        print('|9  切换监听的直播间         |')
-        print('|10 T或F控制弹幕的开关       |')
-        print('|11 房间号码查看主播         |')
-        # print('|12 当前拥有的扭蛋币         |')
-        print('|12 开扭蛋币(只能1，10，100) |')
-        # print('|14 查看小黑屋的状态         |')
-        print('|15 检测参与正常的实物抽奖    |')
-        print('|16 赠指定总数的辣条到房间    |')
+        print('____________________________')
+        print('|  欢迎使用本控制台　　　　　　　|')
+        print('|1 输出本次统计数据　　　　　　　|')
+        print('|2 查看目前拥有礼物的统计　　　　|')
+        print('|3 查看持有勋章状态　　　　　　　|')
+        print('|4 检查主站今日任务的情况　　　　|')
+        print('|5 检查直播分站今日任务的情况　　|')
+        print('|6 获取主站个人的基本信息　　　　|')
+        print('|7 获取直播分站个人的基本信息　　|')
+        print('|8 检查风纪委今日自动投票的情况　|')
+        
+        print('|11当前拥有的扭蛋币　　　　　　　|')
+        print('|12开扭蛋币（一、十、百）　　　　|')
+        print('|13直播间的长短号码的转化　　　　|')
+        print('|14发送弹幕　　　　　　　　　　　|')
+        print('|15切换监听的直播间　　　　　　　|')
+        print('|16控制弹幕的开关　　　　　　　　|')
+        
+        # print('|15 检测参与正常的实物抽奖    |')
+        print('|21赠指定总数的辣条到房间　　　　|')
+        print('|22银瓜子全部购买辣条并送到房间　|')
         print('￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣')
         
     def default(self, line):
@@ -40,124 +47,146 @@ class Biliconsole(Messenger, Cmd):
     def emptyline(self):
         self.guide_of_console()
         
-    def parse_line(self, line, key_wanted=None):
-        list_opt = getopt.getopt(line.split(), '-u:')[0]
-        if key_wanted is None:
-            return list_opt
-        value_wanted = None
-        for key, value in list_opt:
-            if key == key_wanted:
-                value_wanted = value
-        if key_wanted == '-u' and value_wanted is not None:
-            if value_wanted.isdigit():
-                value_wanted = int(value_wanted)
+    # pattern = '-u:-p:' u(user_id):0,1…;n(num);p(point)指roomid(烂命名因为-r不合适)
+    def parse(self, arg, pattern, default_u=0):
+        args = arg.split()
+        try:
+            opts, args = getopt.getopt(args, pattern)
+        except getopt.GetoptError:
+            return []
+        dict_results = {opt_name: opt_value for opt_name, opt_value in opts}
+        
+        opt_names = pattern.split(':')[:-1]
+        results = []
+        for opt_name in opt_names:
+            opt_value = dict_results.get(opt_name)
+            if opt_name == '-u':
+                if opt_value is not None and opt_value.isdigit():
+                    results.append(int(opt_value))
+                else:
+                    results.append(default_u)
+                    # -2是一个灾难性的东西
+                    # results.append(-2)
+            elif opt_name == '-n':
+                if opt_value is not None and opt_value.isdigit():
+                    results.append(int(opt_value))
+                else:
+                    results.append(0)
+            elif opt_name == '-p':
+                if opt_value is not None and opt_value.isdigit():
+                    room_id = int(opt_value)
+                else:
+                    room_id = connect.get_default_roomid()
+                results.append(self.fetch_real_roomid(room_id))
             else:
-                value_wanted = None
+                results.append(opt_value)
+        return results
                 
-        print('list_opt', list_opt)
-        return value_wanted
-                
-    def do_1(self, line):
-        self.append2list_console([[], 'get_statistic', self.parse_line(line, '-u')])
+    def do_1(self, arg):
+        id, = self.parse(arg, '-u:')
+        bili_statistics.print_statistics(id)
         
-    def do_2(self, line):
-        self.append2list_console([[], 'fetch_bag_list', self.parse_line(line, '-u')])
+    def do_2(self, arg):
+        id, = self.parse(arg, '-u:')
+        self.exec_notifier_func_threads(id, UtilsTask.print_giftbags, [])
         
-    def do_3(self, line):
-        self.append2list_console([[], 'fetch_medal', self.parse_line(line, '-u')])
+    def do_3(self, arg):
+        id, = self.parse(arg, '-u:')
+        self.exec_notifier_func_threads(id, UtilsTask.print_medals, [])
         
-    def do_4(self, line):
-        self.append2list_console([[], 'fetch_user_info', self.parse_line(line, '-u')])
+    def do_4(self, arg):
+        id, = self.parse(arg, '-u:')
+        self.exec_notifier_func_threads(id, UtilsTask.print_bilimain_tasks, [])
         
-    def do_5(self, line):
-        self.append2list_console([[], 'check_taskinfo', self.parse_line(line, '-u')])
+    def do_5(self, arg):
+        id, = self.parse(arg, '-u:')
+        self.exec_notifier_func_threads(id, UtilsTask.print_livebili_tasks, [])
     
-    def do_6(self, line):
-        self.append2list_console([[], 'TitleInfo', self.parse_line(line, '-u')])
+    def do_6(self, arg):
+        id, = self.parse(arg, '-u:')
+        self.exec_notifier_func_threads(id, UtilsTask.print_mainbili_userinfo, [])
         
-    def do_7(self, line):
-        msg = input('请输入要发送的信息:')
-        roomid = input('请输入要发送的房间号:')
-        real_roomid = self.fetch_real_roomid(roomid)
-        self.append2list_console([[msg, real_roomid], 'send_danmu_msg_web'])
+    def do_7(self, arg):
+        id, = self.parse(arg, '-u:')
+        self.exec_notifier_func_threads(id, UtilsTask.print_livebili_userinfo, [])
         
-    def do_8(self, line):
-        roomid = input('请输入要转化的房间号:')
-        if not roomid:
-            roomid = connect().room_id
-        self.append2list_console([[roomid], 'check_room', -1])
+    def do_8(self, arg):
+        id, = self.parse(arg, '-u:')
+        self.exec_notifier_func_threads(id, JudgeCaseTask.print_judge_tasks, [])
+
+    def do_11(self, arg):
+        id, = self.parse(arg, '-u:')
+        self.exec_notifier_func_threads(id, UtilsTask.print_capsule_info, [])
         
-    def do_9(self, line):
-        roomid = input('请输入roomid')
-        real_roomid = self.fetch_real_roomid(roomid)
-        self.append2list_console([[real_roomid], connect().reconnect])
+    def do_12(self, arg):
+        id, num_opened = self.parse(arg, '-u:-n:')
+        self.exec_notifier_func_threads(id, UtilsTask.open_capsule, [num_opened])
         
-    def do_10(self, line):
-        new_words = input('弹幕控制')
-        if new_words == 'T':
+    def do_13(self, arg):
+        real_roomid, = self.parse(arg, '-p:')
+        self.exec_notifier_func_threads(-1, UtilsTask.get_real_roomid, [real_roomid])
+                
+    def do_14(self, arg):
+        id, msg, real_roomid = self.parse(arg, '-u:-m:-p:')
+        self.exec_notifier_func_threads(id, UtilsTask.send_danmu, [msg, real_roomid])
+        
+    def do_15(self, arg):
+        real_roomid, = self.parse(arg, '-p:')
+        self.exec_func_threads(connect.reconnect_danmu, [real_roomid])
+        
+    def do_16(self, arg):
+        ctrl, = self.parse(arg, '-c:')
+        if ctrl == 'T':
             printer.control_printer(True)
         else:
             printer.control_printer(False)
+        
+    def do_21(self, arg):
+        real_roomid, num_max = self.parse(arg, '-p:-n:')
+        self.exec_task_threads(0, SendLatiaoTask, 0, [real_roomid, num_max])
+        
+    def do_22(self, arg):
+        id, real_roomid = self.parse(arg, '-u:-p:')
+        self.exec_notifier_func_threads(id, BuyLatiaoTask.clean_latiao, [real_roomid])
             
-    def do_11(self, line):
-        roomid = input('请输入roomid')
-        real_roomid = self.fetch_real_roomid(roomid)
-        self.append2list_console([[real_roomid], 'fetch_liveuser_info', -1])
-
-    def do_12(self, line):
-        count = input('请输入要开的扭蛋数目(1或10或100)')
-        self.append2list_console([[count], 'open_capsule'])
-        
-    def do_13(self, line):
-        roomid = input('请输入roomid')
-        real_roomid = self.fetch_real_roomid(roomid)
-        self.append2list_console([[real_roomid], 'watch_living_video', -1])
-        
-    def do_15(self, line):
-        self.append2list_console([[], 'handle_1_room_substant', -1])
-        
-    def do_16(self, line):
-        roomid = input('请输入roomid')
-        real_roomid = self.fetch_real_roomid(roomid)
-        num_wanted = int(input('请输入辣条数目'))
-        self.append2list_console([[real_roomid, num_wanted], self.send_latiao])
-            
-    def append2list_console(self, request):
-        asyncio.run_coroutine_threadsafe(self.excute_async(request), self.loop)
-        
-    async def send_latiao(self, room_id, num_wanted):
-        i = 0
-        while True:
-            num_wanted = await self.call('send_latiao', (room_id, num_wanted), i)
-            i += 1
-            if num_wanted == 0:
-                break
-            await asyncio.sleep(1)
-            
-    def fetch_real_roomid(self, roomid):
-        if roomid:
-            real_roomid = [[roomid], 'check_room', -1]
-        else:
-            real_roomid = connect().room_id
+    def fetch_real_roomid(self, room_id):
+        real_roomid = [-1, UtilsTask.get_real_roomid, room_id]
         return real_roomid
         
-    async def excute_async(self, i):
-        print('bili_console:', i)
-        i.append(None)
-        if isinstance(i, list):
-            for j in range(len(i[0])):
-                if isinstance(i[0][j], list):
-                    print('检测')
-                    # i[0][j] = await i[0][j][1](*(i[0][j][0])
-                    i[0][j] = await self.call(i[0][j][1], i[0][j][0], i[0][j][2])
-            if isinstance(i[1], str):
-                await self.call(i[1], i[0], i[2])
-            else:
-                await i[1](*i[0])
-        else:
-            print('qqqqqqqqqqqqqqqq', i)
-            await i()
+    # threads指thread safe
+    def exec_notifier_func_threads(self, *args):
+        asyncio.run_coroutine_threadsafe(self.exec_notifier_func(*args), self.loop)
         
+    def exec_func_threads(self, *args):
+        asyncio.run_coroutine_threadsafe(self.exec_func(*args), self.loop)
+        
+    def exec_task_threads(self, *args):
+        asyncio.run_coroutine_threadsafe(self.exec_task(*args), self.loop)
+        
+    # 这里args设置为list
+    async def exec_notifier_func(self, id, func, args):
+        # print('bili_console:', id, func, args)
+        for i, arg in enumerate(args):
+            if isinstance(arg, list):
+                args[i] = await notifier.exec_func(*arg)
+        # print('bili_console:', id, func, args)
+        await notifier.exec_func(id, func, *args)
+
+    async def exec_func(self, func, args):
+        # print('bili_console:', func, args)
+        for i, arg in enumerate(args):
+            if isinstance(arg, list):
+                args[i] = await notifier.exec_func(*arg)
+        # print('bili_console:', func, args)
+        await func(*args)
+        
+    async def exec_task(self, id, task, step, args):
+        # print('bili_console:', task, args)
+        for i, arg in enumerate(args):
+            if isinstance(arg, list):
+                args[i] = await notifier.exec_func(*arg)
+        # print('bili_console:', task, args)
+        notifier.exec_task(id, task, step, *args)
         
     
     

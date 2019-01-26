@@ -1,12 +1,16 @@
 import printer
-from task import RaffleHandler
-from task import Task
+import notifier
+import bili_statistics
+from tasks.tv_raffle_handler import TvRaffleHandlerTask
+from tasks.guard_raffle_handler import GuardRaffleHandlerTask
+from tasks.storm_raffle_handler import StormRaffleHandlerTask
+from tasks.utils import UtilsTask
+import raffle_handler
 import asyncio
 import aiohttp
 import struct
 import json
 import sys
-import bili_stats
 
 
 class BaseDanmu():
@@ -142,13 +146,13 @@ class DanmuPrinter(BaseDanmu):
 
 class DanmuRaffleHandler(BaseDanmu):
     async def reset_roomid(self):
-        x = await Task().call('get_one', (self._area_id,), -1)
+        x = await notifier.exec_func(-1, UtilsTask.get_room_by_area, self._area_id)
         self.room_id = x
             
     async def check_area(self):
         try:
             while True:
-                is_ok = await asyncio.shield(Task().call('check_room_for_danmu', (self._room_id, self._area_id), -1))
+                is_ok = await asyncio.shield(notifier.exec_func(-1, UtilsTask.is_ok_as_monitor, self._room_id, self._area_id))
                 if not is_ok:
                     printer.info([f'{self._room_id}不再适合作为监控房间，即将切换'], True)
                     return
@@ -187,20 +191,20 @@ class DanmuRaffleHandler(BaseDanmu):
                     raffle_name = str_gift
                 broadcast = msg_common.split('广播')[0]
                 printer.info([f'{self._area_id}号弹幕监控检测到{real_roomid:^9}的{raffle_name}'], True)
-                RaffleHandler().push2queue((real_roomid,), 'handle_TV_raffle')
+                raffle_handler.push2queue(TvRaffleHandlerTask, real_roomid)
                 broadcast_type = 0 if broadcast == '全区' else 1
-                bili_stats.add2pushed_raffles(raffle_name, broadcast_type)
+                bili_statistics.add2pushed_raffles(raffle_name, broadcast_type)
             elif msg_type == 3:
                 raffle_name = msg_common.split('开通了')[-1][:2]
                 printer.info([f'{self._area_id}号弹幕监控检测到{real_roomid:^9}的{raffle_name}'], True)
-                RaffleHandler().push2queue((real_roomid,), 'handle_guard_raffle')
+                raffle_handler.push2queue(GuardRaffleHandlerTask, real_roomid)
                 broadcast_type = 0 if raffle_name == '总督' else 2
-                bili_stats.add2pushed_raffles(raffle_name, broadcast_type)
+                bili_statistics.add2pushed_raffles(raffle_name, broadcast_type)
             elif msg_type == 6:
                 raffle_name = '二十倍节奏风暴'
                 printer.info([f'{self._area_id}号弹幕监控检测到{real_roomid:^9}的{raffle_name}'], True)
                 # rafflehandler.Rafflehandler.Put2Queue((real_roomid,), rafflehandler.handle_1_room_storm)
-                bili_stats.add2pushed_raffles(raffle_name)
+                bili_statistics.add2pushed_raffles(raffle_name)
         return True
 
                                         
@@ -256,19 +260,23 @@ class YjMonitorHandler(BaseDanmu):
             info = dic['info']
             ori = info[1]
             uid = info[2][0]
-            print(ori)
             try:
                 msg = self.__reverse(ori)
+                if msg is not None:
+                    msg_id, type, id = msg
+                    if type == '~' and not msg_id % 2:
+                        raffle_id = id
+                        printer.info([f'{self._area_id}号弹幕监控检测到{"0":^9}的节奏风暴(id: {raffle_id})'], True)
+                        # raffle_handler.exec_at_once(StormRaffleHandlerTask, 0, raffle_id)
+                        bili_statistics.add2pushed_raffles('Yj协同节奏风暴', 2)
                 result = self.__combine_piece(uid, msg)
-                print('监控read dic', self.__read)
                 if result is None:
                     return True
-                print(result)
-                type, raffle_id, room_id = result
+                type, raffle_id, real_roomid = result
                 if type == '+':
-                    printer.info([f'{self._area_id}号弹幕监控检测到{room_id:^9}的大航海(id: {raffle_id})'], True)
-                    RaffleHandler().push2queue((room_id, raffle_id), 'handle_guard_raffle')
-                    bili_stats.add2pushed_raffles('Yj协同大航海', 2)
+                    printer.info([f'{self._area_id}号弹幕监控检测到{real_roomid:^9}的大航海(id: {raffle_id})'], True)
+                    raffle_handler.push2queue(GuardRaffleHandlerTask, real_roomid, raffle_id)
+                    bili_statistics.add2pushed_raffles('Yj协同大航海', 2)
             except Exception:
                 printer.warn(f'Yj监控房间内可能有恶意干扰{uid}: {ori}')
         return True
