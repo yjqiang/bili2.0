@@ -4,8 +4,7 @@ import json
 import aiohttp
 import printer
 
-# sem = asyncio.Semaphore(3)
-sem = None
+sem = asyncio.Semaphore(3)
 
 
 class WebSession:

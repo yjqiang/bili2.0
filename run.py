@@ -7,7 +7,6 @@ import conf_loader
 import notifier
 import raffle_handler
 import bili_statistics
-import web_session
 from bili_console import Biliconsole
 import printer
 from user import User
@@ -33,12 +32,7 @@ from monitor_substance_raffle import SubstanceRaffleMonitor
 root_path = path.dirname(path.realpath('__file__'))
 conf_loader.set_path(root_path)
 
-if sys.platform == 'win32':
-    loop = asyncio.ProactorEventLoop()
-    asyncio.set_event_loop(loop)
-else:
-    loop = asyncio.get_event_loop()
-web_session.sem = asyncio.Semaphore(3)
+loop = asyncio.get_event_loop()
         
 dict_user = conf_loader.read_user()
 dict_bili = conf_loader.read_bili()
