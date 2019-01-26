@@ -55,7 +55,7 @@ class User:
             self._other_session = WebSession()
         return self._other_session
         
-    def info(self, list_msg, tag_time=False, with_userid=False):
+    def info(self, list_msg, tag_time=False, with_userid=True):
         if with_userid:
             list_msg[0] += f'(用户id:{self.id}  用户名:{self.name})'
         printer.info(list_msg, tag_time)
