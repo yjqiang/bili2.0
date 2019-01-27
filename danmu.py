@@ -179,7 +179,9 @@ class DanmuRaffleHandler(BaseDanmu):
             msg_common = dic['msg_common']
             real_roomid = dic['real_roomid']
             msg_common = dic['msg_common'].replace(' ', '')
-            if msg_type == 2:
+            msg_common = msg_common.replace('”', '')
+            msg_common = msg_common.replace('“', '')
+            if msg_type == 2 or msg_type == 8:
                 str_gift = msg_common.split('%>')[-1].split('，')[0]
                 if '个' in str_gift:
                     raffle_num, raffle_name = str_gift.split('个')
