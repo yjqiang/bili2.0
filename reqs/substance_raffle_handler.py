@@ -9,7 +9,7 @@ class SubstanceRaffleHandlerReq:
         return json_rsp
 
     @staticmethod
-    async def get_gift_of_lottery(user, aid, num):
+    async def join(user, aid, num):
         url = f'{API_LIVE}/lottery/v1/box/draw?aid={aid}&number={num + 1}'
         json_rsp = await user.bililive_session.request_json('GET', url, headers=user.dict_bili['pcheaders'])
         return json_rsp

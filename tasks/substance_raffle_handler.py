@@ -35,17 +35,17 @@ class SubstanceRaffleHandlerTask:
                         next_step_setting = (1, (0, max_wait), -2, aid, num)
                         next_step_settings.append(next_step_setting)
                     if ts < int(join_start_time):
-                        print(json_rsp)
+                        print('即将参加的id', num, aid)
         return next_step_settings
 
     @staticmethod
     async def join(user, aid, num):
-        json_rsp = await user.req_s(SubstanceRaffleHandlerReq.join, aid, num)
+        json_rsp = await user.req_s(SubstanceRaffleHandlerReq.join, user, aid, num)
         user.info([f'参与实物抽奖回显：{json_rsp}'], True)
         
     @staticmethod
     async def check_code(user, aid):
         json_rsp = await user.req_s(SubstanceRaffleHandlerReq.check, user, aid)
-        print(aid, json_rsp)
+        # print(aid, json_rsp)
         return json_rsp['code']
         

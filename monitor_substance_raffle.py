@@ -11,9 +11,10 @@ class SubstanceRaffleMonitor:
         max_aid = 1000
         min_aid = 50
         while max_aid > min_aid:
-            print(min_aid, max_aid)
+            print('初始化实物抽奖id中', min_aid, max_aid)
             mid_aid = int((min_aid + max_aid + 1) / 2)
             code_mid = await notifier.exec_func(-1, SubstanceRaffleHandlerTask.check_code, mid_aid)
+            # -400活动不存在
             if code_mid:
                 code_mid1 = await notifier.exec_func(-1, SubstanceRaffleHandlerTask.check_code, mid_aid+1)
                 code_mid2 = await notifier.exec_func(-1, SubstanceRaffleHandlerTask.check_code, mid_aid+2)
