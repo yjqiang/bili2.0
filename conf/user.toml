@@ -18,7 +18,6 @@ clean-expiring-gift2room = 0
 silver2coin = false
 send2wearing-medal = false
 send2medal = []
-doublegain_coin2silver = false
 givecoin = 5
 fetchrule = "bilitop"
 mid = [ 207539637,]
@@ -26,4 +25,4 @@ mid = [ 207539637,]
 [other_control]
 default_monitor_roomid = 23058
 raffle_minitor_roomid = 1823260
-area_ids = [ 1, 2, 3, 4, 5,]
+area_ids = [ 1, 2, 3, 4, 5, 6,]
