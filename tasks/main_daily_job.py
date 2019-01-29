@@ -187,27 +187,26 @@ class BiliMainTask:
     async def fetch_uper_videos(user, uids):
         aids = []
         for uid in uids:
-            json_rsp = await user.req_s(BiliMainReq.fetch_uper_videos, user, uid, 1)
-            data = json_rsp['data']
-            pages = data['pages']
-            videos = data['vlist']
-            if videos:
-                aids += [video['aid'] for video in videos]
-            for page in range(2, pages + 1):
+            # 避免一堆videos，只取前几页
+            for page in range(1, 5):
                 json_rsp = await user.req_s(BiliMainReq.fetch_uper_videos, user, uid, page)
-                videos = json_rsp['data']['vlist']
-                aids += [video['aid'] for video in videos]
-        print(len(aids), aids[:10])
+                videos = json_rsp['data']['item']
+                if not videos:
+                    break
+                aids += [int(video['param']) for video in videos]
         return aids
     
     @staticmethod
     async def aid2cid(user, aid):
         json_rsp = await user.req_s(BiliMainReq.aid2cid, user, aid)
-        # 傻逼东西有的aid 404
-        if json_rsp is None:
-            user.warn(f'404检测 视频{aid}')
+        code = json_rsp['code']
+        if not code:
+            # 有的av有多个视频即多个ci d
+            pages = json_rsp['data']['pages']
+            return pages[0]['cid']
+        # -404不存在/-403无权限
+        if code == -404 or code == -403:
             return None
-        return json_rsp[0]['cid']
         
     @staticmethod
     async def heartbeat(user, aid, cid):
@@ -252,7 +251,8 @@ class BiliMainTask:
             await BiliMainTask.share_video(user, aid)
         coin_set = min(user.task_ctrl['givecoin'], 5)
         num_coin = coin_set - num / 10
-        await BiliMainTask.send_coin(user, num_coin, aids)
+        if num_coin:
+            await BiliMainTask.send_coin(user, num_coin, aids)
         # b站傻逼有记录延迟，3点左右成功率高一点
         sleeptime = utils.seconds_until_tomorrow() + 10800
         return (0, (sleeptime, sleeptime+30), user.id),

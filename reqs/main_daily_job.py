@@ -91,12 +91,14 @@ class BiliMainReq:
         return json_rsp
         
     async def aid2cid(user, aid):
-        url = f'https://www.bilibili.com/widget/getPageList?aid={aid}'
+        temp_params = f'actionKey={user.dict_bili["actionKey"]}&aid={aid}&appkey={user.dict_bili["appkey"]}&build={user.dict_bili["build"]}&device={user.dict_bili["device"]}&mobi_app={user.dict_bili["mobi_app"]}&platform={user.dict_bili["platform"]}&ts={UtilsReq.curr_time()}'
+        sign = user.calc_sign(temp_params)
+        url = f'https://app.bilibili.com/x/v2/view?{temp_params}&sign={sign}'
         json_rsp = await user.other_session.request_json('GET', url)
         return json_rsp
     
     async def fetch_uper_videos(user, mid, page):
-        url = f'https://space.bilibili.com/ajax/member/getSubmitVideos?mid={mid}&pagesize=100&page={page}'
+        url = f'https://app.bilibili.com/x/v2/space/archive?pn={page}&ps=20&vmid={mid}'
         json_rsp = await user.other_session.request_json('GET', url)
         return json_rsp
                 
