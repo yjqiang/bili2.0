@@ -93,6 +93,10 @@ class RecvDailyBagTask:
     @staticmethod
     async def recv_dailybag(user):
         json_rsp = await user.req_s(RecvDailyBagReq.recv_dailybag, user)
+        try:
+            json_rsp['data']['bag_list']
+        except:
+            user.warn(f'recv_dailybag {json_rsp}')
         for i in json_rsp['data']['bag_list']:
             user.info([f'# 获得-{i["bag_name"]}-成功'])
         sleeptime = 21600

@@ -77,7 +77,10 @@ class UtilsTask:
         if not num_sent or not room_id:
             return
         json_rsp = await user.req_s(UtilsReq.init_room, user, room_id)
-        ruid = json_rsp['data']['uid']
+        try:
+            ruid = json_rsp['data']['uid']
+        except:
+            user.warn(f'send_gift {json_rsp}')
         biz_id = json_rsp['data']['room_id']
         # 200027 不足数目
         json_rsp = await user.req_s(UtilsReq.send_gift, user, gift_id, num_sent, bag_id, ruid, biz_id)
