@@ -201,7 +201,7 @@ class BiliMainTask:
         json_rsp = await user.req_s(BiliMainReq.aid2cid, user, aid)
         code = json_rsp['code']
         if not code:
-            # 有的av有多个视频即多个ci d
+            # 有的av有多个视频即多个cid
             pages = json_rsp['data']['pages']
             return pages[0]['cid']
         # -404不存在/-403无权限

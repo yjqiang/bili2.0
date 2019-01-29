@@ -1,4 +1,3 @@
-import sys
 import threading
 import asyncio
 from os import path
@@ -50,9 +49,8 @@ notifier.set_values(loop)
 notifier.set_users(users)
 bili_statistics.init_area_num(len(area_ids))
     
-
     
-loop.run_until_complete(asyncio.wait([notifier.exec_func(-2, LoginTask.handle_login_status)]))
+loop.run_until_complete(notifier.exec_func(-2, LoginTask.handle_login_status))
 
 # users[1].fall_in_jail()
 
