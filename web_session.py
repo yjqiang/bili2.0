@@ -68,7 +68,8 @@ class WebSession:
                             if json_body is not None or is_none_allowed:
                                 return json_body
                         elif rsp.status == 403:
-                            print('403频繁', url)
+                            printer.warn(f'403频繁, {url}')
+                            await asyncio.sleep(240)
                         elif rsp.status == 404:
                             return None
                 except:
@@ -96,7 +97,8 @@ class WebSession:
                             if binary_body is not None or is_none_allowed:
                                 return binary_body
                         elif rsp.status == 403:
-                            print('403频繁', url)
+                            printer.warn(f'403频繁, {url}')
+                            await asyncio.sleep(240)
                         elif rsp.status == 404:
                             return None
                 except:
@@ -124,7 +126,8 @@ class WebSession:
                             if text_body is not None or is_none_allowed:
                                 return text_body
                         elif rsp.status == 403:
-                            print('403频繁', url)
+                            printer.warn(f'403频繁, {url}')
+                            await asyncio.sleep(240)
                         elif rsp.status == 404:
                             return None
                 except:
