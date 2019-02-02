@@ -1,3 +1,4 @@
+import re
 import asyncio
 import bili_statistics
 from reqs.guard_raffle_handler import GuardRaffleHandlerReq
@@ -50,6 +51,9 @@ class GuardRaffleHandlerTask:
         json_rsp = await user.req_s(GuardRaffleHandlerReq.join, user, real_roomid, raffle_id)
         user.info([f'参与了房间{real_roomid:^9}的大航海抽奖'], True)
         if not json_rsp['code']:
+            for award in json_rsp['data']['award_list']:
+                result = re.search('(^获得|^)(.*)<%(\+|X)(\d*)%>', award['name'])
+                bili_statistics.add2results(result.group(2), user.id, result.group(4))
             user.info([f'# 房间{real_roomid:^9}大航海抽奖结果: {json_rsp["data"]["message"]}'], with_userid=False)
             bili_statistics.add2joined_raffles('大航海(合计)', user.id)
         else:
