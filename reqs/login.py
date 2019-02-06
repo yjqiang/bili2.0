@@ -67,12 +67,13 @@ class LoginReq:
         
     @staticmethod
     def cnn_captcha(content):
-        img = base64.b64encode(content)
-        url = "http://47.95.255.188:5000/code"
-        data = {"image": img}
-        rsp = requests.post(url, data=data)
-        captcha = rsp.text
-        print(f'此次登录出现验证码,识别结果为{captcha}')
+        bytes_img = base64.b64encode(content)
+        url = "http://zerozhushou.com:11001/captcha/v1"
+        str_img = str(bytes_img, encoding='utf-8')
+        json = {"image": str_img}
+        response = requests.post(url, json=json)
+        captcha = response.json()['message']
+        print(f"此次登录出现验证码,识别结果为{captcha}")
         return captcha
         
     @staticmethod
