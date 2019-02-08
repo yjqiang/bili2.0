@@ -28,7 +28,7 @@ from tasks.main_daily_job import (
 )
 from monitor_substance_raffle import SubstanceRaffleMonitor
 
-root_path = path.dirname(path.realpath('__file__'))
+root_path = path.dirname(path.realpath(__file__))
 conf_loader.set_path(root_path)
 
 loop = asyncio.get_event_loop()
