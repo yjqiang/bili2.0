@@ -36,11 +36,12 @@ loop = asyncio.get_event_loop()
 dict_user = conf_loader.read_user()
 dict_bili = conf_loader.read_bili()
 dict_color = conf_loader.read_color()
-printer.init_config(dict_color, dict_user['print_control']['danmu'])
-area_ids = dict_user['other_control']['area_ids']
+dict_ctrl = conf_loader.read_ctrl()
+printer.init_config(dict_color, dict_ctrl['print_control']['danmu'])
+area_ids = dict_ctrl['other_control']['area_ids']
 
 users = []
-task_control = dict_user['task_control']
+task_control = dict_ctrl['task_control']
 for i, user_info in enumerate(dict_user['users']):
     users.append(User(i, user_info, task_control, dict_bili))
 
@@ -59,10 +60,10 @@ console_thread.start()
 
 danmu_tasks = [connect.RaffleConnect(i).run() for i in area_ids]
 
-yj_danmu_roomid = dict_user['other_control']['raffle_minitor_roomid']
+yj_danmu_roomid = dict_ctrl['other_control']['raffle_minitor_roomid']
 danmu_tasks.append(connect.YjConnection(yj_danmu_roomid).run())
 
-default_monitor_roomid = dict_user['other_control']['default_monitor_roomid']
+default_monitor_roomid = dict_ctrl['other_control']['default_monitor_roomid']
 connect.init_danmu_roomid(default_monitor_roomid)
 danmu_tasks.append(connect.run_danmu())
 

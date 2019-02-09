@@ -7,22 +7,3 @@ csrf = ""
 uid = ""
 refresh_token = ""
 
-[print_control]
-danmu = false
-
-[task_control]
-clean-expiring-gift = false
-set-expiring-time = 0
-clean_expiring_gift2all_medal = false
-clean-expiring-gift2room = 0
-silver2coin = false
-send2wearing-medal = false
-send2medal = []
-givecoin = 0
-fetchrule = "bilitop"
-mid = [ 207539637,]
-
-[other_control]
-default_monitor_roomid = 23058
-raffle_minitor_roomid = 0
-area_ids = [ 1, 2, 3, 4, 5, 6,]
