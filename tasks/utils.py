@@ -300,8 +300,14 @@ class UtilsTask:
             user_level_rank = userCoinIfo['user_level_rank']
             billCoin = userCoinIfo['coins']
             bili_coins = userCoinIfo['bili_coins']
+            is_svip = bool(userCoinIfo['svip'])
+            svip_time = userCoinIfo['svip_time']
+            is_vip = bool(userCoinIfo['vip'])
+            vip_time = userCoinIfo['vip_time']
             print('# 用户名', uname)
             print(f'# 手机认证状况 {mobile_verify} | 实名认证状况 {identification}')
+            print(f'# 月费老爷 {str(is_vip):^5} | 过期时间 {vip_time}')
+            print(f'# 年费老爷 {str(is_svip):^5} | 过期时间 {svip_time}')
             print('# 银瓜子', silver)
             print('# 通用金瓜子', gold)
             print('# ios可用金瓜子', gold_ios)
