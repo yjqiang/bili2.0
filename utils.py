@@ -7,20 +7,14 @@ def seconds_until_tomorrow():
     return (23 - dt.hour) * 3600 + (59 - dt.minute) * 60 + 60 - dt.second
      
     
-def adjust_for_chinese(str, format_control=10):
-    SPACE = '\N{IDEOGRAPHIC SPACE}'
-    EXCLA = '\N{FULLWIDTH EXCLAMATION MARK}'
-    TILDE = '\N{FULLWIDTH TILDE}'
-
-    # strings of ASCII and full-width characters (same order)
-    west = ''.join(chr(i) for i in range(ord(' '), ord('~')))
-    east = SPACE + ''.join(chr(i) for i in range(ord(EXCLA), ord(TILDE)))
-
-    # build the translation table
-    full = str.maketrans(west, east)
-    str = str.translate(full).rstrip().split('\n')
-    md = f'{str[0]:^{format_control}}'
-    return md.translate(full)
+def adjust_for_chinese(orig_str, format_control=10):
+    # Printable characters(' '-'~')(range开闭区间问题)
+    west = ''.join(chr(i) for i in range(32, 127))
+    # 对应的全角字符('　' + '！'-'～')
+    east = '　' + ''.join(chr(i) for i in range(65281, 65375))
+    table = str.maketrans(west, east)
+    new_str = orig_str.translate(table)
+    return f'{new_str:　^{format_control}}'
     
 
 def print_progress(finished_exp, sum_exp, num_sum=30):
