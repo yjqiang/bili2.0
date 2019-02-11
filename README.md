@@ -6,7 +6,7 @@ bili2.0
 
 
 使用方法
-========
+-------
 1. 先下载项目到电脑https://github.com/yjqiang/bili2.0/archive/master.zip
 2. 安装python3.6+，安装方法请自行谷歌/百度
 3. [requirements.txt](https://github.com/yjqiang/bili2.0/blob/master/requirements.txt)是所需第三方模块，执行`pip install -r requirements.txt`安装模块
