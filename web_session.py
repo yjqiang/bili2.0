@@ -19,19 +19,19 @@ class WebSession:
             return None
         json_body = json.loads(data)
         # 之后考虑加入expected_code来约束这个判定
-        if isinstance(json_body, dict) and 'code' in json_body:
-            code = json_body['code']
-            if code == 1024:
-                print('b站炸了，暂停所有请求1.5s后重试，请耐心等待')
-                await asyncio.sleep(1.5)
-                return None
-            elif code == 3 or code == -401 or code == 1003 or code == -101 or code == 401:
-                print('api提示没有登录')
-                print(json_body)
-                if not is_login:
-                    return 3
-                else:
-                    return json_body
+        code = json_body['code']
+        if code == 1024:
+            print('b站炸了，暂停所有请求1.5s后重试，请耐心等待')
+            await asyncio.sleep(1.5)
+            return None
+        elif code == 3 or code == -401 or code == 1003 or code == -101 or code == 401:
+            print('api提示没有登录')
+            print(json_body)
+            if not is_login:
+                return 3
+            else:
+                return json_body
+        
         return json_body
 
     async def __get_text_body(self, rsp):
