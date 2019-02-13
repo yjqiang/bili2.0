@@ -14,6 +14,7 @@ class User:
         self.id = id
         self.name = dict_user['username']
         self.password = dict_user['password']
+        self.alias = dict_user.get('alias', self.name)
         self.task_ctrl = task_ctrl
         self.status = UserStatus(self)
         self._bililive_session = None
@@ -57,11 +58,11 @@ class User:
         
     def info(self, list_msg, tag_time=False, with_userid=True):
         if with_userid:
-            list_msg[0] += f'(用户id:{self.id}  用户名:{self.name})'
+            list_msg[0] += f'(用户id:{self.id} 名字:{self.alias})'
         printer.info(list_msg, tag_time)
         
     def warn(self, msg):
-        printer.warn(f'{msg}, 用户id:{self.id}  用户名:{self.name}')
+        printer.warn(f'{msg}, 用户id:{self.id} 名字:{self.alias}')
         
     def calc_sign(self, str):
         str = f'{str}{self.dict_bili["app_secret"]}'
