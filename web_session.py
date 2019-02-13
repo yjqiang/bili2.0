@@ -1,6 +1,5 @@
 import sys
 import asyncio
-import json
 import aiohttp
 import printer
 
@@ -12,13 +11,8 @@ class WebSession:
         self.var_session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=4))
 
     async def __get_json_body(self, rsp, is_login=False):
-        # json_response = await response.json(content_type=None)
-        data = await rsp.read()
-        if not data:
-            printer.warn(f'json_body出现问题   {data}')
-            return None
-        json_body = json.loads(data)
-        # 之后考虑加入expected_code来约束这个判定
+        json_body = await rsp.json(content_type=None)
+        # 之后考虑加入expected_code、循环code、登录code来约束这个判定
         code = json_body['code']
         if code == 1024:
             print('b站炸了，暂停所有请求1.5s后重试，请耐心等待')
