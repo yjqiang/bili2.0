@@ -101,3 +101,7 @@ def is_raffleid_duplicate(raffle_id):
 
 def print_statistics(id=None):
     var.print_statistics(id)
+    
+
+def coroutine_print_statistics(id=None):
+    var.print_statistics(id)

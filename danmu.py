@@ -1,3 +1,4 @@
+import utils
 import printer
 import notifier
 import bili_statistics
@@ -16,16 +17,22 @@ import sys
 class BaseDanmu():
     structer = struct.Struct('!I2H2I')
 
-    def __init__(self, room_id, area_id):
-        self.client = aiohttp.ClientSession()
+    def __init__(self, room_id, area_id, client_session=None):
+        if client_session is None:
+            self.client = aiohttp.ClientSession()
+        else:
+            self.client = client_session
+        self.ws = None
         self._area_id = area_id
         self.room_id = room_id
+        # 建立连接过程中难以处理重设置房间问题
+        self.lock_for_reseting_roomid_manually = asyncio.Lock()
+        self.task_main = None
         self._bytes_heartbeat = self._wrap_str(opt=2, body='')
     
     @property
     def room_id(self):
-        # 仅仅为了借用roomi_id.setter，故不设置
-        pass
+        return self._room_id
         
     @room_id.setter
     def room_id(self, room_id):
@@ -131,24 +138,53 @@ class BaseDanmu():
                 
     def handle_danmu(self, body):
         return True
+        
+    async def run_forever(self):
+        time_now = 0
+        while True:
+            if utils.curr_time() - time_now <= 3:
+                printer.info([f'网络波动，{self._area_id}号弹幕姬延迟3秒后重启'], True)
+                await asyncio.sleep(3)
+            printer.info([f'正在启动{self._area_id}号弹幕姬'], True)
+            time_now = utils.curr_time()
+            
+            async with self.lock_for_reseting_roomid_manually:
+                is_open = await self.open()
+            if not is_open:
+                continue
+            self.task_main = asyncio.ensure_future(self.read_datas())
+            task_heartbeat = asyncio.ensure_future(self.heart_beat())
+            tasks = [self.task_main, task_heartbeat]
+            _, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+            printer.info([f'{self._area_id}号弹幕姬异常或主动断开，正在处理剩余信息'], True)
+            if not task_heartbeat.done():
+                task_heartbeat.cancel()
+            await self.close()
+            await asyncio.wait(pending)
+            printer.info([f'{self._area_id}号弹幕姬退出，剩余任务处理完毕'], True)
+            
+    async def reconnect(self, room_id):
+        async with self.lock_for_reseting_roomid_manually:
+            # not None是判断是否已经连接了的(重连过程中也可以处理)
+            if self.ws is not None:
+                await self.close()
+            if self.task_main is not None:
+                await self.task_main
+            # 由于锁的存在，绝对不可能到达下一个的自动重连状态，这里是保证正确显示当前监控房间号
+            self.room_id = room_id
+            printer.info([f'{self._area_id}号弹幕姬已经切换房间（{room_id}）'], True)
     
     
 class DanmuPrinter(BaseDanmu):
     def handle_danmu(self, body):
         dic = json.loads(body.decode('utf-8'))
         cmd = dic['cmd']
-        # print(cmd)
         if cmd == 'DANMU_MSG':
-            # print(dic)
             printer.print_danmu(dic)
         return True
-
+        
 
 class DanmuRaffleHandler(BaseDanmu):
-    async def reset_roomid(self):
-        x = await notifier.exec_func(-1, UtilsTask.get_room_by_area, self._area_id)
-        self.room_id = x
-            
     async def check_area(self):
         try:
             while True:
@@ -205,14 +241,44 @@ class DanmuRaffleHandler(BaseDanmu):
             elif msg_type == 6:
                 raffle_name = '二十倍节奏风暴'
                 printer.info([f'{self._area_id}号弹幕监控检测到{real_roomid:^9}的{raffle_name}'], True)
-                # raffle_handler.push2queue(StormRaffleHandlerTask, real_roomid)
+                raffle_handler.push2queue(StormRaffleHandlerTask, real_roomid)
                 bili_statistics.add2pushed_raffles(raffle_name)
         return True
+        
+    async def run_forever(self):
+        time_now = 0
+        while True:
+            if utils.curr_time() - time_now <= 3:
+                printer.info([f'网络波动，{self._area_id}号弹幕姬延迟3秒后重启'], True)
+                await asyncio.sleep(3)
+            self.room_id = await notifier.exec_func(-1, UtilsTask.get_room_by_area, self._area_id)
+            printer.info([f'正在启动{self._area_id}号弹幕姬'], True)
+            time_now = utils.curr_time()
+            async with self.lock_for_reseting_roomid_manually:
+                is_open = await self.open()
+            if not is_open:
+                continue
+            task_main = asyncio.ensure_future(self.read_datas())
+            task_heartbeat = asyncio.ensure_future(self.heart_beat())
+            task_checkarea = asyncio.ensure_future(self.check_area())
+            tasks = [task_main, task_heartbeat, task_checkarea]
+            _, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+            printer.info([f'{self._area_id}号弹幕姬异常或主动断开，正在处理剩余信息'], True)
+            if not task_heartbeat.done():
+                task_heartbeat.cancel()
+            if not task_checkarea.done():
+                task_checkarea.cancel()
+            await self.close()
+            await asyncio.wait(pending)
+            printer.info([f'{self._area_id}号弹幕姬退出，剩余任务处理完毕'], True)
+        
+    async def reconnect(self, room_id):
+        print('该监控类型不提供主动切换房间功能')
 
                                         
 class YjMonitorHandler(BaseDanmu):
-    def __init__(self, room_id, area_id):
-        super().__init__(room_id, area_id)
+    def __init__(self, room_id, area_id, client_session=None):
+        super().__init__(room_id, area_id, client_session)
         keys = '阝飠牜饣卩卪厸厶厽孓宀巛巜彳廴彡彐忄扌攵氵灬爫犭疒癶礻糹纟罒罓耂虍訁覀兦亼亽亖亗吂卝匸皕旡玊尐幵朩囘囙囜囝囟囡団囤囥囦囧囨囩囪囫囬囮囯困囱囲図囵囶囷囸囹固囻囼图囿圀圁圂圃圄圅圆圇圉圊圌圍圎圏圐圑園圓圔圕圖圗團圙圚圛圜圝圞'
         self.__reverse_keys = {value: i for i, value in enumerate(keys)}
         self.__read = {}
@@ -269,7 +335,7 @@ class YjMonitorHandler(BaseDanmu):
                     if type == '~' and not msg_id % 2:
                         raffle_id = id
                         printer.info([f'{self._area_id}号弹幕监控检测到{"0":^9}的节奏风暴(id: {raffle_id})'], True)
-                        # raffle_handler.exec_at_once(StormRaffleHandlerTask, 0, raffle_id)
+                        raffle_handler.exec_at_once(StormRaffleHandlerTask, 0, raffle_id)
                         bili_statistics.add2pushed_raffles('Yj协同节奏风暴', 2)
                 result = self.__combine_piece(uid, msg)
                 if result is None:

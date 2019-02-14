@@ -1,7 +1,7 @@
 import threading
 import asyncio
 from os import path
-import connect
+import monitor_danmu
 import conf_loader
 import notifier
 import raffle_handler
@@ -44,29 +44,23 @@ users = []
 task_control = dict_ctrl['task_control']
 for i, user_info in enumerate(dict_user['users']):
     users.append(User(i, user_info, task_control, dict_bili))
-
-
 notifier.set_values(loop)
 notifier.set_users(users)
+
 bili_statistics.init_area_num(len(area_ids))
-    
     
 loop.run_until_complete(notifier.exec_func(-2, LoginTask.handle_login_status))
 
 # users[1].fall_in_jail()
 
-console_thread = threading.Thread(target=Biliconsole(loop).cmdloop)
-console_thread.start()
-
-danmu_tasks = [connect.RaffleConnect(i).run() for i in area_ids]
-
+danmu_tasks = [monitor_danmu.run_danmu_raffle_handler(i) for i in area_ids]
 yj_danmu_roomid = dict_ctrl['other_control']['raffle_minitor_roomid']
-danmu_tasks.append(connect.YjConnection(yj_danmu_roomid).run())
+danmu_tasks.append(monitor_danmu.run_yjraffle_monitor(yj_danmu_roomid))
+default_roomid = dict_ctrl['other_control']['default_monitor_roomid']
+danmu_tasks.append(monitor_danmu.run_danmu_printer(default_roomid))
 
-default_monitor_roomid = dict_ctrl['other_control']['default_monitor_roomid']
-connect.init_danmu_roomid(default_monitor_roomid)
-danmu_tasks.append(connect.run_danmu())
-
+console_thread = threading.Thread(target=Biliconsole(loop, default_roomid).cmdloop)
+console_thread.start()
 
 notifier.exec_task(-2, HeartBeatTask, 0, delay_range=(0, 5))
 notifier.exec_task(-2, RecvHeartGiftTask, 0, delay_range=(0, 5))
