@@ -25,14 +25,18 @@ class JudgeCaseTask:
         today = datetime.today().date()
         sum_cases = 0
         valid_cases = 0
+        judging_cases = 0
         for case in data:
             ts = case['voteTime'] / 1000
             vote_day = datetime.fromtimestamp(ts).date()
             if vote_day == today:
                 sum_cases += 1
-                if case['vote'] != 3:
+                vote = case['vote']
+                if not vote:
+                    judging_cases += 1
+                elif case['vote'] != 3:
                     valid_cases += 1
-        user.info([f'今日已投票{sum_cases}，其中有效票（即非弃权票）为{valid_cases}'], True)
+        user.info([f'今日投票{sum_cases}（{valid_cases}票有效（非弃权），{judging_cases}票还在进行中）'], True)
         
     @staticmethod
     def judge_advice(num_judged, pct):
