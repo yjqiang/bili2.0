@@ -188,11 +188,11 @@ class DanmuRaffleHandler(BaseDanmu):
     async def check_area(self):
         try:
             while True:
+                await asyncio.sleep(300)
                 is_ok = await asyncio.shield(notifier.exec_func(-1, UtilsTask.is_ok_as_monitor, self._room_id, self._area_id))
                 if not is_ok:
                     printer.info([f'{self._room_id}不再适合作为监控房间，即将切换'], True)
                     return
-                await asyncio.sleep(300)
         except asyncio.CancelledError:
             pass
             
