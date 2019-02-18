@@ -27,30 +27,26 @@ class UtilsTask:
             else:
                 printer.info([f'抽奖脚本检测到房间{roomid:^9}为正常房间'], True)
                 return True
-                
-    @staticmethod
-    async def check_room_state(user, roomid):
-        json_rsp = await user.req_s(UtilsReq.init_room, user, roomid)
-        return json_rsp['data']['live_status']
     
     @staticmethod
-    async def get_room_by_area(user, areaid):
-        # 1 娱乐分区, 2 游戏分区, 3 手游分区, 4 绘画分区
-        if areaid == 1:
-            roomid = 23058
-            state = await UtilsTask.check_room_state(user, roomid)
-            if state == 1:
-                printer.info([f'{areaid}号弹幕监控选择房间（{roomid}）'], True)
-                return roomid
+    async def get_room_by_area(user, area_id, room_id=None):
+        if room_id is not None:
+            if await UtilsTask.is_ok_as_monitor(user, room_id, area_id):
+                printer.info([f'{area_id}号弹幕监控选择房间（{room_id}）'], True)
+                return room_id
+        if area_id == 1:
+            room_id = 23058
+            if await UtilsTask.is_ok_as_monitor(user, room_id, area_id):
+                printer.info([f'{area_id}号弹幕监控选择房间（{room_id}）'], True)
+                return room_id
                 
         while True:
-            json_rsp = await user.req_s(UtilsReq.get_rooms_by_area, user, areaid)
+            json_rsp = await user.req_s(UtilsReq.get_rooms_by_area, user, area_id)
             data = json_rsp['data']
-            roomid = random.choice(data)['roomid']
-            state = await UtilsTask.check_room_state(user, roomid)
-            if state == 1:
-                printer.info([f'{areaid}号弹幕监控选择房间（{roomid}）'], True)
-                return roomid
+            room_id = random.choice(data)['roomid']
+            if await UtilsTask.is_ok_as_monitor(user, room_id, area_id):
+                printer.info([f'{area_id}号弹幕监控选择房间（{room_id}）'], True)
+                return room_id
                 
     @staticmethod
     async def is_ok_as_monitor(user, room_id, area_id):
@@ -59,10 +55,7 @@ class UtilsTask:
         is_hidden = data['is_hidden']
         is_locked = data['is_locked']
         is_encrypted = data['encrypted']
-        if any((is_hidden, is_locked, is_encrypted)):
-            is_normal = False
-        else:
-            is_normal = True
+        is_normal = not any((is_hidden, is_locked, is_encrypted))
                 
         json_response = await user.req_s(UtilsReq.get_room_info, user, room_id)
         data = json_response['data']
