@@ -30,7 +30,8 @@ class UtilsTask:
     
     @staticmethod
     async def get_room_by_area(user, area_id, room_id=None):
-        if room_id is not None:
+        # None/0 都不行
+        if room_id is not None and room_id:
             if await UtilsTask.is_ok_as_monitor(user, room_id, area_id):
                 printer.info([f'{area_id}号弹幕监控选择房间（{room_id}）'], True)
                 return room_id
