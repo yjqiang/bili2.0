@@ -251,17 +251,17 @@ class DanmuRaffleHandler(BaseDanmu):
             if utils.curr_time() - time_now <= 3:
                 printer.info([f'网络波动，{self._area_id}号弹幕姬延迟3秒后重启'], True)
                 await asyncio.sleep(3)
-            self.room_id = await notifier.exec_func(-1, UtilsTask.get_room_by_area, self._area_id)
             printer.info([f'正在启动{self._area_id}号弹幕姬'], True)
             time_now = utils.curr_time()
             async with self.lock_for_reseting_roomid_manually:
+                self.room_id = await notifier.exec_func(-1, UtilsTask.get_room_by_area, self._area_id, self._room_id)
                 is_open = await self.open()
             if not is_open:
                 continue
-            task_main = asyncio.ensure_future(self.read_datas())
+            self.task_main = asyncio.ensure_future(self.read_datas())
             task_heartbeat = asyncio.ensure_future(self.heart_beat())
             task_checkarea = asyncio.ensure_future(self.check_area())
-            tasks = [task_main, task_heartbeat, task_checkarea]
+            tasks = [self.task_main, task_heartbeat, task_checkarea]
             _, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
             printer.info([f'{self._area_id}号弹幕姬异常或主动断开，正在处理剩余信息'], True)
             if not task_heartbeat.done():
@@ -271,9 +271,6 @@ class DanmuRaffleHandler(BaseDanmu):
             await self.close()
             await asyncio.wait(pending)
             printer.info([f'{self._area_id}号弹幕姬退出，剩余任务处理完毕'], True)
-        
-    async def reconnect(self, room_id):
-        print('该监控类型不提供主动切换房间功能')
 
                                         
 class YjMonitorHandler(BaseDanmu):
