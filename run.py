@@ -1,3 +1,5 @@
+import sys
+import signal
 import threading
 import asyncio
 from os import path
@@ -59,8 +61,11 @@ danmu_tasks.append(monitor_danmu.run_yjraffle_monitor(yj_danmu_roomid))
 default_roomid = dict_ctrl['other_control']['default_monitor_roomid']
 danmu_tasks.append(monitor_danmu.run_danmu_printer(default_roomid))
 
-console_thread = threading.Thread(target=Biliconsole(loop, default_roomid).cmdloop)
-console_thread.start()
+if sys.platform != 'linux' or signal.getsignal(signal.SIGHUP) == signal.SIG_DFL:
+    console_thread = threading.Thread(target=Biliconsole(loop, default_roomid).cmdloop)
+    console_thread.start()
+else:
+    console_thread = None
 
 notifier.exec_task(-2, HeartBeatTask, 0, delay_range=(0, 5))
 notifier.exec_task(-2, RecvHeartGiftTask, 0, delay_range=(0, 5))
@@ -80,5 +85,6 @@ other_tasks = [
     ]
 
 loop.run_until_complete(asyncio.wait(other_tasks+danmu_tasks))
-console_thread.join()
+if console_thread is not None:
+    console_thread.join()
 
