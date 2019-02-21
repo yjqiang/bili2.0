@@ -19,28 +19,27 @@ class Biliconsole(Cmd):
         super().__init__()
     
     def guide_of_console(self):
-        print('____________________________')
-        print('|  欢迎使用本控制台　　　　　　　|')
-        print('|1 输出本次统计数据　　　　　　　|')
-        print('|2 查看目前拥有礼物的统计　　　　|')
-        print('|3 查看持有勋章状态　　　　　　　|')
-        print('|4 检查主站今日任务的情况　　　　|')
-        print('|5 检查直播分站今日任务的情况　　|')
-        print('|6 获取主站个人的基本信息　　　　|')
-        print('|7 获取直播分站个人的基本信息　　|')
-        print('|8 检查风纪委今日自动投票的情况　|')
+        print(' ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿ ')
+        print('|　　　欢迎使用本控制台　　　　　　　|')
+        print('|　１　输出本次统计数据　　　　　　　|')
+        print('|　２　查看目前拥有礼物的统计　　　　|')
+        print('|　３　查看持有勋章状态　　　　　　　|')
+        print('|　４　检查主站今日任务的情况　　　　|')
+        print('|　５　检查直播分站今日任务的情况　　|')
+        print('|　６　获取主站个人的基本信息　　　　|')
+        print('|　７　获取直播分站个人的基本信息　　|')
+        print('|　８　检查风纪委今日自动投票的情况　|')
         
-        print('|11当前拥有的扭蛋币　　　　　　　|')
-        print('|12开扭蛋币（一、十、百）　　　　|')
-        print('|13直播间的长短号码的转化　　　　|')
-        print('|14发送弹幕　　　　　　　　　　　|')
-        print('|15切换监听的直播间　　　　　　　|')
-        print('|16控制弹幕的开关　　　　　　　　|')
+        print('|１１　当前拥有的扭蛋币　　　　　　　|')
+        print('|１２　开扭蛋币（一、十、百）　　　　|')
+        print('|１３　直播间的长短号码的转化　　　　|')
+        print('|１４　发送弹幕　　　　　　　　　　　|')
+        print('|１５　切换监听的直播间　　　　　　　|')
+        print('|１６　控制弹幕的开关　　　　　　　　|')
         
-        # print('|15 检测参与正常的实物抽奖    |')
-        print('|21赠指定总数的辣条到房间　　　　|')
-        print('|22银瓜子全部购买辣条并送到房间　|')
-        print('￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣')
+        print('|２１　赠指定总数的辣条到房间　　　　|')
+        print('|２２　银瓜子全部购买辣条并送到房间　|')
+        print(' ￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣ ')
         
     def default(self, line):
         self.guide_of_console()
@@ -169,27 +168,21 @@ class Biliconsole(Cmd):
         
     # 这里args设置为list
     async def exec_notifier_func(self, id, func, args):
-        # print('bili_console:', id, func, args)
         for i, arg in enumerate(args):
             if isinstance(arg, list):
                 args[i] = await notifier.exec_func(*arg)
-        # print('bili_console:', id, func, args)
         await notifier.exec_func(id, func, *args)
 
     async def exec_func(self, func, args):
-        # print('bili_console:', func, args)
         for i, arg in enumerate(args):
             if isinstance(arg, list):
                 args[i] = await notifier.exec_func(*arg)
-        # print('bili_console:', func, args)
         await func(*args)
         
     async def exec_task(self, id, task, step, args):
-        # print('bili_console:', task, args)
         for i, arg in enumerate(args):
             if isinstance(arg, list):
                 args[i] = await notifier.exec_func(*arg)
-        # print('bili_console:', task, args)
         notifier.exec_task(id, task, step, *args)
         
     
