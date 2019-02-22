@@ -241,7 +241,7 @@ class DanmuRaffleHandler(BaseDanmu):
             elif msg_type == 6:
                 raffle_name = '二十倍节奏风暴'
                 printer.info([f'{self._area_id}号弹幕监控检测到{real_roomid:^9}的{raffle_name}'], True)
-                raffle_handler.push2queue(StormRaffleHandlerTask, real_roomid)
+                # raffle_handler.push2queue(StormRaffleHandlerTask, real_roomid)
                 bili_statistics.add2pushed_raffles(raffle_name)
         return True
         
@@ -332,7 +332,7 @@ class YjMonitorHandler(BaseDanmu):
                     if type == '~' and not msg_id % 2:
                         raffle_id = id
                         printer.info([f'{self._area_id}号弹幕监控检测到{"0":^9}的节奏风暴(id: {raffle_id})'], True)
-                        raffle_handler.exec_at_once(StormRaffleHandlerTask, 0, raffle_id)
+                        # raffle_handler.exec_at_once(StormRaffleHandlerTask, 0, raffle_id)
                         bili_statistics.add2pushed_raffles('Yj协同节奏风暴', 2)
                 result = self.__combine_piece(uid, msg)
                 if result is None:
