@@ -171,7 +171,7 @@ class YjMonitorDanmu(BaseDanmu):
             info = dic['info']
             ori = info[1]
             uid = info[2][0]
-            print('测试', self.__read, ori)
+            # print('测试', self.__read, ori)
             try:
                 msg = self.__reverse(ori)
                 if msg is not None:
