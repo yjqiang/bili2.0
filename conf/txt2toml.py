@@ -1,15 +1,14 @@
-'''
-本脚本单独运行，目的是将商用的批量txt文件转化为本项目可用的toml格式。
-'''
+"""本脚本单独运行，目的是将商用的批量txt文件转化为本项目可用的toml格式。"""
+
 
 import os
 from re import compile
 import toml
 
 
-file_dir = os.path.dirname(os.path.realpath(__file__))
-file_txt = f'{file_dir}/accounts.txt'
-file_toml = f'{file_dir}/orig_user.toml'
+path_curr = os.path.dirname(os.path.realpath(__file__))
+path_txt = f'{path_curr}/accounts.txt'
+path_toml = f'{path_curr}/orig_user.toml'
 
 
 # split_str只填一个字符就行，不需要全写全了。但是split_str禁止存在于密码与用户名中，空格也禁止
@@ -22,7 +21,7 @@ def txt2toml(split_str=None):
     valid_pattern = compile(f'[{split_elements}]+')
     
     list_users = []
-    with open(file_txt, 'r', encoding='utf-8') as f:
+    with open(path_txt, 'r', encoding='utf-8') as f:
         for line in f.read().splitlines():
             if not line:
                 continue
@@ -48,7 +47,7 @@ def txt2toml(split_str=None):
             
     dict_users = {'users': list_users}
   
-    with open(file_toml, 'w', encoding='utf-8') as f:
+    with open(path_toml, 'w', encoding='utf-8') as f:
         toml.dump(dict_users, f)
    
 txt2toml()
