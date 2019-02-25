@@ -1,5 +1,4 @@
 import bili_statistics
-import monitor_danmu
 import printer
 import asyncio
 import notifier
@@ -13,9 +12,10 @@ from tasks.main_daily_job import JudgeCaseTask
 class Biliconsole(Cmd):
     prompt = ''
     
-    def __init__(self, loop, room_id):
+    def __init__(self, loop, room_id, printer_danmu):
         self.loop = loop
         self.default_roomid = room_id
+        self._printer_danmu = printer_danmu
         super().__init__()
     
     def guide_of_console(self):
@@ -135,7 +135,7 @@ class Biliconsole(Cmd):
     def do_15(self, arg):
         real_roomid, = self.parse(arg, '-p:', set_roomid=True)
         
-        self.exec_func_threads(monitor_danmu.reconnect_danmu, [real_roomid])
+        self.exec_func_threads(self._printer_danmu.reset_roomid, [real_roomid])
         
     def do_16(self, arg):
         ctrl, = self.parse(arg, '-c:')

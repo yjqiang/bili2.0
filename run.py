@@ -40,7 +40,6 @@ dict_bili = conf_loader.read_bili()
 dict_color = conf_loader.read_color()
 dict_ctrl = conf_loader.read_ctrl()
 printer.init_config(dict_color, dict_ctrl['print_control']['danmu'])
-area_ids = dict_ctrl['other_control']['area_ids']
 
 users = []
 task_control = dict_ctrl['task_control']
@@ -48,24 +47,33 @@ for i, user_info in enumerate(dict_user['users']):
     users.append(User(i, user_info, task_control, dict_bili))
 notifier.set_values(loop)
 notifier.set_users(users)
-
-bili_statistics.init_area_num(len(area_ids))
     
 loop.run_until_complete(notifier.exec_func(-2, LoginTask.handle_login_status))
 
-# users[1].fall_in_jail()
-
-danmu_tasks = [monitor_danmu.run_danmu_raffle_handler(i) for i in area_ids]
+area_ids = dict_ctrl['other_control']['area_ids']
+bili_statistics.init_area_num(len(area_ids))
 yj_danmu_roomid = dict_ctrl['other_control']['raffle_minitor_roomid']
-danmu_tasks.append(monitor_danmu.run_yjraffle_monitor(yj_danmu_roomid))
 default_roomid = dict_ctrl['other_control']['default_monitor_roomid']
-danmu_tasks.append(monitor_danmu.run_danmu_printer(default_roomid))
+
+async def get_printer_danmu():
+    future = asyncio.Future()
+    asyncio.ensure_future(monitor_danmu.run_danmu_monitor(
+            raffle_danmu_areaids=area_ids,
+            yjmonitor_danmu_roomid=yj_danmu_roomid,
+            printer_danmu_roomid=default_roomid,
+            future=future))
+    await future
+    return future.result()
+
+printer_danmu = loop.run_until_complete(get_printer_danmu())
 
 if sys.platform != 'linux' or signal.getsignal(signal.SIGHUP) == signal.SIG_DFL:
-    console_thread = threading.Thread(target=Biliconsole(loop, default_roomid).cmdloop)
+    console_thread = threading.Thread(
+        target=Biliconsole(loop, default_roomid, printer_danmu).cmdloop)
     console_thread.start()
 else:
     console_thread = None
+
 
 notifier.exec_task(-2, HeartBeatTask, 0, delay_range=(0, 5))
 notifier.exec_task(-2, RecvHeartGiftTask, 0, delay_range=(0, 5))
@@ -84,7 +92,7 @@ other_tasks = [
     # SubstanceRaffleMonitor().run()
     ]
 
-loop.run_until_complete(asyncio.wait(other_tasks+danmu_tasks))
+loop.run_until_complete(asyncio.wait(other_tasks))
 if console_thread is not None:
     console_thread.join()
 
