@@ -23,7 +23,7 @@ class PrinterDanmu(BaseDanmu):
         
 
 class RaffleDanmu(BaseDanmu):
-    async def check_area(self):
+    async def _check_area(self):
         try:
             while True:
                 await asyncio.sleep(300)
@@ -102,9 +102,9 @@ class RaffleDanmu(BaseDanmu):
                 if not await self._open_conn():
                     continue
                 
-                self._task_main = asyncio.ensure_future(self.read_datas())
-                task_heartbeat = asyncio.ensure_future(self.heart_beat())
-                task_checkarea = asyncio.ensure_future(self.check_area())
+                self._task_main = asyncio.ensure_future(self._read_datas())
+                task_heartbeat = asyncio.ensure_future(self._heart_beat())
+                task_checkarea = asyncio.ensure_future(self._check_area())
             tasks = [self._task_main, task_heartbeat, task_checkarea]
             _, pending = await asyncio.wait(
                 tasks, return_when=asyncio.FIRST_COMPLETED)
