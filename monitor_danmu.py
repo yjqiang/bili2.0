@@ -208,9 +208,10 @@ async def run_danmu_monitor(
             RaffleDanmu(0, area_id, session).run_forever())
         tasks.append(task)
         
-    task = asyncio.ensure_future(
+    if yjmonitor_danmu_roomid:
+        task = asyncio.ensure_future(
             YjMonitorDanmu(yjmonitor_danmu_roomid, 0, session).run_forever())
-    tasks.append(task)
+        tasks.append(task)
     
     printer_danmu = PrinterDanmu(printer_danmu_roomid, -1, session)
     if future is not None:
