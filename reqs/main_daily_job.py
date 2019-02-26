@@ -91,9 +91,7 @@ class BiliMainReq:
         return json_rsp
         
     async def aid2cid(user, aid):
-        temp_params = f'actionKey={user.dict_bili["actionKey"]}&aid={aid}&appkey={user.dict_bili["appkey"]}&build={user.dict_bili["build"]}&device={user.dict_bili["device"]}&mobi_app={user.dict_bili["mobi_app"]}&platform={user.dict_bili["platform"]}&ts={UtilsReq.curr_time()}'
-        sign = user.calc_sign(temp_params)
-        url = f'https://app.bilibili.com/x/v2/view?{temp_params}&sign={sign}'
+        url = f'https://api.bilibili.com/x/web-interface/view?aid={aid}'
         json_rsp = await user.other_session.request_json('GET', url)
         return json_rsp
     

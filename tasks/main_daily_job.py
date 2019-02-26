@@ -205,12 +205,18 @@ class BiliMainTask:
         json_rsp = await user.req_s(BiliMainReq.aid2cid, user, aid)
         code = json_rsp['code']
         if not code:
-            # 有的av有多个视频即多个cid
-            pages = json_rsp['data']['pages']
-            return pages[0]['cid']
-        # -404不存在/-403无权限
-        if code == -404 or code == -403:
-            return None
+            data = json_rsp['data']
+            state = data['state']
+            if not state:  # state会-4/1 其中-4没有cid，1还能用，保险起见都不管了
+                cid = data['pages'][0]['cid']  # 有的av有多个视频即多个cid
+                return cid
+        # 62002 稿件不可见
+        # -404 啥都木有
+        # -403 访问权限不足
+        # 62004 视频正在审核中
+        # 62003 等待发布中
+        print(json_rsp)
+        return None
         
     @staticmethod
     async def heartbeat(user, aid, cid):
