@@ -72,7 +72,6 @@ class User:
         return sign
         
     async def get_statistic(self):
-        await asyncio.sleep(0)
         self.status.print_status()
         bili_statistics.print_statistics(self.id)
         
