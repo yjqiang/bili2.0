@@ -192,12 +192,15 @@ class BiliMainTask:
         aids = []
         for uid in uids:
             # 避免一堆videos，只取前几页
-            for page in range(1, 5):
+            page = 1
+            while page < 5:
                 json_rsp = await user.req_s(BiliMainReq.fetch_uper_videos, user, uid, page)
-                videos = json_rsp['data']['item']
-                if not videos:
-                    break
-                aids += [int(video['param']) for video in videos]
+                if not json_rsp['code']:  # -400 请求错误，目前不知道是否是单一api还是统一的返回值
+                    videos = json_rsp['data']['item']
+                    if not videos:
+                        break
+                    aids += [int(video['param']) for video in videos]
+                    page += 1
         return aids
     
     @staticmethod
