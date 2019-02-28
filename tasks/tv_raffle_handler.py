@@ -39,7 +39,7 @@ class TvRaffleHandlerTask:
     @staticmethod
     async def join(user, real_roomid, raffleid, raffle_type):
         # print('参与', raffleid)
-        await UtilsTask.enter_room(user, real_roomid)
+        # await UtilsTask.enter_room(user, real_roomid)
         json_response2 = await user.req_s(TvRaffleHandlerReq.join, user, real_roomid, raffleid)
         bili_statistics.add2joined_raffles('小电视(合计)', user.id)
         user.info([f'参与了房间{real_roomid:^9}的小电视抽奖'], True)

@@ -38,7 +38,7 @@ class StormRaffleHandlerTask:
             
     @staticmethod
     async def join(user, room_id, raffle_id):
-        await UtilsTask.enter_room(user, room_id)
+        # await UtilsTask.enter_room(user, room_id)
         json_rsp = await user.req_s(StormRaffleHandlerReq.join, user, raffle_id)
         bili_statistics.add2joined_raffles('节奏风暴(合计)', user.id)
         if not json_rsp['code']:

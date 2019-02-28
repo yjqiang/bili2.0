@@ -47,7 +47,7 @@ class GuardRaffleHandlerTask:
         # print('参与', raffle_id)
         # {'code': 400, 'msg': '您的操作太快了, 请稍后再试', 'message': '您的操作太快了, 请稍后再试', 'data': []}
         # {'code': 400, 'msg': '你已经领取过啦', 'message': '你已经领取过啦', 'data': []}
-        await UtilsTask.enter_room(user, real_roomid)
+        # await UtilsTask.enter_room(user, real_roomid)
         json_rsp = await user.req_s(GuardRaffleHandlerReq.join, user, real_roomid, raffle_id)
         user.info([f'参与了房间{real_roomid:^9}的大航海抽奖'], True)
         if not json_rsp['code']:
