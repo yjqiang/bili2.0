@@ -68,7 +68,7 @@ class LoginReq:
     @staticmethod
     def cnn_captcha(content):
         bytes_img = base64.b64encode(content)
-        url = "http://zerozhushou.com:11001/captcha/v1"
+        url = "http://115.159.205.242:19951/captcha/v1"
         str_img = str(bytes_img, encoding='utf-8')
         json = {"image": str_img}
         response = requests.post(url, json=json)

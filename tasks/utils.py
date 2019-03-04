@@ -12,6 +12,7 @@ class UtilsTask:
             return
         await user.req_s(UtilsReq.post_watching_history, user, room_id)
     
+    @staticmethod
     async def is_normal_room(user, roomid):
         if not roomid:
             return True
@@ -85,6 +86,7 @@ class UtilsTask:
         else:
             print("# 错误", json_rsp['msg'])
             
+    @staticmethod
     async def buy_gift(user, room_id, num_sent, coin_type, gift_id):
         if not num_sent or not room_id:
             return
@@ -339,6 +341,7 @@ class UtilsTask:
             for i in json_rsp['data']['text']:
                 print(i)
                 
+    @staticmethod
     async def get_real_roomid(user, room_id):
         json_rsp = await user.req_s(UtilsReq.init_room, user, room_id)
         if not json_rsp['code']:
@@ -354,6 +357,7 @@ class UtilsTask:
         elif json_rsp['code'] == 60004:
             print(json_rsp['msg'])
             
+    @staticmethod
     async def send_danmu(user, msg, room_id):
         json_rsp = await user.req_s(UtilsReq.send_danmu, user, msg, room_id)
         print(json_rsp)
