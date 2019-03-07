@@ -28,6 +28,7 @@ from tasks.main_daily_job import (
     BiliMainTask
     
 )
+from dyn.monitor_dyn_raffle import DynRaffleMonitor
 from monitor_substance_raffle import SubstanceRaffleMonitor
 
 root_path = path.dirname(path.realpath(__file__))
@@ -43,8 +44,9 @@ printer.init_config(dict_color, dict_ctrl['print_control']['danmu'])
 
 users = []
 task_control = dict_ctrl['task_control']
+dyn_lottery_friends = [(str(uid), name) for uid, name in dict_ctrl['dyn_raffle']['dyn_lottery_friends'].items()]
 for i, user_info in enumerate(dict_user['users']):
-    users.append(User(i, user_info, task_control, dict_bili))
+    users.append(User(i, user_info, task_control, dict_bili, dyn_lottery_friends))
 notifier.set_values(loop)
 notifier.set_users(users)
     
@@ -87,9 +89,14 @@ notifier.exec_task(-2, ExchangeSilverCoinTask, 0, delay_range=(0, 5))
 notifier.exec_task(-2, JudgeCaseTask, 0, delay_range=(0, 5))
 notifier.exec_task(-2, BiliMainTask, 0, delay_range=(0, 5))
 
+
+dyn_raffle_moitor = DynRaffleMonitor()
+
 other_tasks = [
     raffle_handler.run(),
     # SubstanceRaffleMonitor().run()
+    dyn_raffle_moitor.run(),
+    dyn_raffle_moitor.check_result()
     ]
 
 loop.run_until_complete(asyncio.wait(other_tasks))

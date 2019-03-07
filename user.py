@@ -10,7 +10,7 @@ from tasks.login import LoginTask
 
 
 class User:
-    def __init__(self, id, dict_user, task_ctrl, dict_bili):
+    def __init__(self, id, dict_user, task_ctrl, dict_bili, dyn_lottery_friends):
         self.id = id
         self.name = dict_user['username']
         self.password = dict_user['password']
@@ -25,6 +25,8 @@ class User:
         self.app_params = f'actionKey={dict_bili["actionKey"]}&appkey={dict_bili["appkey"]}&build={dict_bili["build"]}&device={dict_bili["device"]}&mobi_app={dict_bili["mobi_app"]}&platform={dict_bili["platform"]}'
         self.update_login_data(dict_user)
         self.list_delay = []
+        self.repost_del_lock = asyncio.Lock()  # 在follow与unfollow过程中必须保证安全(repost和del整个过程加锁)
+        self.dyn_lottery_friends = dyn_lottery_friends  # list (uid, name)
         
     def update_login_data(self, login_data):
         for i, value in login_data.items():
