@@ -26,6 +26,11 @@ fetchrule = "bilitop"
 # up主list([123]或者[123, 234, 123]等)
 mid = [ 207539637,]
 
+[dyn_raffle]
+# 抽奖@的人，格式为 uid = "用户名"（例如 {332704117 = "白上吹雪Official", 339567211 = "赤井心Official"}）
+# 要求被@的人不能经常改名字，这样也就说明这些用户也可控，即不得随意骚扰他人
+dyn_lottery_friends = {}
+
 [other_control]
 # 默认监听房间号(打印弹幕)
 default_monitor_roomid = 23058

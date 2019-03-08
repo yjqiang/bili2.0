@@ -161,3 +161,74 @@ class UtilsReq:
         }
         json_rsp = await user.bililive_session.request_json('POST', url, headers=user.dict_bili['pcheaders'], data=data)
         return json_rsp
+
+    @staticmethod
+    async def uid2name(user, uid):
+        url = f'{API_LIVE}/live_user/v1/card/card_up?uid={uid}'
+        json_rsp = await user.bililive_session.request_json('POST', url)
+        return json_rsp
+
+    @staticmethod
+    async def follow_user(user, uid):
+        url = 'https://api.bilibili.com/x/relation/modify'
+        payload = {
+            'fid': uid,
+            'act': 1,
+            're_src': 11,
+            'jsonp': 'jsonp',
+            'csrf': user.dict_bili['csrf']
+        }
+        json_rsp = await user.other_session.request_json('POST', url, data=payload, headers=user.dict_bili['pcheaders'])
+        return json_rsp
+
+    @staticmethod
+    async def unfollow_user(user, uid):
+        url = 'https://api.bilibili.com/x/relation/modify'
+        data = {
+            'fid': int(uid),
+            'act': 2,
+            're_src': 11,
+            'jsonp': 'jsonp',
+            'csrf': user.dict_bili['csrf']
+        }
+        json_rsp = await user.other_session.request_json('POST', url, data=data, headers=user.dict_bili['pcheaders'])
+        return json_rsp
+
+    @staticmethod
+    async def check_follow(user, uid):
+        url = f'https://api.bilibili.com/x/relation?fid={uid}'
+        json_rsp = await user.other_session.request_json('GET', url, headers=user.dict_bili['pcheaders'])
+        return json_rsp
+
+    @staticmethod
+    async def fetch_follow_groupids(user):
+        url = 'https://api.bilibili.com/x/relation/tags'
+        json_rsp = await user.other_session.request_json('GET', url, headers=user.dict_bili['pcheaders'])
+        return json_rsp
+
+    @staticmethod
+    async def create_follow_group(user, name):
+        url = 'https://api.bilibili.com/x/relation/tag/create'
+        payload = {
+            'tag': name,
+            'csrf': user.dict_bili['csrf'],
+            'jsonp': 'jsonp'
+        }
+        json_rsp = await user.other_session.request_json('POST', url, data=payload, headers=user.dict_bili['pcheaders'])
+        return json_rsp
+
+    @staticmethod
+    async def move2follow_group(user, uid, group_id):
+        url = 'https://api.bilibili.com/x/relation/tags/addUsers?cross_domain=true'
+        headers = {
+            **user.dict_bili['pcheaders'],
+            'Referer': f'https://space.bilibili.com/{user.dict_bili["uid"]}/'
+        }
+        payload = {
+            'fids': uid,
+            'tagids': group_id,
+            'csrf': user.dict_bili['csrf']
+        }
+        json_rsp = await user.other_session.request_json('POST', url, data=payload, headers=headers)
+        return json_rsp
+

@@ -12,6 +12,9 @@ bili2.0
 3. [requirements.txt](https://github.com/yjqiang/bili2.0/blob/master/requirements.txt)是所需第三方模块，执行`pip install -r requirements.txt`安装模块
 4. [/conf/user.toml](https://github.com/yjqiang/bili2.0/blob/master/conf/user.toml)是用户目录，在里面添加自己的账号；[/conf/ctrl.toml](https://github.com/yjqiang/bili2.0/blob/master/conf/ctrl.toml)是用户配置，里面有说明按需要开启功能
 5. Python和需要模块都装好了直接运行`python run.py`
+6. 节奏风暴默认关闭，开启需要[monitor_danmu.py](https://github.com/yjqiang/bili2.0/blob/master/monitor_danmu.py#L82) 和 [monitor_danmu.py](https://github.com/yjqiang/bili2.0/blob/master/monitor_danmu.py#L182) 取消注释，抢风暴的逻辑可以自由定制 [/tasks/storm_raffle_handler.py](https://github.com/yjqiang/bili2.0/blob/master/tasks/storm_raffle_handler.py)
+7. 动态抽奖开关在[run.py](https://github.com/yjqiang/bili2.0/blob/master/run.py#L98-L99) ，需要在[/conf/ctrl.toml](https://github.com/yjqiang/bili2.0/blob/master/conf/ctrl.toml)更新`dyn_lottery_friends`，参与的抽奖会在dyn里面产生一个database数据库（sqlite3）
+
 
 使用`Docker`快速使用方法 (每次启动的时候都会通过git pull同步主项目代码。)
 -------

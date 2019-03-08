@@ -361,3 +361,61 @@ class UtilsTask:
     async def send_danmu(user, msg, room_id):
         json_rsp = await user.req_s(UtilsReq.send_danmu, user, msg, room_id)
         print(json_rsp)
+
+    @staticmethod
+    async def uid2name(user, uid):
+        json_rsp = await user.req_s(UtilsReq.uid2name, user, uid)
+        print('fetch uname', json_rsp)
+        assert not json_rsp['code']
+        return json_rsp['data'].get('uname')
+
+    @staticmethod
+    async def follow_user(user, uid):
+        json_rsp = await user.req_s(UtilsReq.follow_user, user, uid)
+        print('follow', json_rsp)
+        if not json_rsp['code']:
+            user.info([f'用户关注{uid}成功'], True)
+            return True
+        user.warn(f'用户关注{uid}失败,{json_rsp}')
+        return False
+
+    @staticmethod
+    async def unfollow(user, uid):
+        json_rsp = await user.req_s(UtilsReq.unfollow_user, user, uid)
+        # TODO:无效返回
+        print('unfollow', json_rsp)
+
+    @staticmethod
+    async def check_follow(user, uid):
+        json_rsp = await user.req_s(UtilsReq.check_follow, user, uid)
+        assert not json_rsp['code']
+        # 0/uid
+        is_following = int(json_rsp['data']['mid']) == int(uid)
+        # tag none/[list] 不包含默认分组
+        tag = json_rsp['data']['tag']
+        if tag is None:
+            group_ids = []
+        else:
+            group_ids = tag
+        return is_following, group_ids
+
+    @staticmethod
+    async def fetch_group_id(user, group_name, read_only=False):
+        json_rsp = await user.req_s(UtilsReq.fetch_follow_groupids, user)
+        print('查询分组情况', json_rsp)
+        assert not json_rsp['code']
+        for group in json_rsp['data']:
+            if group['name'] == group_name:
+                return int(group['tagid'])
+        if read_only:
+            return None
+        print(f'没有名为{group_name}分组, 正在创建新群组')
+        json_rsp = await user.req_s(UtilsReq.create_follow_group, user, group_name)
+        print('new group', json_rsp)
+        return int(json_rsp['data']['tagid'])
+
+    @staticmethod
+    async def move2follow_group(user, uid, group_id):
+        json_rsp = await user.req_s(UtilsReq.move2follow_group, user, uid, group_id)
+        print('move2group', json_rsp)
+        return
