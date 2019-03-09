@@ -10,7 +10,7 @@ bili2.0
 1. 先下载项目到电脑https://github.com/yjqiang/bili2.0/archive/master.zip
 2. 安装python3.6+，安装方法请自行谷歌/百度
 3. [requirements.txt](https://github.com/yjqiang/bili2.0/blob/master/requirements.txt)是所需第三方模块，执行`pip install -r requirements.txt`安装模块
-4. [/conf/user.toml](https://github.com/yjqiang/bili2.0/blob/master/conf/user.toml)是用户目录，在里面添加自己的账号；[/conf/ctrl.toml](https://github.com/yjqiang/bili2.0/blob/master/conf/ctrl.toml)是用户配置，里面有说明按需要开启功能
+4. [/conf/user.sample.toml](https://github.com/yjqiang/bili2.0/blob/master/conf/user.sample.toml)是用户目录示例，在里面添加自己的账号；[/conf/ctrl.sample.toml](https://github.com/yjqiang/bili2.0/blob/master/conf/ctrl.sample.toml)是用户配置示例，里面有说明按需要开启功能。需要自己定制这两个文件（不是在原来sample文件上改，而是自己在conf文件夹内新建user.toml和ctrl.toml文件，在新文件上面改（注意全部复制过去后再改，sample文件只作为用户使用参考，程序运行不会读取此文件，只会读取用户的新建toml文件））
 5. Python和需要模块都装好了直接运行`python run.py`
 6. 节奏风暴默认关闭，开启需要[monitor_danmu.py](https://github.com/yjqiang/bili2.0/blob/master/monitor_danmu.py#L82) 和 [monitor_danmu.py](https://github.com/yjqiang/bili2.0/blob/master/monitor_danmu.py#L182) 取消注释，抢风暴的逻辑可以自由定制 [/tasks/storm_raffle_handler.py](https://github.com/yjqiang/bili2.0/blob/master/tasks/storm_raffle_handler.py)
 7. 动态抽奖开关在[run.py](https://github.com/yjqiang/bili2.0/blob/master/run.py#L98-L99) ，需要在[/conf/ctrl.toml](https://github.com/yjqiang/bili2.0/blob/master/conf/ctrl.toml)更新`dyn_lottery_friends`，参与的抽奖会在dyn里面产生一个database数据库（sqlite3）
