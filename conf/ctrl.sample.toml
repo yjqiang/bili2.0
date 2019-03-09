@@ -5,7 +5,7 @@ danmu = false
 [task_control]
 # 清理即将过期礼物，请true之后一定要把紧随其后的clean-expiring-gift2room设置为真实房间号
 clean-expiring-gift = false
-# 单位秒
+# 单位秒，这是控制定义过期礼物何时为“过期”的阈值
 set-expiring-time = 0
 # 对过期礼物是否优先投递到其他勋章(按照勋章等级由大到小顺序投递)，之后会剩余的清理掉至clean-expiring-gift2room
 clean_expiring_gift2all_medal = false
@@ -32,7 +32,7 @@ mid = [ 207539637,]
 dyn_lottery_friends = {}
 
 [other_control]
-# 默认监听房间号(打印弹幕)
+# 默认监听房间号(用于打印弹幕功能等)
 default_monitor_roomid = 23058
 # 额外自定义弹幕监控房间(比如yj协同大航海等自定义，0会不启动)
 raffle_minitor_roomid = 0
