@@ -16,25 +16,46 @@ bili2.0
 7. 动态抽奖开关在[run.py](https://github.com/yjqiang/bili2.0/blob/master/run.py#L98-L99) ，需要在[/conf/ctrl.toml](https://github.com/yjqiang/bili2.0/blob/master/conf/ctrl.toml)更新`dyn_lottery_friends`，参与的抽奖会在dyn里面产生一个database数据库（sqlite3）
 
 
-使用`Docker`快速使用方法 (每次启动的时候都会通过git pull同步主项目代码。)
+使用`Docker`快速使用方法 (每次启动的时候都会通过`git pull`同步主项目代码。)
 -------
 1. 安装好[Docker](https://yeasy.gitbooks.io/docker_practice/content/install/)
 2. 如果你需要对应的功能，就下载对应的功能文件。参照看上面的`使用方法`。
-  - [/conf/user.toml（添加用户，必下）](https://raw.githubusercontent.com/yjqiang/bili2.0/master/conf/user.toml)
-  - [/conf/ctrl.toml 用户配置文件（如果不需要修改，不用下）](https://raw.githubusercontent.com/yjqiang/bili2.0/master/conf/ctrl.toml)
+  - [/conf/user.sample.toml（添加用户，必下）](https://raw.githubusercontent.com/yjqiang/bili2.0/master/conf/user.sample.toml)
+  - [/conf/ctrl.sample.toml 用户配置文件（如果不需要修改，不用下）](https://raw.githubusercontent.com/yjqiang/bili2.0/master/conf/ctrl.sample.toml)
   - [run.py 动态抽奖开关 （如果不需要修改，不用下）](https://raw.githubusercontent.com/yjqiang/bili2.0/master/run.py)
 3. 在本地修改好文件。
-4. docker镜像启动时，把文件挂载到镜像即可。
+4. docker镜像启动时，把文件挂载到容器即可。
+
+---
+
+### Linux
 
 ```
 docker run --rm -it \
-  -v $(pwd)/user.toml:/app/conf/user.toml \
-  -v $(pwd)/ctrl.toml:/app/conf/ctrl.toml \
+  -v $(pwd)/user.sample.toml:/app/conf/user.toml \
+  -v $(pwd)/ctrl.sample.toml:/app/conf/ctrl.toml \
   -v $(pwd)/run.py:/app/run.py \
   zsnmwy/bili2.0
 ```
 
 `$(pwd)` 获取当前目录路径。
+
+### Windows
+
+假设下载的文件都在`D:\python`。
+
+```
+下面命令需要在powershell上面执行。
+
+docker run --rm -it `
+  -v D:\python\user.sample.toml:/app/conf/user.toml `
+  -v D:\python\ctrl.sample.toml:/app/conf/ctrl.toml `
+  -v D:\python\run.py:/app/run.py `
+  zsnmwy/bili2.0
+```
+---
+
+下面的指令都是docker本身的指令，适用于`Windows`以及`Linux`。
 
 `--rm` 退出的时候，会把容器删除。
 
@@ -44,4 +65,23 @@ docker run --rm -it \
 
 `-d `让容器后台运行。如果你想后台，加个在`-it`后面加个`d`就行。
 
-`-v` 可以把本机的(目录/文件)挂载到容器里面，起到替换的作用。如果你使用的是项目的默认值，则不用-v来指定文件替换。但是用户文件（`user.toml`）是一定要替换的，不然程序找不到用户的。
+`-v` 可以把本机的(目录/文件)挂载到容器里面，起到加入/替换的作用。如果你使用的是项目的默认值，则不用-v来指定文件替换。但是用户文件（`user.toml`）是一定要的，不然程序找不到用户的。
+
+---
+
+如果有什么奇葩问题，或者需要更新镜像，使用`docker pull zsnmwy/bili2.0`进行更新。
+
+### 已知问题
+
+在`-it`交互模式下，在容器运行着的python直接用`Ctrl+C`无法正常退出容器。
+
+需要使用`docker rm -f`强制结束。
+
+```
+$docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
+a746fb0325fb        zsnmwy/bili2.0      "/bin/sh -c 'git pul…"   44 seconds ago      Up 42 seconds                           frosty_mccarthy
+
+$docker rm -f a7
+a7
+```
