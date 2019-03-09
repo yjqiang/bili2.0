@@ -1,0 +1,40 @@
+[print_control]
+# 控制default_monitor_roomid所指认的room弹幕打印(pythonista ios可以彩打哦)
+danmu = false
+
+[task_control]
+# 清理即将过期礼物，请true之后一定要把紧随其后的clean-expiring-gift2room设置为真实房间号
+clean-expiring-gift = false
+# 单位秒
+set-expiring-time = 0
+# 对过期礼物是否优先投递到其他勋章(按照勋章等级由大到小顺序投递)，之后会剩余的清理掉至clean-expiring-gift2room
+clean_expiring_gift2all_medal = false
+clean-expiring-gift2room = 0
+
+# 一天最多一个硬币兑换机会
+silver2coin = false
+
+# 自动投满佩戴勋章当日亲密度
+send2wearing-medal = false
+# 短房间号(与投满亲密度send2wearing-medal的一起使用)
+send2medal = []
+
+# 输入数字 0-5 表示主站每日自动投币
+givecoin = 0
+# av获取(bilitop或者uper)分别代表b站随机或者根据up主mid选取
+fetchrule = "bilitop"
+# up主list([123]或者[123, 234, 123]等)
+mid = [ 207539637,]
+
+[dyn_raffle]
+# 抽奖@的人，格式为 uid = "用户名"（例如 {332704117 = "白上吹雪Official", 339567211 = "赤井心Official"}）
+# 要求被@的人不能经常改名字，这样也就说明这些用户也可控，即不得随意骚扰他人
+dyn_lottery_friends = {}
+
+[other_control]
+# 默认监听房间号(打印弹幕)
+default_monitor_roomid = 23058
+# 额外自定义弹幕监控房间(比如yj协同大航海等自定义，0会不启动)
+raffle_minitor_roomid = 0
+# 固定的直播分区设置
+area_ids = [ 1, 2, 3, 4, 5, 6,]
