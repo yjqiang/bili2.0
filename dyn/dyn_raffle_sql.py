@@ -1,6 +1,6 @@
 import sqlite3  # sqlite是个很灵活的东西，会自动转换，但是如果错误type且无法转换那么也不报错,传说中的沙雕feature https://www.sqlite.org/faq.html#q3
 from os import path
-from .bili_data_types import DynRaffleStatus, DynRaffleJoined, DynRaffleResults
+from .bili_data_types import DynRaffleStatus, DynRaffleJoined, DynRaffleResults, DynRaffleLuckydog
 
 
 # 设计理由是execute script from another directory时，保证仍然可以正确执行（与conf读取设计一致，后续config读取也将自己控制，不再由main控制）
@@ -193,9 +193,54 @@ class DynRaffleResultsTable:
             self.conn.execute('DELETE FROM dynraffle_results WHERE dyn_id = ?', (str(dyn_id),))
 
 
+# 存贮中奖用户的动态以及follow情况，
+class DynRaffleLuckydogTable:
+    def __init__(self):
+        # uid + orig_dynid 唯一
+        sql_create_table = (
+            'CREATE TABLE IF NOT EXISTS dynraffle_luckydog ('
+            'uid TEXT NOT NULL, '
+            'dyn_id TEXT NOT NULL, '  # 比如关注人等信息都存在results表里面，不再加冗余
+            'orig_dynid TEXT NOT NULL,'
+            'following_uid TEXT NOT NULL,'  # 如果抽奖需要follow那么就是原uid，否则0
+            'PRIMARY KEY (uid, orig_dynid)'
+            '); '
+        )
+        conn.execute(sql_create_table)
+        self.conn = conn
+
+    def as_bili_data(self, row):
+        return DynRaffleLuckydog(*row)
+
+    def insert_element(self, dyn_raffle_luckdog: DynRaffleLuckydog):
+        with self.conn:
+            self.conn.execute('INSERT INTO dynraffle_luckydog VALUES (?, ?, ?, ?)',
+                              dyn_raffle_luckdog.as_sql_values())
+
+    def select_all(self):
+        results = []
+        for row in self.conn.execute('SELECT * FROM dynraffle_luckydog'):
+            results.append(self.as_bili_data(row))
+        return results
+
+    def select_by_primary_key(self, uid, orig_dynid):
+        cursor = self.conn.execute('SELECT * FROM dynraffle_luckydog WHERE uid = ? AND orig_dynid = ?',
+                                   (str(uid), str(orig_dynid)))
+        result = cursor.fetchone()
+        if result is None:
+            return None
+        return self.as_bili_data(result)
+
+    def del_by_primary_key(self, uid, orig_dynid):
+        with self.conn:
+            self.conn.execute('DELETE FROM dynraffle_luckydog WHERE uid = ? AND orig_dynid = ?',
+                              (str(uid), str(orig_dynid)))
+
+
 dynraffle_status_table = DynRaffleStatusTable()
 dynraffle_joined_table = DynRaffleJoinedTable()
 dynraffle_results_table = DynRaffleResultsTable()
+dynraffle_luckydog_table = DynRaffleLuckydogTable()
 other_table = OthersTable()
 
 
@@ -209,6 +254,10 @@ def insert_dynraffle_joined_table(dyn_raffle_joined: DynRaffleJoined):
 
 def insert_dynraffle_results_table(dyn_raffle_result: DynRaffleResults):
     dynraffle_results_table.insert_element(dyn_raffle_result)
+
+
+def insert_dynraffle_luckydog_table(dyn_raffle_luckydog: DynRaffleLuckydog):
+    dynraffle_luckydog_table.insert_element(dyn_raffle_luckydog)
 
 
 def del_from_dynraffle_status_table(dyn_id):
@@ -233,10 +282,14 @@ def is_raffleid_duplicate(dyn_id):
 
 # 先del，再查询
 def should_unfollowed(uid, orig_uid):
+    # 检测joined这里是否还有未开奖的
     sql_select = 'SELECT 1 FROM dynraffle_status WHERE dyn_id = ' \
                  '(SELECT orig_dynid FROM dynraffle_joined WHERE uid = ?) ' \
                  'AND feed_limit = 1 AND uid = ?'
-    return not conn.execute(sql_select, (str(uid), str(orig_uid))).fetchone()
+    is_following_in_joined_table = bool(conn.execute(sql_select, (str(uid), str(orig_uid))).fetchone())
+    sql_select = 'SELECT 1 FROM dynraffle_luckydog WHERE uid = ? AND following_uid = ?'
+    is_following_in_luckdog_table = bool(conn.execute(sql_select, (str(uid), str(orig_uid))).fetchone())
+    return (not is_following_in_joined_table) and (not is_following_in_luckdog_table)
 
 
 # 全部删除了之后，删除status内的数据

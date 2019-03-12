@@ -109,3 +109,19 @@ class DynRaffleResults:
         return \
             dyn_id, doc_id, describe, uid, post_time, lottery_time,\
             prize_cmt_1st, prize_list_1st,  prize_cmt_2nd, prize_list_2nd, prize_cmt_3rd, prize_list_3rd
+
+
+@attr.s(frozen=True)
+class DynRaffleLuckydog:
+    uid = attr.ib(converter=int)
+    dyn_id = attr.ib(converter=int)
+    orig_dynid = attr.ib(converter=int)
+    following_uid = attr.ib(converter=int)
+
+    def as_sql_values(self):
+        uid = str(self.uid)
+        dyn_id = str(self.dyn_id)
+        orig_dynid = str(self.orig_dynid)
+        following_uid = str(self.following_uid)
+
+        return uid, dyn_id, orig_dynid, following_uid

@@ -1,4 +1,5 @@
 import asyncio
+from typing import Optional
 import printer
 import utils
 import notifier
@@ -88,15 +89,16 @@ class DynRaffleMonitor:
 
     async def check_result(self):
         while True:
-            results = dyn_raffle_sql.select_bytime(utils.curr_time() + 7200)  # 延迟2小时处理抽奖
+            results = dyn_raffle_sql.select_bytime(utils.curr_time() + 900)  # 延迟15min处理抽奖
             for dyn_raffle_status in results:
-                print(dyn_raffle_status)
-                future = asyncio.Future()
-                notifier.exec_task(-1, DynRaffleHandlerTask, 2, dyn_raffle_status, future, delay_range=(0, 30))
-                await future
-                dyn_raffle_results: DynRaffleResults = await notifier.exec_func(
+
+                dyn_raffle_results: Optional[DynRaffleResults] = await notifier.exec_func(
                     -1, DynRaffleHandlerTask.fetch_dyn_raffle_results,
                     dyn_raffle_status)
+                print(dyn_raffle_status, dyn_raffle_results)
+                future = asyncio.Future()
+                notifier.exec_task(-1, DynRaffleHandlerTask, 2, dyn_raffle_status, dyn_raffle_results, future, delay_range=(0, 30))
+                await future
                 if dyn_raffle_results is not None:
                     dyn_raffle_sql.insert_dynraffle_results_table(dyn_raffle_results)
 

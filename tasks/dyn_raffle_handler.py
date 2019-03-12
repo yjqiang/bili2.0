@@ -5,7 +5,7 @@ from typing import Optional
 
 import utils
 from dyn import dyn_raffle_sql
-from dyn.bili_data_types import DynRaffleStatus, DynRaffleJoined, DynRaffleResults
+from dyn.bili_data_types import DynRaffleStatus, DynRaffleJoined, DynRaffleResults, DynRaffleLuckydog
 from reqs.dyn_raffle_handler import DynRaffleHandlerReq
 from .utils import UtilsTask
 
@@ -270,33 +270,45 @@ class DynRaffleHandlerTask:
             return
 
     @staticmethod
-    async def notice(user, dyn_raffle_status: DynRaffleStatus, all_done_future=None):
+    async def notice(user, dyn_raffle_status: DynRaffleStatus, dyn_raffle_results: Optional[DynRaffleResults], all_done_future=None):
+        int_user_uid = int(user.dict_bili['uid'])
         async with user.repost_del_lock:
             dyn_raffle_joined = dyn_raffle_sql.select_by_primary_key_from_dynraffle_joined_table(
-                uid=user.dict_bili['uid'], orig_dynid=dyn_raffle_status.dyn_id)
+                uid=int_user_uid, orig_dynid=dyn_raffle_status.dyn_id)
 
             if dyn_raffle_joined is None:
                 user.info(['未从数据库中查阅到动态抽奖，可能是之前已经删除了'], True)
                 return
 
-            # 删除动态，并且同步数据库
-            await DynRaffleHandlerTask.del_dyn_by_dynid(user, dyn_raffle_joined.dyn_id)
-            dyn_raffle_sql.del_from_dynraffle_joind_table(
-                uid=user.dict_bili['uid'],
-                orig_dynid=dyn_raffle_status.dyn_id
-            )
+            if dyn_raffle_results is None or \
+                    int_user_uid not in dyn_raffle_results.prize_list_1st and \
+                    int_user_uid not in dyn_raffle_results.prize_list_2nd and \
+                    int_user_uid not in dyn_raffle_results.prize_list_3rd:
+                # 删除动态，并且同步数据库
+                await DynRaffleHandlerTask.del_dyn_by_dynid(user, dyn_raffle_joined.dyn_id)
+                dyn_raffle_sql.del_from_dynraffle_joind_table(
+                    uid=int_user_uid,
+                    orig_dynid=dyn_raffle_status.dyn_id
+                )
 
-            # 如果本抽奖需要关注且up主的其他抽奖不再需要关注/up主不再有其他抽奖，就运行unfollow_raffle_organizer
-            if dyn_raffle_status.feed_limit and dyn_raffle_sql.should_unfollowed(
-                    uid=user.dict_bili['uid'], orig_uid=dyn_raffle_status.uid):
-                await DynRaffleHandlerTask.unfollow_raffle_organizer(user, dyn_raffle_status.uid)
+                # 如果本抽奖需要关注且up主的其他抽奖不再需要关注/up主不再有其他抽奖，就运行unfollow_raffle_organizer
+                if dyn_raffle_status.feed_limit and dyn_raffle_sql.should_unfollowed(
+                        uid=int_user_uid, orig_uid=dyn_raffle_status.uid):
+                    await DynRaffleHandlerTask.unfollow_raffle_organizer(user, dyn_raffle_status.uid)
+            else:
+                dyn_raffle_sql.del_from_dynraffle_joind_table(
+                    uid=int_user_uid,
+                    orig_dynid=dyn_raffle_status.dyn_id
+                )
+                following_uid = dyn_raffle_status.uid if dyn_raffle_status.feed_limit else 0
+                dyn_raffle_sql.insert_dynraffle_luckydog_table(DynRaffleLuckydog(
+                    uid=dyn_raffle_joined.uid,
+                    dyn_id=dyn_raffle_joined.dyn_id,
+                    orig_dynid=dyn_raffle_joined.orig_dynid,
+                    following_uid=following_uid
+                ))
 
         if dyn_raffle_sql.should_del_from_dynraffle_status_table(dyn_raffle_status.dyn_id):
             dyn_raffle_sql.del_from_dynraffle_status_table(dyn_raffle_status.dyn_id)
             if all_done_future is not None:
                 all_done_future.set_result(True)
-
-
-
-
-
