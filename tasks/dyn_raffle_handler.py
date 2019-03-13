@@ -278,9 +278,8 @@ class DynRaffleHandlerTask:
 
             if dyn_raffle_joined is None:
                 user.info(['未从数据库中查阅到动态抽奖，可能是之前已经删除了'], True)
-                return
 
-            if dyn_raffle_results is None or \
+            elif dyn_raffle_results is None or \
                     int_user_uid not in dyn_raffle_results.prize_list_1st and \
                     int_user_uid not in dyn_raffle_results.prize_list_2nd and \
                     int_user_uid not in dyn_raffle_results.prize_list_3rd:
