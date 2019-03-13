@@ -1,4 +1,5 @@
 import random
+import asyncio
 from operator import itemgetter
 import printer
 from reqs.utils import UtilsReq
@@ -381,9 +382,14 @@ class UtilsTask:
 
     @staticmethod
     async def unfollow(user, uid):
-        json_rsp = await user.req_s(UtilsReq.unfollow_user, user, uid)
-        # TODO:无效返回
-        print('unfollow', json_rsp)
+        while True:
+            await user.req_s(UtilsReq.unfollow_user, user, uid)
+            await asyncio.sleep(1)
+            is_following, _ = await UtilsTask.check_follow(user, uid)
+            if not is_following:
+                user.info([f'用户取关{uid}成功'], True)
+                return True
+            await asyncio.sleep(0.5)
 
     @staticmethod
     async def check_follow(user, uid):
