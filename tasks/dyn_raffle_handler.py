@@ -135,11 +135,11 @@ class DynRaffleHandlerTask:
             return -1, None
         # 目前未发现其他code
         user.warn(f'互动抽奖初步查询 {json_rsp}')
-        return 3, None
+        return -1, None
 
     @staticmethod
     async def fetch_dyn_raffle_status(
-            user, doc_id: int, uid: int, post_time: int, describe: str) -> Optional[DynRaffleStatus]:
+            user, doc_id: int, uid: int, post_time: int, describe: str, handle_status: int) -> Optional[DynRaffleStatus]:
         json_rsp = await user.req_s(DynRaffleHandlerReq.fetch_dyn_raffle, user, doc_id)
         code = json_rsp['code']
         if not code:
@@ -167,6 +167,7 @@ class DynRaffleHandlerTask:
                 lottery_time=lottery_time,
                 at_num=at_num,
                 feed_limit=feed_limit,
+                handle_status=handle_status,
                 prize_cmt_1st=first_prize_cmt,
                 prize_cmt_2nd=second_prize_cmt,
                 prize_cmt_3rd=third_prize_cmt
@@ -217,16 +218,6 @@ class DynRaffleHandlerTask:
             return None
 
     @staticmethod
-    async def check(user, dyn_raffle_status: DynRaffleStatus):
-        if not dyn_raffle_sql.is_raffleid_duplicate(dyn_raffle_status.dyn_id):
-            user.info([f'{dyn_raffle_status.doc_id}的动态抽奖通过重复性过滤'], True)
-            dyn_raffle_sql.insert_dynraffle_status_table(dyn_raffle_status)
-            max_sleeptime = max(min(35, dyn_raffle_status.lottery_time-utils.curr_time() - 10), 0)
-            return (1, (0, max_sleeptime), -2, dyn_raffle_status),
-        user.info([f'{dyn_raffle_status.doc_id}的动态抽奖未通过重复性过滤'], True)
-        return None
-
-    @staticmethod
     async def follow_raffle_organizer(user, uid):
         is_following, group_ids = await UtilsTask.check_follow(user, uid)
         if is_following:
@@ -247,7 +238,19 @@ class DynRaffleHandlerTask:
             await UtilsTask.unfollow(user, uid)
 
     @staticmethod
+    async def check(user, doc_id: int):
+        # 确认dyn存在性
+        json_rsp = await user.req_s(DynRaffleHandlerReq.fetch_dyn_raffle, user, doc_id)
+        code = json_rsp['code']
+        if not code:
+            return True
+        user.info([f'{doc_id}的动态抽奖不存在'], True)
+        return False
+
+    @staticmethod
     async def join(user, dyn_raffle_status: DynRaffleStatus):
+        if dyn_raffle_status.lottery_time - utils.curr_time() < 15:
+            user.info([f'动态{dyn_raffle_status.dyn_id}马上或已经开奖，放弃参与'], True)
         async with user.repost_del_lock:
             if dyn_raffle_status.feed_limit:  # 关注
                 await DynRaffleHandlerTask.follow_raffle_organizer(user, dyn_raffle_status.uid)
@@ -270,7 +273,7 @@ class DynRaffleHandlerTask:
             return
 
     @staticmethod
-    async def notice(user, dyn_raffle_status: DynRaffleStatus, dyn_raffle_results: Optional[DynRaffleResults], all_done_future=None):
+    async def notice(user, dyn_raffle_status: DynRaffleStatus, dyn_raffle_results: Optional[DynRaffleResults]):
         int_user_uid = int(user.dict_bili['uid'])
         async with user.repost_del_lock:
             dyn_raffle_joined = dyn_raffle_sql.select_by_primary_key_from_dynraffle_joined_table(
@@ -306,8 +309,3 @@ class DynRaffleHandlerTask:
                     orig_dynid=dyn_raffle_joined.orig_dynid,
                     following_uid=following_uid
                 ))
-
-        if dyn_raffle_sql.should_del_from_dynraffle_status_table(dyn_raffle_status.dyn_id):
-            dyn_raffle_sql.del_from_dynraffle_status_table(dyn_raffle_status.dyn_id)
-            if all_done_future is not None:
-                all_done_future.set_result(True)

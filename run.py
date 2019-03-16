@@ -90,13 +90,10 @@ notifier.exec_task(-2, JudgeCaseTask, 0, delay_range=(0, 5))
 notifier.exec_task(-2, BiliMainTask, 0, delay_range=(0, 5))
 
 
-dyn_raffle_moitor = DynRaffleMonitor()
-
 other_tasks = [
     raffle_handler.run(),
-    # SubstanceRaffleMonitor().run()
-    dyn_raffle_moitor.run(),
-    dyn_raffle_moitor.check_result()
+    # SubstanceRaffleMonitor().run()，
+    # DynRaffleMonitor(should_join_immediately=True).run(),
     ]
 
 loop.run_until_complete(asyncio.wait(other_tasks))

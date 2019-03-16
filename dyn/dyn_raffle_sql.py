@@ -44,6 +44,7 @@ class DynRaffleStatusTable:
 
             'at_num INTEGER NOT NULL,'
             'feed_limit INTEGER NOT NULL,'  # 0/1 表示bool型
+            'handle_status INTEGER NOT NULL,'
             
             'prize_cmt_1st TEXT NOT NULL,'
             'prize_cmt_2nd TEXT,'
@@ -60,7 +61,7 @@ class DynRaffleStatusTable:
     def insert_element(self, dyn_raffle_status: DynRaffleStatus):
         # ?,?,?这种可以对应type，否则很难折腾
         with self.conn:
-            self.conn.execute('INSERT INTO dynraffle_status VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            self.conn.execute('INSERT INTO dynraffle_status VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                               dyn_raffle_status.as_sql_values())
 
     def select_all(self):
@@ -80,9 +81,25 @@ class DynRaffleStatusTable:
         with self.conn:
             self.conn.execute('DELETE FROM dynraffle_status WHERE dyn_id=?', (str(dyn_id),))
 
-    def select_bytime(self, curr_time):
+    def select(self, handle_status, lottery_time_l, lottery_time_r):
+        if handle_status is None:
+            return []
+
         results = []
-        for row in self.conn.execute(f'SELECT * FROM dynraffle_status WHERE lottery_time < ?', (int(curr_time),)):
+        if lottery_time_l is None and lottery_time_r is not None:
+            sql = 'SELECT * FROM dynraffle_status WHERE lottery_time <= ? AND handle_status = ?'
+            parameters = (int(lottery_time_r), int(handle_status))
+        elif lottery_time_l is not None and lottery_time_r is None:
+            sql = 'SELECT * FROM dynraffle_status WHERE lottery_time >= ? AND handle_status = ?'
+            parameters = (int(lottery_time_l), int(handle_status))
+        elif lottery_time_l is not None and lottery_time_r is not None:
+            sql = 'SELECT * FROM dynraffle_status WHERE (lottery_time BETWEEN ? AND ?) AND (handle_status = ?)'
+            parameters = (int(lottery_time_l), int(lottery_time_r), int(handle_status))
+        else:
+            sql = 'SELECT * FROM dynraffle_status WHERE handle_status = ?'
+            parameters = (int(handle_status),)
+
+        for row in self.conn.execute(sql, parameters):
             results.append(self.as_bili_data(row))
         return results
 
@@ -298,8 +315,19 @@ def should_del_from_dynraffle_status_table(orig_dynid):
     return not cursor.fetchone()
 
 
-def select_bytime(curr_time):
-    return dynraffle_status_table.select_bytime(curr_time)
+def can_rafflestatus_be_handled(dyn_id):
+    cursor = conn.execute(
+        'SELECT 1 FROM dynraffle_status WHERE dyn_id = ? AND handle_status = ?', (str(dyn_id), 0))
+    return bool(cursor.fetchone())
+
+
+def set_rafflestatus_handle_status(handle_status: int, dyn_id):
+    with conn:
+        conn.execute('UPDATE dynraffle_status SET handle_status = ? WHERE dyn_id = ?', (handle_status, str(dyn_id)))
+
+
+def select_rafflestatus(handle_status, lottery_time_l=None, lottery_time_r=None):
+    return dynraffle_status_table.select(handle_status, lottery_time_l, lottery_time_r)
 
 
 # 从三个表里查最新数据

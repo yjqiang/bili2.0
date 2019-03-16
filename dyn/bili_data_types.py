@@ -16,6 +16,7 @@ class DynRaffleStatus:
     # 参与抽奖使用
     at_num = attr.ib(converter=int)
     feed_limit = attr.ib(converter=bool)
+    handle_status = attr.ib(validator=attr.validators.in_([-1, 0, 1]))  # -1 表示未参与，0表示正在参与， 1表示已经参与
 
     # 一些其他信息
     prize_cmt_1st = attr.ib(validator=attr.validators.instance_of(str))  # 奖品描述这里必须str，下同，且不提供type转换
@@ -33,6 +34,7 @@ class DynRaffleStatus:
 
         at_num = self.at_num
         feed_limit = int(self.feed_limit)
+        handle_status = self.handle_status
 
         prize_cmt_1st = self.prize_cmt_1st[:20]
         prize_cmt_2nd = self.prize_cmt_2nd[:20]
@@ -40,7 +42,7 @@ class DynRaffleStatus:
 
         return \
             dyn_id, doc_id, describe, uid, post_time, lottery_time,\
-            at_num, feed_limit, prize_cmt_1st, prize_cmt_2nd, prize_cmt_3rd
+            at_num, feed_limit, handle_status, prize_cmt_1st, prize_cmt_2nd, prize_cmt_3rd
 
 
 @attr.s(frozen=True)
