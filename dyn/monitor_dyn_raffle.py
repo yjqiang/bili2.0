@@ -48,7 +48,7 @@ class DynRaffleMonitor:
 
         printer.info([f'{doc_id}的动态抽奖通过过滤与验证，正式处理'], True)
 
-        if dyn_raffle_status.handle_status == -1:
+        if not self.should_join_immediately:
             printer.info([f'{dyn_raffle_status.doc_id}的动态抽奖暂不参与，仅记录数据库中等候轮询'], True)
             return
         printer.info([f'{doc_id}的动态抽奖正在参与'], True)
@@ -57,6 +57,7 @@ class DynRaffleMonitor:
         dyn_raffle_sql.set_rafflestatus_handle_status(1, dyn_raffle_status.dyn_id)
         printer.info([f'{doc_id}的动态抽奖参与完毕'], True)
 
+    # 暴力docid，查找动态抽奖
     async def check_raffle(self):
         if self.init_docid is None:
             init_docid = dyn_raffle_sql.init_docid()  # 1.数据库查询
@@ -92,6 +93,7 @@ class DynRaffleMonitor:
             if not i % 50:
                 dyn_raffle_sql.insert_or_replace_other_able('init_docid', curr_docid)
 
+    # 查看过期的抽奖
     async def check_result(self):
         while True:
             results = dyn_raffle_sql.select_rafflestatus(1, None, utils.curr_time() - 900)  # 延迟15min处理抽奖
@@ -111,7 +113,7 @@ class DynRaffleMonitor:
 
             await asyncio.sleep(120)
 
-    # TODO:
+    # 如果选择should_join_immediately为false，那么就需要这个函数轮询查找即将到期的抽奖，参与
     async def check_handle(self):
         while True:
             curr_time = utils.curr_time()
