@@ -29,7 +29,7 @@ from tasks.main_daily_job import (
     
 )
 from dyn.monitor_dyn_raffle import DynRaffleMonitor
-from monitor_substance_raffle import SubstanceRaffleMonitor
+from substance.monitor_substance_raffle import SubstanceRaffleMonitor
 
 root_path = path.dirname(path.realpath(__file__))
 conf_loader.set_path(root_path)
@@ -92,7 +92,7 @@ notifier.exec_task(-2, BiliMainTask, 0, delay_range=(0, 5))
 
 other_tasks = [
     raffle_handler.run(),
-    # SubstanceRaffleMonitor().run()，
+    SubstanceRaffleMonitor().run(),
     # DynRaffleMonitor(should_join_immediately=True).run(),
     ]
 
