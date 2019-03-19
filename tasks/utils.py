@@ -164,23 +164,23 @@ class UtilsTask:
         # 打印队列
         print_queue = []
         print_queue.append('查询勋章信息')
-        medal_name = utils.adjust_for_chinese('勋章名字', 7)
-        uname = utils.adjust_for_chinese('用户名字', 12)
+        medal_name = utils.hwid2fwid('勋章名字', 7)
+        uname = utils.hwid2fwid('用户名字', 12)
         intimacy = f'{"INTIMACY":^19}'
         today_intimacy = f'{"TODAY_INTIMACY":^14}'
         rank = f'{"RANK":^9}'
-        worn_status = utils.adjust_for_chinese('佩戴状态', 6)
+        worn_status = utils.hwid2fwid('佩戴状态', 6)
         room_id = f'{"ROOMID":^9}'
         print_queue.append(f'{medal_name} {uname} {intimacy} {today_intimacy} {rank} {worn_status} {room_id}')
         if not json_rsp['code']:
             for medal in json_rsp['data']['fansMedalList']:
-                medal_name = utils.adjust_for_chinese(f'{medal["medal_name"]}|{medal["level"]}', 7)
-                uname = utils.adjust_for_chinese(medal['anchorInfo']['uname'], 12)
+                medal_name = utils.hwid2fwid(f'{medal["medal_name"]}|{medal["level"]}', 7)
+                uname = utils.hwid2fwid(medal['anchorInfo']['uname'], 12)
                 intimacy = f'{medal["intimacy"]:>9}/{medal["next_intimacy"]:<9}'
                 today_intimacy = f'{medal["todayFeed"]:>6}/{medal["dayLimit"]:<7}'
                 rank = f'{medal["rank"]:^9}'
                 org_worn_status = '正在佩戴' if medal['status'] else '目前待机'
-                worn_status = utils.adjust_for_chinese(org_worn_status, 6)
+                worn_status = utils.hwid2fwid(org_worn_status, 6)
                 room_id = f'{medal.get("roomid", "N/A"):^9}'
                 print_queue.append(f'{medal_name} {uname} {intimacy} {today_intimacy} {rank} {worn_status} {room_id}')
             user.info(print_queue, True)
