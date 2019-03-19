@@ -1,24 +1,22 @@
-import json
 import asyncio
 import aiohttp
 import utils
 import printer
 import notifier
 import bili_statistics
-from danmu import BaseDanmu
+from .base_danmu import BaseDanmu
 from tasks.tv_raffle_handler import TvRaffleHandlerTask
 from tasks.guard_raffle_handler import GuardRaffleHandlerTask
 from tasks.storm_raffle_handler import StormRaffleHandlerTask
 from tasks.utils import UtilsTask
-import raffle_handler
+from . import raffle_handler
 
 
 class PrinterDanmu(BaseDanmu):
-    def handle_danmu(self, body):
-        dic = json.loads(body.decode('utf-8'))
-        cmd = dic['cmd']
+    def handle_danmu(self, dict_danmu):
+        cmd = dict_danmu['cmd']
         if cmd == 'DANMU_MSG':
-            printer.print_danmu(dic)
+            printer.print_danmu(dict_danmu)
         return True
         
 
@@ -34,9 +32,8 @@ class RaffleDanmu(BaseDanmu):
         except asyncio.CancelledError:
             pass
             
-    def handle_danmu(self, body):
-        dic = json.loads(body.decode('utf-8'))
-        cmd = dic['cmd']
+    def handle_danmu(self, dict_danmu):
+        cmd = dict_danmu['cmd']
         
         if cmd == 'PREPARING':
             printer.info([f'{self._area_id}号弹幕监控房间下播({self._room_id})'], True)
@@ -49,10 +46,10 @@ class RaffleDanmu(BaseDanmu):
             # 4 欢迎 <%总督 user_name%> 登船
             # 5 恭喜 <%user_name%> 获得大奖 <%23333x银瓜子%>, 感谢 <%user_name%> 的赠送
             # 6 <%user_name%> 在直播间 <%529%> 使用了 <%20%> 倍节奏风暴，大家快去跟风领取奖励吧！(只报20的)
-            msg_type = dic['msg_type']
-            msg_common = dic['msg_common']
-            real_roomid = dic['real_roomid']
-            msg_common = dic['msg_common'].replace(' ', '')
+            msg_type = dict_danmu['msg_type']
+            msg_common = dict_danmu['msg_common']
+            real_roomid = dict_danmu['real_roomid']
+            msg_common = dict_danmu['msg_common'].replace(' ', '')
             msg_common = msg_common.replace('”', '')
             msg_common = msg_common.replace('“', '')
             if msg_type == 2 or msg_type == 8:
@@ -84,7 +81,7 @@ class RaffleDanmu(BaseDanmu):
         return True
         
     async def run_forever(self):
-        self._waiting = asyncio.Future()
+        self._waiting = self._loop.create_future()
         time_now = 0
         while not self._closed:
             if utils.curr_time() - time_now <= 3:
@@ -163,12 +160,11 @@ class YjMonitorDanmu(BaseDanmu):
             user_danmus[msg_id] = id
             return None
         
-    def handle_danmu(self, body):
-        dic = json.loads(body.decode('utf-8'))
-        cmd = dic['cmd']
+    def handle_danmu(self, dict_danmu):
+        cmd = dict_danmu['cmd']
         # print(cmd)
         if cmd == 'DANMU_MSG':
-            info = dic['info']
+            info = dict_danmu['info']
             ori = info[1]
             uid = info[2][0]
             # print('测试', self.__read, ori)
@@ -203,6 +199,7 @@ async def run_danmu_monitor(
     session = aiohttp.ClientSession()
     
     tasks = []
+    tasks.append(asyncio.ensure_future(raffle_handler.run()))
     for area_id in raffle_danmu_areaids:
         task = asyncio.ensure_future(
             RaffleDanmu(0, area_id, session).run_forever())

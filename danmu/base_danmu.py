@@ -1,6 +1,7 @@
 import asyncio
 import struct
 import sys
+import json
 import aiohttp
 import utils
 import printer
@@ -9,7 +10,7 @@ import printer
 class BaseDanmu:
     structer = struct.Struct('!I2H2I')
 
-    def __init__(self, room_id, area_id, session=None):
+    def __init__(self, room_id, area_id, session=None, loop=None):
         if session is None:
             self._is_sharing_session = False
             self._session = aiohttp.ClientSession()
@@ -18,6 +19,11 @@ class BaseDanmu:
             self._session = session
         self._ws = None
         
+        if loop is not None:
+            self._loop = loop
+        else:
+            self._loop = asyncio.get_event_loop()
+        
         self._area_id = area_id
         self._room_id = room_id
         # 建立连接过程中难以处理重设置房间或断线等问题
@@ -25,17 +31,18 @@ class BaseDanmu:
         self._task_main = None
         self._waiting = None
         self._closed = False
-        self._bytes_heartbeat = self._wrap_str(opt=2, str_body='')
+        self._bytes_heartbeat = self._encapsulate(opt=2, str_body='')
     
     @property
     def room_id(self):
         return self._room_id
         
-    def _wrap_str(self, opt, str_body, len_header=16, ver=1, seq=1):
-        bytes_body = str_body.encode('utf-8')
-        len_data = len(bytes_body) + len_header
+    # 命名取自网络协议中的数据封装
+    def _encapsulate(self, opt, str_body, len_header=16, ver=1, seq=1):
+        body = str_body.encode('utf-8')
+        len_data = len(body) + len_header
         header = self.structer.pack(len_data, len_header, ver, opt, seq)
-        return header + bytes_body
+        return header + body
 
     async def _send_bytes(self, bytes_data):
         try:
@@ -77,7 +84,7 @@ class BaseDanmu:
         printer.info([f'{self._area_id}号弹幕监控已连接b站服务器'], True)
         
         str_enter = f'{{"uid":0,"roomid":{self._room_id},"protover":1,"platform":"web","clientver":"1.3.3"}}'
-        bytes_enter = self._wrap_str(opt=7, str_body=str_enter)
+        bytes_enter = self._encapsulate(opt=7, str_body=str_enter)
         return await self._send_bytes(bytes_enter)
         
     # 看了一下api，这玩意儿应该除了cancel其余都是暴力处理的，不会raise
@@ -117,14 +124,15 @@ class BaseDanmu:
                     pass
                 # cmd
                 elif opt == 5:
-                    if not self.handle_danmu(body):
+                    if not self.handle_danmu(json.loads(body.decode('utf-8'))):
                         return
                 # 握手确认
                 elif opt == 8:
                     printer.info(
                         [f'{self._area_id}号弹幕监控进入房间（{self._room_id}）'], True)
                 else:
-                    print(datas[data_l:next_data_l])
+                    printer.warn(f'弹幕数据错误:{datas}')
+                    return
 
                 data_l = next_data_l
                 
@@ -132,7 +140,7 @@ class BaseDanmu:
         return True
         
     async def run_forever(self):
-        self._waiting = asyncio.Future()
+        self._waiting = self._loop.create_future()
         time_now = 0
         while not self._closed:
             if utils.curr_time() - time_now <= 3:

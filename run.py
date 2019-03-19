@@ -3,10 +3,8 @@ import signal
 import threading
 import asyncio
 from os import path
-import monitor_danmu
 import conf_loader
 import notifier
-import raffle_handler
 import bili_statistics
 from bili_console import Biliconsole
 import printer
@@ -28,6 +26,7 @@ from tasks.main_daily_job import (
     BiliMainTask
     
 )
+from danmu import monitor_danmu_raffle
 from dyn.monitor_dyn_raffle import DynRaffleMonitor
 from substance.monitor_substance_raffle import SubstanceRaffleMonitor
 
@@ -59,7 +58,7 @@ default_roomid = dict_ctrl['other_control']['default_monitor_roomid']
 
 async def get_printer_danmu():
     future = asyncio.Future()
-    asyncio.ensure_future(monitor_danmu.run_danmu_monitor(
+    asyncio.ensure_future(monitor_danmu_raffle.run_danmu_monitor(
             raffle_danmu_areaids=area_ids,
             yjmonitor_danmu_roomid=yj_danmu_roomid,
             printer_danmu_roomid=default_roomid,
@@ -90,13 +89,13 @@ notifier.exec_task(-2, JudgeCaseTask, 0, delay_range=(0, 5))
 notifier.exec_task(-2, BiliMainTask, 0, delay_range=(0, 5))
 
 
-other_tasks = [
-    raffle_handler.run(),
+other_tasks = [  
     SubstanceRaffleMonitor().run(),
     # DynRaffleMonitor(should_join_immediately=True).run(),
     ]
-
-loop.run_until_complete(asyncio.wait(other_tasks))
+if other_tasks:
+    loop.run_until_complete(asyncio.wait(other_tasks))
+loop.run_forever()
 if console_thread is not None:
     console_thread.join()
 
