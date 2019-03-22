@@ -104,7 +104,7 @@ class DynRaffleHandlerTask:
         return False
 
     @staticmethod
-    async def is_dyn_raffle(user, doc_id):
+    async def check_and_fetch_raffle(user, doc_id, handle_status=-1)->tuple:
         json_rsp = await user.req_s(DynRaffleHandlerReq.is_dyn_raffle, user, doc_id)
         code = json_rsp['code']
         print('_____________________________________')
@@ -126,24 +126,23 @@ class DynRaffleHandlerTask:
                         uid = data['user']['uid']
                         post_time = int(item['upload_timestamp'])
                         describe = item['description']
-                        return 0, (uid, post_time, describe)
                     else:
-                        user.warn(f'互动抽奖初步查询 {json_rsp}')
-                        return 2, None
-            return 1, None
+                        return 1, None
+                else:
+                    return 1, None
+            else:
+                return 1, None
         elif code == 110001:
+            return 404, None
+        else:
+            # 目前未发现其他code
+            user.warn(f'互动抽奖初步查询 {json_rsp}')
             return -1, None
-        # 目前未发现其他code
-        user.warn(f'互动抽奖初步查询 {json_rsp}')
-        return -1, None
 
-    @staticmethod
-    async def fetch_dyn_raffle_status(
-            user, doc_id: int, uid: int, post_time: int, describe: str, handle_status: int) -> Optional[DynRaffleStatus]:
         json_rsp = await user.req_s(DynRaffleHandlerReq.fetch_dyn_raffle, user, doc_id)
         code = json_rsp['code']
         if not code:
-            print('check raffle_status', json_rsp)
+            # print('check raffle_status', json_rsp)
             data = json_rsp['data']
             dyn_id = data['business_id']
             # 开奖时间
@@ -173,10 +172,13 @@ class DynRaffleHandlerTask:
                 prize_cmt_3rd=third_prize_cmt
             )
             print('获取到的抽奖信息为', dyn_raffle_status)
-            return dyn_raffle_status
+            return 0, dyn_raffle_status
         elif code == -9999:
             print(f'抽奖动态{doc_id}已经删除')
-            return None
+            return 404, None
+        user.warn(f'互动抽奖初步查询 {json_rsp}')
+        return -1, None
+
 
     @staticmethod
     async def fetch_dyn_raffle_results(

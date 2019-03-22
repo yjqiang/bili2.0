@@ -19,10 +19,8 @@ class DynRaffleMonitor:
         self._init_handle_status = -1 if not self.should_join_immediately else 0
 
     # 获取dyn_raffle抽奖更多信息并且进行过滤
-    async def dig_and_filter(self, doc_id: int, uid: int, post_time: int, describe: str):
-        dyn_raffle_status: DynRaffleStatus = await notifier.exec_func(
-            -1, DynRaffleHandlerTask.fetch_dyn_raffle_status,
-            doc_id, uid, post_time, describe, self._init_handle_status)
+    async def dig_and_filter(self, dyn_raffle_status: DynRaffleStatus):
+        doc_id = dyn_raffle_status.doc_id
         if dyn_raffle_status.lottery_time <= utils.curr_time() + 180:
             printer.info([f'{doc_id}的动态抽奖已经开奖或马上开奖，不再参与'], True)
             return
@@ -70,14 +68,16 @@ class DynRaffleMonitor:
         curr_docid = self.init_docid
         i = 0
         while True:
-            code, data = await notifier.exec_func(-1, DynRaffleHandlerTask.is_dyn_raffle, curr_docid)
+            code, raffle = await notifier.exec_func(
+                -1, DynRaffleHandlerTask.check_and_fetch_raffle, curr_docid, self._init_handle_status)
             await asyncio.sleep(0.4)
-            if code == -1:
+            if code == 404:
                 print('可能不存在或者到达定点')
                 for tmp_docid in range(curr_docid + 1, curr_docid + 11):
-                    code, data = await notifier.exec_func(-1, DynRaffleHandlerTask.is_dyn_raffle, tmp_docid)
+                    code, data = await notifier.exec_func(
+                        -1, DynRaffleHandlerTask.check_and_fetch_raffle, tmp_docid, self._init_handle_status)
                     await asyncio.sleep(0.4)
-                    if code != -1:
+                    if code != 404:
                         curr_docid = tmp_docid
                         break
                 else:
@@ -85,8 +85,8 @@ class DynRaffleMonitor:
                     await asyncio.sleep(30)
                     continue
 
-            if code == 0:
-                await self.dig_and_filter(curr_docid, *data)
+            if not code:
+                await self.dig_and_filter(raffle)
                 await asyncio.sleep(10)
             curr_docid += 1
             i += 1
