@@ -40,5 +40,6 @@ class ReqCtrl:
                 CtrlElem(code=-1),  # 未开始抽奖
                 CtrlElem(code=-400),  # 不存在/已经过期
                 CtrlElem(code=-3),  # 已抽过
+                CtrlElem(code=400, others=[In('msg', '拒绝')])  # 小黑屋
             ]
         ))
