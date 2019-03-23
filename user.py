@@ -3,6 +3,7 @@ import asyncio
 import hashlib
 import printer
 import conf_loader
+import exceptions
 from web_session import WebSession
 import bili_statistics
 from user_status import UserStatus
@@ -27,6 +28,7 @@ class User:
         self.list_delay = []
         self.repost_del_lock = asyncio.Lock()  # 在follow与unfollow过程中必须保证安全(repost和del整个过程加锁)
         self.dyn_lottery_friends = dyn_lottery_friends  # list (uid, name)
+        self.storm_lock = asyncio.Semaphore(1)  # 用于控制同时进行的风暴数目(注意是单个用户的)
         
     def update_login_data(self, login_data):
         for i, value in login_data.items():
@@ -80,35 +82,30 @@ class User:
     # 保证在线
     async def req_s(self, func, *args):
         while True:
-            # print('网络请求', func, args)
-            rsp = await func(*args)
-            # print('请求结果', func, rsp)
-            # if random.randint(0, 7) in (3, 4) or rsp == 3:
-            #     rsp = 3
-            is_online = self.status.check_log_status()
-            if not is_online:
-                future = asyncio.Future()
-                self.list_delay.append(future)
-                await future
-            # 未登陆且未处理
-            if rsp == 3 and is_online:
-                self.info([f'判定出现了登陆失败，且未处理'], True)
-                self.status.logout()
-                # login
-                await LoginTask.handle_login_status(self)
-                # await asyncio.sleep(10)
-                print(self.list_delay)
-                self.info([f'已经登陆了'], True)
-                self.status.login()
-                for future in self.list_delay:
-                    future.set_result(True)
-                del self.list_delay[:]
-            # 未登陆，但已处理
-            elif not is_online:
-                self.info([f'判定出现了登陆失败，已经处理'], True)
-            else:
-                return rsp
-        
+            try:
+                rsp = await func(*args)
+                return rsp  # 如果正常，不用管是否登陆了(不少api不需要cookie)，直接return
+            except exceptions.LogoutError:
+                is_online_status = self.status.check_log_status()
+                # 未登陆且未处理
+                if is_online_status:
+                    self.info([f'判定出现了登陆失败，且未处理'], True)
+                    self.status.logout()
+                    # login
+                    await LoginTask.handle_login_status(self)
+                    print(self.list_delay)
+                    self.info([f'已经登陆了'], True)
+                    self.status.login()
+                    for future in self.list_delay:
+                        future.set_result(True)
+                    del self.list_delay[:]
+                # 未登陆，但已处理
+                else:
+                    future = asyncio.Future()
+                    self.list_delay.append(future)
+                    await future
+                    self.info([f'判定出现了登陆失败，已经处理'], True)
+
     async def accept(self, func, *args):
         code, sleeptime = self.status.check_status(func)
         if not code:
