@@ -139,7 +139,7 @@ class SubstanceRaffleMonitor:
                     substance_raffle_status)
                 print(substance_raffle_status, substance_raffle_results)
 
-                await notifier.exec_task_awaitable(-1, SubstanceRaffleHandlerTask, 2, substance_raffle_status, substance_raffle_results, delay_range=(0, 30))
+                await notifier.exec_task_awaitable(-2, SubstanceRaffleHandlerTask, 2, substance_raffle_status, substance_raffle_results, delay_range=(0, 30))
                 if substance_raffle_results is not None:
                     substance_raffle_sql.insert_substanceraffle_results_table(substance_raffle_results)
                 substance_raffle_sql.del_from_substanceraffle_status_table(substance_raffle_status.aid, substance_raffle_status.number)
