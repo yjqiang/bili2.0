@@ -162,7 +162,7 @@ class SubstanceRaffleMonitor:
                     printer.warn(f'{substance_raffle_status}消失了。。。。。')
                     continue
                 printer.info([f'{aid}({number})的实物抽奖正在参与'], True)
-                await notifier.exec_task_awaitable(-1, SubstanceRaffleHandlerTask, 1, substance_raffle_status)
+                await notifier.exec_task_awaitable(-2, SubstanceRaffleHandlerTask, 1, substance_raffle_status)
                 substance_raffle_sql.set_rafflestatus_handle_status(1, aid, number)
                 printer.info([f'{aid}({number})的实物抽奖参与完毕'], True)
             if not results:

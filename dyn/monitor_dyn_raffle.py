@@ -50,7 +50,7 @@ class DynRaffleMonitor:
             printer.info([f'{dyn_raffle_status.doc_id}的动态抽奖暂不参与，仅记录数据库中等候轮询'], True)
             return
         printer.info([f'{doc_id}的动态抽奖正在参与'], True)
-        await notifier.exec_task_awaitable(-1, DynRaffleHandlerTask, 1, dyn_raffle_status,
+        await notifier.exec_task_awaitable(-2, DynRaffleHandlerTask, 1, dyn_raffle_status,
                                            delay_range=(0, 30))
         dyn_raffle_sql.set_rafflestatus_handle_status(1, dyn_raffle_status.dyn_id)
         printer.info([f'{doc_id}的动态抽奖参与完毕'], True)
@@ -106,7 +106,7 @@ class DynRaffleMonitor:
                     dyn_raffle_status)
                 print(dyn_raffle_status, dyn_raffle_results)
 
-                await notifier.exec_task_awaitable(-1, DynRaffleHandlerTask, 2, dyn_raffle_status, dyn_raffle_results, delay_range=(0, 30))
+                await notifier.exec_task_awaitable(-2, DynRaffleHandlerTask, 2, dyn_raffle_status, dyn_raffle_results, delay_range=(0, 30))
                 if dyn_raffle_results is not None:
                     dyn_raffle_sql.insert_dynraffle_results_table(dyn_raffle_results)
                 dyn_raffle_sql.del_from_dynraffle_status_table(dyn_raffle_status.dyn_id)
@@ -127,7 +127,7 @@ class DynRaffleMonitor:
                     dyn_raffle_sql.del_from_dynraffle_status_table(dyn_raffle_status.dyn_id)
                     continue
                 printer.info([f'{dyn_raffle_status.doc_id}的动态抽奖正在参与'], True)
-                await notifier.exec_task_awaitable(-1, DynRaffleHandlerTask, 1, dyn_raffle_status)
+                await notifier.exec_task_awaitable(-2, DynRaffleHandlerTask, 1, dyn_raffle_status)
                 dyn_raffle_sql.set_rafflestatus_handle_status(1, dyn_raffle_status.dyn_id)
                 printer.info([f'{dyn_raffle_status.doc_id}的动态抽奖参与完毕'], True)
             if not results:
