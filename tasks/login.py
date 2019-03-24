@@ -16,7 +16,8 @@ class LoginTask:
                 if not (await LoginTask.is_token_usable(user)):
                     return await LoginTask.login(user)
         return True
-        
+
+    @staticmethod
     async def is_token_usable(user):
         json_rsp = await LoginReq.is_token_usable(user)
         if not json_rsp['code'] and 'mid' in json_rsp['data']:
@@ -24,7 +25,8 @@ class LoginTask:
             return True
         user.info(['token可能过期'], True)
         return False
-                
+
+    @staticmethod
     async def refresh_token(user):
         json_rsp = await LoginReq.refresh_token(user)
         if not json_rsp['code'] and 'mid' in json_rsp['data']['token_info']:
@@ -44,7 +46,8 @@ class LoginTask:
             user.update_login_data(login_data)
             return True
         return False
-        
+
+    @staticmethod
     async def login(user):
         name = user.name
         password = user.password
@@ -57,9 +60,11 @@ class LoginTask:
         url_password = parse.quote_plus(hashed_password)
         url_name = parse.quote_plus(name)
         
-        json_rsp = await LoginReq.normal_login(user, url_name, url_password)
+        json_rsp = await LoginReq.login(user, url_name, url_password)
         while json_rsp['code'] == -105:
-            json_rsp = await LoginReq.captcha_login(user, url_name, url_password)
+            binary_rsp = await LoginReq.fetch_capcha(user)
+            captcha = LoginReq.cnn_captcha(binary_rsp)
+            json_rsp = await LoginReq.login(user, url_name, url_password, captcha)
                 
         if not json_rsp['code'] and not json_rsp['data']['status']:
             data = json_rsp['data']

@@ -22,20 +22,13 @@ class LoginReq:
         return json_rsp
 
     @staticmethod
-    async def normal_login(user, url_name, url_password):
-        url = "https://passport.bilibili.com/api/v2/oauth2/login"
-        temp_params = f'appkey={user.dict_bili["appkey"]}&password={url_password}&username={url_name}'
-        sign = user.calc_sign(temp_params)
-        payload = f'appkey={user.dict_bili["appkey"]}&password={url_password}&username={url_name}&sign={sign}'
-        json_rsp = await user.login_session.request_json('POST', url, params=payload, is_login=True)
-        return json_rsp
-
-    @staticmethod
-    async def captcha_login(user, url_name, url_password):
+    async def fetch_capcha(user):
         url = "https://passport.bilibili.com/captcha"
         binary_rsp = await user.login_session.request_binary('GET', url)
+        return binary_rsp
 
-        captcha = LoginReq.cnn_captcha(binary_rsp)
+    @staticmethod
+    async def login(user, url_name, url_password, captcha=''):
         temp_params = f'actionKey={user.dict_bili["actionKey"]}&appkey={user.dict_bili["appkey"]}&build={user.dict_bili["build"]}&captcha={captcha}&device={user.dict_bili["device"]}&mobi_app={user.dict_bili["mobi_app"]}&password={url_password}&platform={user.dict_bili["platform"]}&username={url_name}'
         sign = user.calc_sign(temp_params)
         payload = f'{temp_params}&sign={sign}'
