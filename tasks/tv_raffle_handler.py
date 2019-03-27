@@ -26,15 +26,36 @@ class TvRaffleHandlerTask:
         for j in checklen:
             raffle_id = j['raffleId']
             raffle_type = j['type']
-            max_wait = j['time'] - 15
+            max_wait = j['time'] - 10
             # 处理一些重复
             if not bili_statistics.is_raffleid_duplicate(raffle_id):
                 print('本次获取到的抽奖id为', raffle_id)
                 next_step_setting = (1, (0, max_wait), -2, real_roomid, raffle_id, raffle_type)
+                # next_step_setting = (1, (j['time_wait'], max_wait), -2, real_roomid, raffle_id, raffle_type)
                 next_step_settings.append(next_step_setting)
                 bili_statistics.add2raffle_ids(raffle_id)
                 
         return next_step_settings
+        
+    @staticmethod
+    async def join_v4(user, real_roomid, raffleid, raffle_type):
+        # print('参与', raffleid)
+        # await UtilsTask.enter_room(user, real_roomid)
+        json_rsp = await user.req_s(TvRaffleHandlerReq.join_v4, user, real_roomid, raffleid, raffle_type)
+        bili_statistics.add2joined_raffles('小电视(合计)', user.id)
+        user.info([f'参与了房间{real_roomid:^9}的小电视抽奖'], True)
+        code = json_rsp['code']
+        if not code:
+            data = json_rsp['data']
+            gift_name = data['gift_name']
+            gift_num = data['gift_num']
+            user.info([f'# 房间{real_roomid:^9}小电视抽奖结果: {gift_name}X{gift_num}'])
+            bili_statistics.add2results(gift_name, user.id, gift_num)
+        elif code == -403 and '拒绝' in json_rsp['msg']:
+            user.fall_in_jail()
+        else:
+            user.warn(f'TV {json_rsp}')
+        return None
                         
     @staticmethod
     async def join(user, real_roomid, raffleid, raffle_type):
