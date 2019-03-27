@@ -74,7 +74,7 @@ class DynRaffleMonitor:
             if code == 404:
                 print('可能不存在或者到达定点')
                 for tmp_docid in range(curr_docid + 1, curr_docid + 11):
-                    code, data = await notifier.exec_func(
+                    code, raffle = await notifier.exec_func(
                         -1, DynRaffleHandlerTask.check_and_fetch_raffle, tmp_docid, self._init_handle_status)
                     await asyncio.sleep(0.4)
                     if code != 404:
