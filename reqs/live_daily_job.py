@@ -1,5 +1,6 @@
 from bili_global import API_LIVE
 from .utils import UtilsReq
+from json_rsp_ctrl import Ctrl, BaseCtrl, CtrlElem, Equal, In, JsonRspType
 
 
 class HeartBeatReq:
@@ -95,12 +96,9 @@ class SendGiftReq:
         
     @staticmethod
     async def fetch_wearing_medal(user):
+        # 这里取巧，抓包是post，觉得有点2，测试一下get也行，而且参数少
         url = f'{API_LIVE}/live_user/v1/UserInfo/get_weared_medal'
-        data = {
-            'uid': user.dict_bili['uid'],
-            'csrf_token': ''
-        }
-        json_rsp = await user.bililive_session.request_json('POST', url, data=data, headers=user.dict_bili['pcheaders'])
+        json_rsp = await user.bililive_session.request_json('GET', url, headers=user.dict_bili['pcheaders'], ctrl=ReqCtrl.fetch_wearing_medal_ctrl)
         return json_rsp
     
     
@@ -115,4 +113,11 @@ class ExchangeSilverCoinReq:
         json_rsp = await user.bililive_session.request_json('POST', url, headers=user.dict_bili['pcheaders'], data=data)
         return json_rsp
         
-    
+   
+class ReqCtrl:
+    fetch_wearing_medal_ctrl = Ctrl(
+        BaseCtrl(
+            logout_verifiers=[CtrlElem(code=1, others=[In('msg', 'params')])],
+            ok_verifiers=[
+                CtrlElem(code=0),
+            ]))
