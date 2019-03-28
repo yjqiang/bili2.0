@@ -96,9 +96,12 @@ class SendGiftReq:
         
     @staticmethod
     async def fetch_wearing_medal(user):
-        # 这里取巧，抓包是post，觉得有点2，测试一下get也行，而且参数少
         url = f'{API_LIVE}/live_user/v1/UserInfo/get_weared_medal'
-        json_rsp = await user.bililive_session.request_json('GET', url, headers=user.dict_bili['pcheaders'], ctrl=ReqCtrl.fetch_wearing_medal_ctrl)
+        data = {
+            'uid': user.dict_bili['uid'],
+            'csrf_token': ''
+        }
+        json_rsp = await user.bililive_session.request_json('POST', url, data=data, ctrl=ReqCtrl.fetch_wearing_medal_ctrl)
         return json_rsp
     
     
@@ -117,7 +120,6 @@ class ExchangeSilverCoinReq:
 class ReqCtrl:
     fetch_wearing_medal_ctrl = Ctrl(
         BaseCtrl(
-            logout_verifiers=[CtrlElem(code=1, others=[In('msg', 'params')])],
             ok_verifiers=[
                 CtrlElem(code=0),
             ]))
