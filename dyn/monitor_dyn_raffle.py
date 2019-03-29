@@ -9,7 +9,7 @@ from . import dyn_raffle_sql
 
 
 class DynRaffleMonitor:
-    def __init__(self, should_join_immediately: bool, init_docid=None):
+    def __init__(self, should_join_immediately: bool, init_docid=None, init_feed_limit=False):
         self.init_docid = init_docid
 
         self.dyn_raffle_description_filter = []
@@ -17,6 +17,7 @@ class DynRaffleMonitor:
 
         self.should_join_immediately = should_join_immediately
         self._init_handle_status = -1 if not self.should_join_immediately else 0
+        self._init_feed_limit = init_feed_limit
 
     # 获取dyn_raffle抽奖更多信息并且进行过滤
     async def dig_and_filter(self, dyn_raffle_status: DynRaffleStatus):
@@ -69,13 +70,13 @@ class DynRaffleMonitor:
         i = 0
         while True:
             code, raffle = await notifier.exec_func(
-                -1, DynRaffleHandlerTask.check_and_fetch_raffle, curr_docid, self._init_handle_status)
+                -1, DynRaffleHandlerTask.check_and_fetch_raffle, curr_docid, self._init_handle_status, self._init_feed_limit)
             await asyncio.sleep(0.4)
             if code == 404:
                 print('可能不存在或者到达定点')
                 for tmp_docid in range(curr_docid + 1, curr_docid + 11):
                     code, raffle = await notifier.exec_func(
-                        -1, DynRaffleHandlerTask.check_and_fetch_raffle, tmp_docid, self._init_handle_status)
+                        -1, DynRaffleHandlerTask.check_and_fetch_raffle, tmp_docid, self._init_handle_status, self._init_feed_limit)
                     await asyncio.sleep(0.4)
                     if code != 404:
                         curr_docid = tmp_docid

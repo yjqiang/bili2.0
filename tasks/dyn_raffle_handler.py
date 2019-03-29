@@ -104,7 +104,7 @@ class DynRaffleHandlerTask:
         return False
 
     @staticmethod
-    async def check_and_fetch_raffle(user, doc_id, handle_status=-1)->tuple:
+    async def check_and_fetch_raffle(user, doc_id, handle_status=-1, feed_limit=False)->tuple:
         json_rsp = await user.req_s(DynRaffleHandlerReq.is_dyn_raffle, user, doc_id)
         code = json_rsp['code']
         print('_____________________________________')
@@ -151,7 +151,7 @@ class DynRaffleHandlerTask:
             # @人数
             at_num = data['lottery_at_num']
             # 关注 1 true
-            feed_limit = data['lottery_feed_limit']
+            feed_limit = bool(data['lottery_feed_limit']) or feed_limit
             first_prize_cmt = data['first_prize_cmt']
             second_prize_cmt = data.get('second_prize_cmt', '')
             third_prize_cmt = data.get('third_prize_cmt', '')
