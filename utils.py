@@ -1,4 +1,5 @@
 import time
+import string
 from datetime import datetime
 
 
@@ -9,11 +10,20 @@ _table_hwid2fwid = str.maketrans(
     '　' + ''.join(chr(i) for i in range(65281, 65375))
     )
     
+_table_clear_whitespace = str.maketrans('', '', string.whitespace + '　')
+    
 
 # 中英文对齐（半角转全角）
 def hwid2fwid(orig_text, format_control=10):
     new_text = orig_text.translate(_table_hwid2fwid)
     return f'{new_text:　^{format_control}}'
+
+
+def clear_whitespace(orig_text, more_whitespace: str = ''):
+    if not more_whitespace:
+        return orig_text.translate(_table_clear_whitespace)
+    return orig_text.translate(_table_clear_whitespace).\
+        translate(str.maketrans('', '', more_whitespace))
 
 
 def seconds_until_tomorrow():
