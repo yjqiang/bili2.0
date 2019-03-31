@@ -93,8 +93,8 @@ class UtilsReq:
  
     @staticmethod
     async def fetch_medals(user):
-        url = f'{API_LIVE}/i/api/medal?page=1&pageSize=50'
-        json_rsp = await user.bililive_session.request_json('POST', url, headers=user.dict_bili['pcheaders'])
+        url = f'{API_LIVE}/i/api/medal?page=1&pageSize=50'  # max 25，所以黑科技一般能用（233）
+        json_rsp = await user.bililive_session.request_json('GET', url, headers=user.dict_bili['pcheaders'])
         return json_rsp
         
     @staticmethod
