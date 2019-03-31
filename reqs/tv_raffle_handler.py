@@ -17,7 +17,7 @@ class TvRaffleHandlerReq:
             "roomid": real_roomid,
             "raffleId": TV_raffleid,
             "type": "Gift",
-            "csrf_token": ''
+            "csrf_token": user.dict_bili['csrf']
             }
             
         response = await user.bililive_session.request_json('POST', url, data=payload, headers=user.dict_bili['pcheaders'])
