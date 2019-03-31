@@ -155,6 +155,11 @@ class DynRaffleHandlerTask:
             first_prize_cmt = data['first_prize_cmt']
             second_prize_cmt = data.get('second_prize_cmt', '')
             third_prize_cmt = data.get('third_prize_cmt', '')
+
+            first_prize = data['first_prize']
+            second_prize = data.get('second_prize', 0)
+            third_prize = data.get('third_prize', 0)
+
             # 需要邮寄???????存疑
             # post = data['need_post']
             dyn_raffle_status = DynRaffleStatus(
@@ -169,7 +174,10 @@ class DynRaffleHandlerTask:
                 handle_status=handle_status,
                 prize_cmt_1st=first_prize_cmt,
                 prize_cmt_2nd=second_prize_cmt,
-                prize_cmt_3rd=third_prize_cmt
+                prize_cmt_3rd=third_prize_cmt,
+                prize_num_1st=first_prize,
+                prize_num_2nd=second_prize,
+                prize_num_3rd=third_prize
             )
             print('获取到的抽奖信息为', dyn_raffle_status)
             return 0, dyn_raffle_status

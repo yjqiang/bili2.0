@@ -22,6 +22,9 @@ class DynRaffleStatus:
     prize_cmt_1st = attr.ib(validator=attr.validators.instance_of(str))  # 奖品描述这里必须str，下同，且不提供type转换
     prize_cmt_2nd = attr.ib(default='', validator=attr.validators.instance_of(str))
     prize_cmt_3rd = attr.ib(default='', validator=attr.validators.instance_of(str))
+    prize_num_1st = attr.ib(default=-1, validator=attr.validators.instance_of(int))
+    prize_num_2nd = attr.ib(default=-1, validator=attr.validators.instance_of(int))
+    prize_num_3rd = attr.ib(default=-1, validator=attr.validators.instance_of(int))
 
     # 命名模仿attrs的astuple，非数据库数据转化为数据库数据直接使用，无需在sqlite内再次转换类型
     def as_sql_values(self):
