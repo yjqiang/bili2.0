@@ -7,7 +7,11 @@ class HeartBeatReq:
     @staticmethod
     async def pc_heartbeat(user):
         url = f'{API_LIVE}/User/userOnlineHeart'
-        json_rsp = await user.bililive_session.request_json('POST', url, headers=user.dict_bili['pcheaders'])
+        data = {
+            "csrf_token": user.dict_bili['csrf'],
+            "csrf": user.dict_bili['csrf']
+            }
+        json_rsp = await user.bililive_session.request_json('POST', url, data=data, headers=user.dict_bili['pcheaders'])
         return json_rsp
 
     @staticmethod
