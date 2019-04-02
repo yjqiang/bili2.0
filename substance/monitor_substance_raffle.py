@@ -1,4 +1,4 @@
-"""动态抽奖中假设b站aid设置之后永不变（即aid有效后对应抽奖内容只读，不会更改），但是为无效的aid可能刷新。
+"""实物抽奖中假设b站aid设置之后永不变（即aid有效后对应抽奖内容只读，不会更改），但是为无效的aid可能刷新。
 而且刷新是指，b站可能会回溯填空的aid（eg：本来没有121，直接到了123，但是某天突然121可用了，有了抽奖）。
 """
 
@@ -50,7 +50,6 @@ class SubstanceRaffleMonitor:
             printer.info([f'{aid}({number})的实物抽奖暂不参与，仅记录数据库中等候轮询'], True)
         return
 
-    # 暴力docid，查找动态抽奖
     async def check_raffle(self):
         if self.init_aid is None:
             init_aid = substance_raffle_sql.init_id()  # 1.数据库查询
@@ -106,7 +105,7 @@ class SubstanceRaffleMonitor:
                         print('真顶点（开区间）', top_aid)
                         break
                 top_aid += 1
-            print(f'当前动态抽奖的顶点为{top_aid}（开区间）')
+            print(f'当前实物抽奖的顶点为{top_aid}（开区间）')
 
             # 暴力查找，b站可能会回溯填空的aid（eg：本来没有121，直接到了123，但是某天突然121可用了）
             for curr_aid in range(top_aid-10, top_aid):
@@ -131,7 +130,7 @@ class SubstanceRaffleMonitor:
         while True:
             results = substance_raffle_sql.select_rafflestatus(1, None, utils.curr_time() - 900)  # 延迟15min处理抽奖
             results += substance_raffle_sql.select_rafflestatus(-1, None, utils.curr_time() - 900)
-            printer.info(['正在查找已经结束的动态抽奖：', results], True)
+            printer.info(['正在查找已经结束的实物抽奖：', results], True)
             for substance_raffle_status in results:
 
                 substance_raffle_results: Optional[SubstanceRaffleResults] = await notifier.exec_func(
@@ -151,7 +150,7 @@ class SubstanceRaffleMonitor:
         while True:
             curr_time = utils.curr_time()
             results = substance_raffle_sql.select_rafflestatus(-1, (curr_time - 45, curr_time + 90))[:5]
-            printer.info(['正在查找需要参与的动态抽奖：', results], True)
+            printer.info(['正在查找需要参与的实物抽奖：', results], True)
             for substance_raffle_status in results:
                 print(substance_raffle_status)
                 aid = substance_raffle_status.aid
