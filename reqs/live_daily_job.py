@@ -103,9 +103,9 @@ class SendGiftReq:
         url = f'{API_LIVE}/live_user/v1/UserInfo/get_weared_medal'
         data = {
             'uid': user.dict_bili['uid'],
-            'csrf_token': ''
+            'csrf_token': user.dict_bili['csrf']
         }
-        json_rsp = await user.bililive_session.request_json('POST', url, data=data, ctrl=ReqCtrl.fetch_wearing_medal_ctrl)
+        json_rsp = await user.bililive_session.request_json('POST', url, headers=user.dict_bili['pcheaders'], data=data, ctrl=ReqCtrl.fetch_wearing_medal_ctrl)
         return json_rsp
     
     
