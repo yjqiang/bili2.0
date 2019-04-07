@@ -34,7 +34,13 @@ dyn_lottery_friends = {}
 [other_control]
 # 默认监听房间号(用于打印弹幕功能等)
 default_monitor_roomid = 23058
-# 额外自定义弹幕监控房间(比如yj协同大航海等自定义，0会不启动)
-raffle_minitor_roomid = 0
+
+# https://github.com/yjqiang/YjMonitor
+# yj协同监控弹幕模式，roomid会不启动该模块
+yjmonitor_danmu_roomid = 0
+# yj协同监控自定义中心服务器模式, key为空字符串时不启动
+yjmonitor_tcp_addr = {'host': '', 'port': 8002}
+yjmonitor_tcp_key = ''
+
 # 固定的直播分区设置
 area_ids = [ 1, 2, 3, 4, 5, 6,]

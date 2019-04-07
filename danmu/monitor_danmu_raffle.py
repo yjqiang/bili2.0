@@ -5,6 +5,7 @@ import printer
 import notifier
 import bili_statistics
 from .base_danmu import BaseDanmu
+from .yj_monitor import YjMonitorDanmu, YjMonitorTcp
 from tasks.tv_raffle_handler import TvRaffleHandlerTask
 from tasks.guard_raffle_handler import GuardRaffleHandlerTask
 from tasks.storm_raffle_handler import StormRaffleHandlerTask
@@ -115,85 +116,13 @@ class RaffleDanmu(BaseDanmu):
             printer.info([f'{self._area_id}号弹幕姬退出，剩余任务处理完毕'], True)
         self._waiting.set_result(True)
 
-                                        
-class YjMonitorDanmu(BaseDanmu):
-    def __init__(self, room_id, area_id, client_session=None):
-        super().__init__(room_id, area_id, client_session)
-        keys = '阝飠牜饣卩卪厸厶厽孓宀巛巜彳廴彡彐忄扌攵氵灬爫犭疒癶礻糹纟罒罓耂虍訁覀兦亼亽亖亗吂卝匸皕旡玊尐幵朩囘囙囜囝囟囡団囤囥囦囧囨囩囪囫囬囮囯困囱囲図囵囶囷囸囹固囻囼图囿圀圁圂圃圄圅圆圇圉圊圌圍圎圏圐圑園圓圔圕圖圗團圙圚圛圜圝圞'
-        self.__reverse_keys = {value: i for i, value in enumerate(keys)}
-        self.__read = {}
-    
-    def __base2dec(self, str_num, base=110):
-        result = 0
-        for i in str_num:
-            result = result * base + self.__reverse_keys[i]
-        return result
-    
-    def __reverse(self, msg):
-        msg = msg.replace('?', '')
-        first = self.__reverse_keys.get(msg[0], -1)
-        last = self.__reverse_keys.get(msg[-1], -1)
-        
-        # 校验
-        if 0 <= first <= 109 and 0 <= last <= 109 and not (first + last - 109):
-            type = msg[-2]
-            msg_id, id = map(self.__base2dec, msg[:-2].split('.'))
-            return msg_id, type, id
-        return None
-        
-    def __combine_piece(self, uid, msg):
-        # None/''
-        if not msg:
-            return None
-        if uid not in self.__read:
-            self.__read[uid] = {}
-        user_danmus = self.__read[uid]
-        msg_id, type, id = msg
-        msg_id_wanted = (msg_id - 1) if (msg_id % 2) else (msg_id + 1)
-        id_wanted = user_danmus.pop(msg_id_wanted, None)
-        if id_wanted is not None:
-            if msg_id % 2:
-                return type, id_wanted, id
-            else:
-                return type, id, id_wanted
-        else:
-            user_danmus[msg_id] = id
-            return None
-        
-    def handle_danmu(self, dict_danmu):
-        cmd = dict_danmu['cmd']
-        # print(cmd)
-        if cmd == 'DANMU_MSG':
-            info = dict_danmu['info']
-            ori = info[1]
-            uid = info[2][0]
-            # print('测试', self.__read, ori)
-            try:
-                msg = self.__reverse(ori)
-                if msg is not None:
-                    msg_id, type, id = msg
-                    if type == '~' and not msg_id % 2:
-                        raffle_id = id
-                        printer.info([f'{self._area_id}号弹幕监控检测到{"0":^9}的节奏风暴(id: {raffle_id})'], True)
-                        # raffle_handler.exec_at_once(StormRaffleHandlerTask, 0, raffle_id)
-                        bili_statistics.add2pushed_raffles('Yj协同节奏风暴', 2)
-                result = self.__combine_piece(uid, msg)
-                if result is None:
-                    return True
-                type, raffle_id, real_roomid = result
-                if type == '+':
-                    printer.info([f'{self._area_id}号弹幕监控检测到{real_roomid:^9}的大航海(id: {raffle_id})'], True)
-                    raffle_handler.push2queue(GuardRaffleHandlerTask, real_roomid, raffle_id)
-                    bili_statistics.add2pushed_raffles('Yj协同大航海', 2)
-            except Exception:
-                printer.warn(f'Yj监控房间内可能有恶意干扰{uid}: {ori}')
-        return True
-
-    
+                        
 async def run_danmu_monitor(
         raffle_danmu_areaids,
         yjmonitor_danmu_roomid,
         printer_danmu_roomid,
+        yjmonitor_tcp_addr,
+        yjmonitor_tcp_key,
         future=None
         ):
     session = aiohttp.ClientSession()
@@ -208,6 +137,10 @@ async def run_danmu_monitor(
     if yjmonitor_danmu_roomid:
         task = asyncio.ensure_future(
             YjMonitorDanmu(yjmonitor_danmu_roomid, 0, session).run_forever())
+        tasks.append(task)
+    elif yjmonitor_tcp_key:
+        task = asyncio.ensure_future(
+            YjMonitorTcp(yjmonitor_tcp_addr, 0, yjmonitor_tcp_key).run_forever())
         tasks.append(task)
     
     printer_danmu = PrinterDanmu(printer_danmu_roomid, -1, session)
