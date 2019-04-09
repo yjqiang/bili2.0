@@ -28,11 +28,9 @@ class WebSession:
     async def request_json(self,
                            method,
                            url,
-                           headers=None,
-                           data=None,
-                           params=None,
                            is_login=False,
-                           ctrl: Ctrl = TMP_DEFAULT_CTRL)->dict:
+                           ctrl: Ctrl = TMP_DEFAULT_CTRL,
+                           **kwargs) -> dict:
         async with sem:
             i = 0
             while True:
@@ -40,7 +38,7 @@ class WebSession:
                 if i >= 10:
                     printer.warn(url)
                 try:
-                    async with self.var_session.request(method, url, headers=headers, data=data, params=params) as rsp:
+                    async with self.var_session.request(method, url, **kwargs) as rsp:
                         if rsp.status == 200:
                             json_body = await self.__get_json_body(rsp)
                             if not json_body:  # 有时候是None或空，直接屏蔽。下面的read/text类似，禁止返回空的东西
@@ -72,9 +70,7 @@ class WebSession:
     async def request_binary(self,
                              method,
                              url,
-                             headers=None,
-                             data=None,
-                             params=None)->bytes:
+                             **kwargs) -> bytes:
         async with sem:
             i = 0
             while True:
@@ -82,7 +78,7 @@ class WebSession:
                 if i >= 10:
                     printer.warn(url)
                 try:
-                    async with self.var_session.request(method, url, headers=headers, data=data, params=params) as rsp:
+                    async with self.var_session.request(method, url, **kwargs) as rsp:
                         if rsp.status == 200:
                             binary_body = await self.__get_binary_body(rsp)
                             if binary_body:
@@ -98,9 +94,7 @@ class WebSession:
     async def request_text(self,
                            method,
                            url,
-                           headers=None,
-                           data=None,
-                           params=None)->str:
+                           **kwargs) -> str:
         async with sem:
             i = 0
             while True:
@@ -108,7 +102,7 @@ class WebSession:
                 if i >= 10:
                     printer.warn(url)
                 try:
-                    async with self.var_session.request(method, url, headers=headers, data=data, params=params) as rsp:
+                    async with self.var_session.request(method, url, **kwargs) as rsp:
                         if rsp.status == 200:
                             text_body = await self.__get_text_body(rsp)
                             if text_body:
