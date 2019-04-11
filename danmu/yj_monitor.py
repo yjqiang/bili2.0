@@ -72,7 +72,7 @@ class YjMonitorDanmu(BaseDanmu):
                     msg_id, type, id = msg
                     if type == '~' and not msg_id % 2:
                         raffle_id = id
-                        printer.info([f'{self._area_id}号弹幕监控检测到{"0":^9}的节奏风暴(id: {raffle_id})'], True)
+                        printer.infos([f'{self._area_id}号弹幕监控检测到{"0":^9}的节奏风暴(id: {raffle_id})'])
                         # raffle_handler.exec_at_once(StormRaffleHandlerTask, 0, raffle_id)
                         bili_statistics.add2pushed_raffles('Yj协同节奏风暴', 2)
                 result = self.__combine_piece(uid, msg)
@@ -80,7 +80,7 @@ class YjMonitorDanmu(BaseDanmu):
                     return True
                 type, raffle_id, real_roomid = result
                 if type == '+':
-                    printer.info([f'{self._area_id}号弹幕监控检测到{real_roomid:^9}的大航海(id: {raffle_id})'], True)
+                    printer.infos([f'{self._area_id}号弹幕监控检测到{real_roomid:^9}的大航海(id: {raffle_id})'])
                     raffle_handler.push2queue(GuardRaffleHandlerTask, real_roomid, raffle_id)
                     bili_statistics.add2pushed_raffles('Yj协同大航海', 2)
             except Exception:
@@ -153,7 +153,7 @@ class YjMonitorTcp:
             print("连接无法建立，请检查本地网络状况")
             print(sys.exc_info()[0])
             return False
-        printer.info([f'{self._area_id}号弹幕监控已连接推送服务器'], True)
+        printer.infos([f'{self._area_id}号弹幕监控已连接推送服务器'])
     
         dict_enter = {
             'code': 0,
@@ -204,8 +204,8 @@ class YjMonitorTcp:
                     return
             # 握手确认
             elif data_type == 'entered':
-                printer.info(
-                        [f'{self._area_id}号推送监控确认连接'], True)
+                printer.infos(
+                        [f'{self._area_id}号推送监控确认连接'])
             elif data_type == 'error':
                 printer.warn(f'发生致命错误{json_data}')
                 await asyncio.sleep(3)
@@ -215,13 +215,13 @@ class YjMonitorTcp:
         if raffle_type == 'STORM':
             raffle_id = data['raffle_id']
             raffle_roomid = 0
-            printer.info([f'{self._area_id}号弹幕监控检测到{"0":^9}的节奏风暴(id: {raffle_id})'], True)
+            printer.infos([f'{self._area_id}号弹幕监控检测到{"0":^9}的节奏风暴(id: {raffle_id})'])
             # raffle_handler.exec_at_once(StormRaffleHandlerTask, 0, raffle_id)
             bili_statistics.add2pushed_raffles('Yj协同节奏风暴', 2)
         elif raffle_type == 'GUARD':
             raffle_id = data['raffle_id']
             raffle_roomid = data['room_id']
-            printer.info([f'{self._area_id}号弹幕监控检测到{raffle_roomid:^9}的大航海(id: {raffle_id})'], True)
+            printer.infos([f'{self._area_id}号弹幕监控检测到{raffle_roomid:^9}的大航海(id: {raffle_id})'])
             raffle_handler.push2queue(GuardRaffleHandlerTask, raffle_roomid, raffle_id)
             bili_statistics.add2pushed_raffles('Yj协同大航海', 2)
         return True
@@ -231,9 +231,9 @@ class YjMonitorTcp:
         time_now = 0
         while not self._closed:
             if utils.curr_time() - time_now <= 3:
-                printer.info([f'网络波动，{self._area_id}号弹幕姬延迟3秒后重启'], True)
+                printer.infos([f'网络波动，{self._area_id}号弹幕姬延迟3秒后重启'])
                 await asyncio.sleep(3)
-            printer.info([f'正在启动{self._area_id}号弹幕姬'], True)
+            printer.infos([f'正在启动{self._area_id}号弹幕姬'])
             time_now = utils.curr_time()
             
             async with self._conn_lock:
@@ -246,13 +246,13 @@ class YjMonitorTcp:
             tasks = [self._task_main, task_heartbeat]
             _, pending = await asyncio.wait(
                 tasks, return_when=asyncio.FIRST_COMPLETED)
-            printer.info([f'{self._area_id}号弹幕姬异常或主动断开，正在处理剩余信息'], True)
+            printer.infos([f'{self._area_id}号弹幕姬异常或主动断开，正在处理剩余信息'])
             if not task_heartbeat.done():
                 task_heartbeat.cancel()
             await self._close_conn()
             if pending:
                 await asyncio.wait(pending)
-            printer.info([f'{self._area_id}号弹幕姬退出，剩余任务处理完毕'], True)
+            printer.infos([f'{self._area_id}号弹幕姬退出，剩余任务处理完毕'])
         self._waiting.set_result(True)
             
     async def close(self):

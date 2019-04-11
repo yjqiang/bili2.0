@@ -1,9 +1,21 @@
 import random
 import asyncio
 from operator import itemgetter
+
+from decorator import decorator
+
 import printer
 from reqs.utils import UtilsReq
 import utils
+
+
+# 为了解决list打印问题，其实可以实现tasks都这样包裹，但感觉那样过于骚包了
+@decorator
+async def infos_pure_print_func(func, *args, **kwargs):
+    results = func(*args, **kwargs)
+    list_results = [i async for i in results]
+    user = args[0]
+    user.infos(list_results)
 
 
 class UtilsTask:
@@ -24,10 +36,10 @@ class UtilsTask:
             param2 = data['is_locked']
             param3 = data['encrypted']
             if any((param1, param2, param3)):
-                printer.info([f'抽奖脚本检测到房间{roomid:^9}为异常房间'], True)
+                printer.infos([f'抽奖脚本检测到房间{roomid:^9}为异常房间'])
                 return False
             else:
-                printer.info([f'抽奖脚本检测到房间{roomid:^9}为正常房间'], True)
+                printer.infos([f'抽奖脚本检测到房间{roomid:^9}为正常房间'])
                 return True
     
     @staticmethod
@@ -35,12 +47,12 @@ class UtilsTask:
         # None/0 都不行
         if room_id is not None and room_id:
             if await UtilsTask.is_ok_as_monitor(user, room_id, area_id):
-                printer.info([f'{area_id}号弹幕监控选择房间（{room_id}）'], True)
+                printer.infos([f'{area_id}号弹幕监控选择房间（{room_id}）'])
                 return room_id
         if area_id == 1:
             room_id = 23058
             if await UtilsTask.is_ok_as_monitor(user, room_id, area_id):
-                printer.info([f'{area_id}号弹幕监控选择房间（{room_id}）'], True)
+                printer.infos([f'{area_id}号弹幕监控选择房间（{room_id}）'])
                 return room_id
                 
         while True:
@@ -48,7 +60,7 @@ class UtilsTask:
             data = json_rsp['data']
             room_id = random.choice(data)['roomid']
             if await UtilsTask.is_ok_as_monitor(user, room_id, area_id):
-                printer.info([f'{area_id}号弹幕监控选择房间（{room_id}）'], True)
+                printer.infos([f'{area_id}号弹幕监控选择房间（{room_id}）'])
                 return room_id
                 
     @staticmethod
@@ -123,11 +135,12 @@ class UtilsTask:
         return gift_bags
         
     @staticmethod
+    @infos_pure_print_func
     async def print_giftbags(user):
         gift_bags = await UtilsTask.fetch_giftbags(user)
-        user.info(['查询可用礼物:'])
+        yield '查询可用礼物'
         for _, _, gift_num, gift_name, left_days, _ in gift_bags:
-            print(f'# {gift_name:^3}X{gift_num:^4} (在{left_days:^6}天后过期)')
+            yield f'{gift_name:^3}X{gift_num:^4} (在{left_days:^6}天后过期)'
 
     # medals_wanted [roomid0, roomid1 …]
     @staticmethod
@@ -183,99 +196,103 @@ class UtilsTask:
                 worn_status = utils.hwid2fwid(org_worn_status, 6)
                 room_id = f'{medal.get("roomid", "N/A"):^9}'
                 print_queue.append(f'{medal_name} {uname} {intimacy} {today_intimacy} {rank} {worn_status} {room_id}')
-            user.info(print_queue, True)
+            user.infos(print_queue)
                         
     @staticmethod
+    @infos_pure_print_func
     async def print_bilimain_tasks(user):
-        user.info(['查询用户主站的日常任务情况'], True)
+        yield '查询用户主站的日常任务情况'
         json_rsp = await user.req_s(UtilsReq.fetch_bilimain_tasks, user)
         data = json_rsp['data']
         if data['login']:
-            print('# 主站每日登录任务已完成')
+            yield '主站每日登录任务已完成'
         else:
-            print('# 主站每日登录任务未完成')
+            yield '主站每日登录任务未完成'
         if data['watch_av']:
-            print('# 主站每日观看视频任务已完成')
+            yield '主站每日观看视频任务已完成'
         else:
-            print('# 主站每日观看视频任务未完成')
-        print(f'# 主站每日投币 {data["coins_av"]} (这里乘了10，实际硬币个数为显示数目除以10)')
+            yield '主站每日观看视频任务未完成'
+        yield f'主站每日投币 {data["coins_av"]} (这里乘了10，实际硬币个数为显示数目除以10)'
         if data['share_av']:
-            print('# 主站每日分享视频任务已完成')
+            yield '主站每日分享视频任务已完成'
         else:
-            print('# 主站每日分享视频任务未完成')
+            yield '主站每日分享视频任务未完成'
             
     @staticmethod
+    @infos_pure_print_func
     async def print_livebili_tasks(user):
-        user.info(['查询用户直播分站的日常任务情况'], True)
+        yield '查询用户直播分站的日常任务情况'
         json_rsp = await user.req_s(UtilsReq.fetch_livebili_tasks, user)
         # print(json_rsp)
         if not json_rsp['code']:
             data = json_rsp['data']
-            print('双端观看直播：')
+            yield '双端观看直播:'
             double_watch_info = data['double_watch_info']
             if double_watch_info['status'] == 1:
-                print('# 该任务已完成，但未领取奖励')
+                yield '# 任务已完成，但未领取奖励'
             elif double_watch_info['status'] == 2:
-                print('# 该任务已完成，已经领取奖励')
+                yield '# 任务已完成，已经领取奖励'
             else:
-                print('# 该任务未完成')
+                yield '# 该任务未完成'
                 if double_watch_info['web_watch'] == 1:
-                    print('## 网页端观看任务已完成')
+                    yield '# # 网页端观看任务已完成'
                 else:
-                    print('## 网页端观看任务未完成')
+                    yield '# # 网页端观看任务未完成'
                 if double_watch_info['mobile_watch'] == 1:
-                    print('## 移动端观看任务已完成')
+                    yield '# # 移动端观看任务已完成'
                 else:
-                    print('## 移动端观看任务未完成')
+                    yield '# # 移动端观看任务未完成'
     
-            print('直播在线宝箱：')
+            yield '直播在线宝箱：'
             box_info = data['box_info']
             if box_info['status'] == 1:
-                print('# 该任务已完成')
+                yield '# 该任务已完成'
             else:
-                print('# 该任务未完成')
-                print(f'## 一共{box_info["max_times"]}次重置次数，当前为第{box_info["freeSilverTimes"]}次第{box_info["type"]}个礼包(每次3个礼包)')
+                yield '# 该任务未完成'
+                yield f'# # 一共{box_info["max_times"]}次重置次数，当前为第{box_info["freeSilverTimes"]}次第{box_info["type"]}个礼包(每次3个礼包)'
     
-            print('每日签到：')
+            yield '每日签到：'
             sign_info = data['sign_info']
             if sign_info['status'] == 1:
-                print('# 该任务已完成')
+                yield '# 该任务已完成'
             else:
-                print('# 该任务未完成')
+                yield '# 该任务未完成'
             if sign_info['signDaysList'] == list(range(1, sign_info['curDay'] + 1)):
-                print('# 当前全勤')
+                yield '# 当前全勤'
             else:
-                print('# 出现断签')
+                yield '# 出现断签'
     
-            print('直播奖励：')
+            yield '直播奖励：'
             live_time_info = data['live_time_info']
             if live_time_info['status'] == 1:
-                print('# 已完成')
+                yield '# 已完成'
             else:
-                print('# 未完成(目前本项目未实现自动完成直播任务)')
+                yield '# 未完成(目前本项目未实现自动完成直播任务)'
             
     # 这个api似乎是不全的，没有硬币这些
     @staticmethod
+    @infos_pure_print_func
     async def print_mainbili_userinfo(user):
-        user.info(['查询用户主站的信息'], True)
+        yield '查询用户主站的信息'
         json_rsp = await user.req_s(UtilsReq.fetch_bilimain_userinfo, user)
         data = json_rsp['data']
-        print('# 用户名', data['uname'])
-        print('# 硬币数', data['coins'])
-        print('# b币数', data['bCoins'])
+        yield f'用户名 {data["uname"]}'
+        yield f'硬币数 {data["coins"]}'
+        yield f'Ｂ币数 {data["bCoins"]}'
         level_info = data["level_info"]
         current_exp = level_info['current_exp']
         next_exp = level_info['next_exp']
         # 满级大佬
         if next_exp == -1:
             next_exp = current_exp
-        print(f'# 主站等级值 {level_info["current_level"]}')
-        print(f'# 主站经验值 {current_exp}/{next_exp}')
-        utils.print_progress(current_exp, next_exp)
+        yield f'主站等级值 {level_info["current_level"]}'
+        yield f'主站经验值 {current_exp}/{next_exp}'
+        yield utils.print_progress(current_exp, next_exp)
         
     @staticmethod
+    @infos_pure_print_func
     async def print_livebili_userinfo(user):
-        user.info(['查询用户直播分站的信息'], True)
+        yield '查询用户直播分站的信息'
         json_rsp_pc = await user.req_s(UtilsReq.fetch_livebili_userinfo_pc, user)
         json_rsp_ios = await user.req_s(UtilsReq.fetch_livebili_userinfo_ios, user)
         if not json_rsp_ios['code']:
@@ -301,36 +318,37 @@ class UtilsTask:
             svip_time = userCoinIfo['svip_time']
             is_vip = bool(userCoinIfo['vip'])
             vip_time = userCoinIfo['vip_time']
-            print('# 用户名', uname)
-            print(f'# 手机认证状况 {mobile_verify} | 实名认证状况 {identification}')
-            print(f'# 月费老爷 {str(is_vip):^5} | 过期时间 {vip_time}')
-            print(f'# 年费老爷 {str(is_svip):^5} | 过期时间 {svip_time}')
-            print('# 银瓜子', silver)
-            print('# 通用金瓜子', gold)
-            print('# ios可用金瓜子', gold_ios)
-            print('# 硬币数', billCoin)
-            print('# b币数', bili_coins)
-            print('# 成就值', achieve)
-            print('# 等级值', user_level, '———>', user_next_level)
-            print('# 经验值', user_intimacy)
-            print('# 剩余值', user_next_intimacy - user_intimacy)
-            utils.print_progress(user_intimacy, user_next_intimacy)
-            print('# 等级榜', user_level_rank)
+            yield f'用户名 {uname}'
+            yield f'手机认证状况 {mobile_verify} | 实名认证状况 {identification}'
+            yield f'月费老爷 {str(is_vip):^5} | 过期时间 {vip_time}'
+            yield f'年费老爷 {str(is_svip):^5} | 过期时间 {svip_time}'
+            yield f'银瓜子 {silver}'
+            yield f'通用金瓜子 {gold}'
+            yield f'ios可用金瓜子 {gold_ios}'
+            yield f'硬币数 {billCoin}'
+            yield f'Ｂ币数 {bili_coins}'
+            yield f'成就值 {achieve}'
+            yield f'等级值 {user_level}———>{user_next_level}'
+            yield f'经验值 {user_intimacy}'
+            yield f'剩余值 {user_next_intimacy - user_intimacy}'
+            yield utils.print_progress(user_intimacy, user_next_intimacy)
+            yield f'等级榜 {user_level_rank}'
             
     @staticmethod
+    @infos_pure_print_func
     async def print_capsule_info(user):
-        user.info(['查询用户扭蛋的信息'], True)
+        yield '查询用户扭蛋的信息'
         json_rsp = await user.req_s(UtilsReq.fetch_capsule_info, user)
         if not json_rsp['code']:
             data = json_rsp['data']
             if data['colorful']['status']:
-                print(f'梦幻扭蛋币: {data["colorful"]["coin"]}个')
+                yield f'梦幻扭蛋币: {data["colorful"]["coin"]}个'
             else:
-                print('梦幻扭蛋币暂不可用')
+                yield '梦幻扭蛋币暂不可用'
             if data['normal']['status']:
-                print(f'普通扭蛋币: {data["normal"]["coin"]}个')
+                yield f'普通扭蛋币: {data["normal"]["coin"]}个'
             else:
-                print('普通扭蛋币暂不可用')
+                yield '普通扭蛋币暂不可用'
     
     @staticmethod
     async def open_capsule(user, num_opened):
@@ -375,7 +393,7 @@ class UtilsTask:
         json_rsp = await user.req_s(UtilsReq.follow_user, user, uid)
         print('follow', json_rsp)
         if not json_rsp['code']:
-            user.info([f'用户关注{uid}成功'], True)
+            user.infos([f'用户关注{uid}成功'])
             return True
         user.warn(f'用户关注{uid}失败,{json_rsp}')
         return False
@@ -387,7 +405,7 @@ class UtilsTask:
             await asyncio.sleep(1)
             is_following, _ = await UtilsTask.check_follow(user, uid)
             if not is_following:
-                user.info([f'用户取关{uid}成功'], True)
+                user.infos([f'用户取关{uid}成功'])
                 return True
             await asyncio.sleep(0.5)
 

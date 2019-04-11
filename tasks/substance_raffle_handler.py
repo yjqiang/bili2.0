@@ -85,10 +85,10 @@ class SubstanceRaffleHandlerTask:
     @staticmethod
     async def join(user, substance_raffle_status: SubstanceRaffleStatus):
         if substance_raffle_status.join_end_time - utils.curr_time() < 10:
-            user.info([f'实物{substance_raffle_status.aid}马上或已经开奖，放弃参与'], True)
+            user.infos([f'实物{substance_raffle_status.aid}马上或已经开奖，放弃参与'])
         json_rsp = await user.req_s(
             SubstanceRaffleHandlerReq.join, user, substance_raffle_status.aid, substance_raffle_status.number)
-        user.info([f'参与实物抽奖回显：{json_rsp}'], True)
+        user.infos([f'参与实物抽奖回显：{json_rsp}'])
         # 如果返回小黑屋，假设小黑屋可能持续较久，所以不会再尝试了
         if not json_rsp['code']:
             substance_raffle_joined = SubstanceRaffleJoined(
@@ -106,7 +106,7 @@ class SubstanceRaffleHandlerTask:
             uid=int_user_uid, aid=substance_raffle_status.aid, number=substance_raffle_status.number)
 
         if dyn_raffle_joined is None:
-            user.info(['未从数据库中查阅到动态抽奖，可能是之前已经删除了'], True)
+            user.infos(['未从数据库中查阅到动态抽奖，可能是之前已经删除了'])
 
         elif substance_raffle_result is None or \
                 int_user_uid not in substance_raffle_result.prize_list:

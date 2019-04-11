@@ -81,7 +81,7 @@ class BaseDanmu:
             print("连接无法建立，请检查本地网络状况")
             print(sys.exc_info()[0])
             return False
-        printer.info([f'{self._area_id}号弹幕监控已连接b站服务器'], True)
+        printer.infos([f'{self._area_id}号弹幕监控已连接b站服务器'])
         
         str_enter = f'{{"uid":0,"roomid":{self._room_id},"protover":1,"platform":"web","clientver":"1.3.3"}}'
         bytes_enter = self._encapsulate(opt=7, str_body=str_enter)
@@ -128,8 +128,8 @@ class BaseDanmu:
                         return
                 # 握手确认
                 elif opt == 8:
-                    printer.info(
-                        [f'{self._area_id}号弹幕监控进入房间（{self._room_id}）'], True)
+                    printer.infos(
+                        [f'{self._area_id}号弹幕监控进入房间（{self._room_id}）'])
                 else:
                     printer.warn(f'弹幕数据错误:{datas}')
                     return
@@ -144,9 +144,9 @@ class BaseDanmu:
         time_now = 0
         while not self._closed:
             if utils.curr_time() - time_now <= 3:
-                printer.info([f'网络波动，{self._area_id}号弹幕姬延迟3秒后重启'], True)
+                printer.infos([f'网络波动，{self._area_id}号弹幕姬延迟3秒后重启'])
                 await asyncio.sleep(3)
-            printer.info([f'正在启动{self._area_id}号弹幕姬'], True)
+            printer.infos([f'正在启动{self._area_id}号弹幕姬'])
             time_now = utils.curr_time()
             
             async with self._conn_lock:
@@ -159,12 +159,12 @@ class BaseDanmu:
             tasks = [self._task_main, task_heartbeat]
             _, pending = await asyncio.wait(
                 tasks, return_when=asyncio.FIRST_COMPLETED)
-            printer.info([f'{self._area_id}号弹幕姬异常或主动断开，正在处理剩余信息'], True)
+            printer.infos([f'{self._area_id}号弹幕姬异常或主动断开，正在处理剩余信息'])
             if not task_heartbeat.done():
                 task_heartbeat.cancel()
             await self._close_conn()
             await asyncio.wait(pending)
-            printer.info([f'{self._area_id}号弹幕姬退出，剩余任务处理完毕'], True)
+            printer.infos([f'{self._area_id}号弹幕姬退出，剩余任务处理完毕'])
         self._waiting.set_result(True)
             
     async def reset_roomid(self, room_id):
@@ -176,7 +176,7 @@ class BaseDanmu:
                 await self._task_main
             # 由于锁的存在，绝对不可能到达下一个的自动重连状态，这里是保证正确显示当前监控房间号
             self._room_id = room_id
-            printer.info([f'{self._area_id}号弹幕姬已经切换房间（{room_id}）'], True)
+            printer.infos([f'{self._area_id}号弹幕姬已经切换房间（{room_id}）'])
             
     async def close(self):
         if not self._closed:

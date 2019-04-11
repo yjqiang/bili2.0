@@ -45,18 +45,17 @@ class TvRaffleHandlerTask:
         # await UtilsTask.enter_room(user, real_roomid)
         json_rsp = await user.req_s(TvRaffleHandlerReq.join_v4, user, real_roomid, raffleid, raffle_type)
         bili_statistics.add2joined_raffles('小电视(合计)', user.id)
-        user.info([f'参与了房间{real_roomid:^9}的小电视抽奖'], True)
         code = json_rsp['code']
         if not code:
             data = json_rsp['data']
             gift_name = data['gift_name']
             gift_num = data['gift_num']
-            user.info([f'# 房间{real_roomid:^9}小电视抽奖结果: {gift_name}X{gift_num}'])
+            user.infos([f'小电视({raffleid})的参与结果: {gift_name}X{gift_num}'])
             bili_statistics.add2results(gift_name, user.id, gift_num)
         elif code == -403 and '拒绝' in json_rsp['msg']:
             user.fall_in_jail()
         else:
-            user.warn(f'TV {json_rsp}')
+            user.warn(f'小电视({raffleid})的参与结果: {json_rsp}')
         return None
         
     @staticmethod
@@ -68,7 +67,6 @@ class TvRaffleHandlerTask:
         checklen = json_response['data']['list']
         next_step_settings = []
         for j in checklen:
-            print(j)
             raffle_id = j['raffleId']
             raffle_type = j['type']
             max_wait = j['time'] - 10
@@ -88,8 +86,7 @@ class TvRaffleHandlerTask:
         # await UtilsTask.enter_room(user, real_roomid)
         json_response2 = await user.req_s(TvRaffleHandlerReq.join, user, real_roomid, raffleid)
         bili_statistics.add2joined_raffles('小电视(合计)', user.id)
-        user.info([f'参与了房间{real_roomid:^9}的小电视抽奖'], True)
-        user.info([f'# 小电视抽奖状态: {json_response2["msg"]}'])
+        user.infos([f'小电视({raffleid})的参与状态: {json_response2["msg"]}'])
         # -400不存在
         # -500繁忙
         code = json_response2['code']
@@ -112,13 +109,9 @@ class TvRaffleHandlerTask:
         # print(json_response)
         if not json_response['code']:
             # {'code': 0, 'msg': '正在抽奖中..', 'message': '正在抽奖中..', 'data': {'gift_id': '-1', 'gift_name': '', 'gift_num': 0, 'gift_from': '', 'gift_type': 0, 'gift_content': '', 'status': 3}}
-            if json_response['data']['gift_id'] == '-1':
-                print([f'json_response'], True)
-                user.warn(f'{json_response}')
-                return
-            elif json_response['data']['gift_id'] != '-1':
+            if json_response['data']['gift_id'] != '-1':
                 data = json_response['data']
-                user.info([f'# 房间{real_roomid:^9}小电视抽奖结果: {data["gift_name"]}X{data["gift_num"]}'], True)
+                user.infos([f'小电视({raffleid})的参与结果: {data["gift_name"]}X{data["gift_num"]}'])
                 bili_statistics.add2results(data['gift_name'], user.id, data['gift_num'])
             else:
-                user.warn(f'{json_response}')
+                user.warn(f'小电视({raffleid})的参与结果: {json_response}')

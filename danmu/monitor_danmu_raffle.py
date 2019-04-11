@@ -28,7 +28,7 @@ class RaffleDanmu(BaseDanmu):
                 await asyncio.sleep(300)
                 is_ok = await asyncio.shield(notifier.exec_func(-1, UtilsTask.is_ok_as_monitor, self._room_id, self._area_id))
                 if not is_ok:
-                    printer.info([f'{self._room_id}不再适合作为监控房间，即将切换'], True)
+                    printer.infos([f'{self._room_id}不再适合作为监控房间，即将切换'])
                     return
         except asyncio.CancelledError:
             pass
@@ -37,7 +37,7 @@ class RaffleDanmu(BaseDanmu):
         cmd = dict_danmu['cmd']
         
         if cmd == 'PREPARING':
-            printer.info([f'{self._area_id}号弹幕监控房间下播({self._room_id})'], True)
+            printer.infos([f'{self._area_id}号弹幕监控房间下播({self._room_id})'])
             return False
     
         elif cmd == 'NOTICE_MSG':
@@ -64,19 +64,19 @@ class RaffleDanmu(BaseDanmu):
                     raffle_num = 1
                     raffle_name = str_gift
                 broadcast = msg_common.split('广播')[0]
-                printer.info([f'{self._area_id}号弹幕监控检测到{real_roomid:^9}的{raffle_name}'], True)
+                printer.infos([f'{self._area_id}号弹幕监控检测到{real_roomid:^9}的{raffle_name}'])
                 raffle_handler.push2queue(TvRaffleHandlerTask, real_roomid)
                 broadcast_type = 0 if broadcast == '全区' else 1
                 bili_statistics.add2pushed_raffles(raffle_name, broadcast_type, raffle_num)
             elif msg_type == 3:
                 raffle_name = msg_common.split('开通了')[-1][:2]
-                printer.info([f'{self._area_id}号弹幕监控检测到{real_roomid:^9}的{raffle_name}'], True)
+                printer.infos([f'{self._area_id}号弹幕监控检测到{real_roomid:^9}的{raffle_name}'])
                 raffle_handler.push2queue(GuardRaffleHandlerTask, real_roomid)
                 broadcast_type = 0 if raffle_name == '总督' else 2
                 bili_statistics.add2pushed_raffles(raffle_name, broadcast_type)
             elif msg_type == 6:
                 raffle_name = '二十倍节奏风暴'
-                printer.info([f'{self._area_id}号弹幕监控检测到{real_roomid:^9}的{raffle_name}'], True)
+                printer.infos([f'{self._area_id}号弹幕监控检测到{real_roomid:^9}的{raffle_name}'])
                 # raffle_handler.push2queue(StormRaffleHandlerTask, real_roomid)
                 bili_statistics.add2pushed_raffles(raffle_name)
         return True
@@ -86,9 +86,9 @@ class RaffleDanmu(BaseDanmu):
         time_now = 0
         while not self._closed:
             if utils.curr_time() - time_now <= 3:
-                printer.info([f'网络波动，{self._area_id}号弹幕姬延迟3秒后重启'], True)
+                printer.infos([f'网络波动，{self._area_id}号弹幕姬延迟3秒后重启'])
                 await asyncio.sleep(3)
-            printer.info([f'正在启动{self._area_id}号弹幕姬'], True)
+            printer.infos([f'正在启动{self._area_id}号弹幕姬'])
             time_now = utils.curr_time()
             
             async with self._conn_lock:
@@ -106,14 +106,14 @@ class RaffleDanmu(BaseDanmu):
             tasks = [self._task_main, task_heartbeat, task_checkarea]
             _, pending = await asyncio.wait(
                 tasks, return_when=asyncio.FIRST_COMPLETED)
-            printer.info([f'{self._area_id}号弹幕姬异常或主动断开，正在处理剩余信息'], True)
+            printer.infos([f'{self._area_id}号弹幕姬异常或主动断开，正在处理剩余信息'])
             if not task_heartbeat.done():
                 task_heartbeat.cancel()
             if not task_checkarea.done():
                 task_checkarea.cancel()
             await self._close_conn()
             await asyncio.wait(pending)
-            printer.info([f'{self._area_id}号弹幕姬退出，剩余任务处理完毕'], True)
+            printer.infos([f'{self._area_id}号弹幕姬退出，剩余任务处理完毕'])
         self._waiting.set_result(True)
 
                         
