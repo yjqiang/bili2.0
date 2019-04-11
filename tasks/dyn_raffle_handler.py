@@ -104,7 +104,7 @@ class DynRaffleHandlerTask:
         return False
 
     @staticmethod
-    async def check_and_fetch_raffle(user, doc_id, handle_status=-1, feed_limit=False)->tuple:
+    async def check_and_fetch_raffle(user, doc_id, handle_status=-1, feed_limit=False) -> tuple:
         json_rsp = await user.req_s(DynRaffleHandlerReq.is_dyn_raffle, user, doc_id)
         code = json_rsp['code']
         print('_____________________________________')
@@ -115,7 +115,14 @@ class DynRaffleHandlerTask:
             str_ext = item['extension']
             print(doc_id, str_ext)
             if str_ext:
-                dict_ext = json.loads(str_ext.replace('\'', ''))
+                try:
+                    dict_ext = json.loads(str_ext.replace('\'', ''))
+                except json.JSONDecodeError:
+                    print(f'dict_extension 解析失败，可能是b站api已知问题')
+                    if len(str_ext) != 1024:
+                        user.warn(doc_id, str_ext)
+                    return 1, None
+
                 # 抽奖 不符合的可能{}或者lott_cfg为空或者其他一些
                 if 'lott_cfg' in dict_ext and dict_ext['lott_cfg']:
                     lott_cfg = json.loads(dict_ext['lott_cfg'])
@@ -186,7 +193,6 @@ class DynRaffleHandlerTask:
             return 404, None
         user.warn(f'互动抽奖初步查询 {json_rsp}')
         return -1, None
-
 
     @staticmethod
     async def fetch_dyn_raffle_results(
