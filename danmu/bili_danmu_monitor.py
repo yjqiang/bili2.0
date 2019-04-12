@@ -96,6 +96,6 @@ class DanmuRaffleMonitor(WsDanmuClient):
             elif msg_type == 6:
                 raffle_name = '二十倍节奏风暴'
                 print(f'{self._area_id}号数据连接检测到{real_roomid:^9}的{raffle_name}')
-                # raffle_handler.push2queue(StormRaffleHandlerTask, real_roomid)
+                raffle_handler.push2queue(StormRaffleHandlerTask, real_roomid)
                 bili_statistics.add2pushed_raffles(raffle_name)
         return True

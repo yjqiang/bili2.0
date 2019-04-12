@@ -83,7 +83,7 @@ class YjMonitorDanmu(WsDanmuClient):
                     if type == '~' and not msg_id % 2:
                         raffle_id = id
                         print(f'{self._area_id}号弹幕监控检测到{"0":^9}的节奏风暴(id: {raffle_id})')
-                        # raffle_handler.exec_at_once(StormRaffleHandlerTask, 0, raffle_id)
+                        raffle_handler.exec_at_once(StormRaffleHandlerTask, 0, raffle_id)
                         bili_statistics.add2pushed_raffles('Yj协同节奏风暴', 2)
                 result = self.__combine_piece(uid, msg)
                 if result is None:
@@ -171,7 +171,7 @@ class TcpYjMonitorClient(Client):
             raffle_id = data['raffle_id']
             raffle_roomid = 0
             print(f'{self._area_id}号弹幕监控检测到{raffle_roomid:^9}的节奏风暴(id: {raffle_id})')
-            # raffle_handler.exec_at_once(StormRaffleHandlerTask, 0, raffle_id)
+            raffle_handler.exec_at_once(StormRaffleHandlerTask, 0, raffle_id)
             bili_statistics.add2pushed_raffles('Yj协同节奏风暴', 2)
         elif raffle_type == 'GUARD':
             raffle_id = data['raffle_id']
