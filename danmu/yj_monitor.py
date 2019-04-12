@@ -1,22 +1,32 @@
 # https://github.com/yjqiang/YjMonitor
 
-import struct
-import sys
 import json
-import asyncio
+from struct import Struct
+from typing import Optional
 
-import utils
-import printer
+from aiohttp import ClientSession
+
+from printer import info as print
+from printer import warn
 import bili_statistics
-from .base_danmu import BaseDanmu
+from .bili_danmu import WsDanmuClient
+from .client import Client
+from .conn import TcpConn
 from tasks.guard_raffle_handler import GuardRaffleHandlerTask
 from tasks.storm_raffle_handler import StormRaffleHandlerTask
 from . import raffle_handler
 
 
-class YjMonitorDanmu(BaseDanmu):
-    def __init__(self, room_id, area_id, client_session=None):
-        super().__init__(room_id, area_id, client_session)
+class YjMonitorDanmu(WsDanmuClient):
+    def __init__(
+            self, room_id: int, area_id: int,
+            session: Optional[ClientSession] = None, loop=None):
+        super().__init__(
+            room_id=room_id,
+            area_id=area_id,
+            session=session,
+            loop=loop
+        )
         keys = '阝飠牜饣卩卪厸厶厽孓宀巛巜彳廴彡彐忄扌攵氵灬爫犭疒癶礻糹纟罒罓耂虍訁覀兦亼亽亖亗吂卝匸皕旡玊尐幵朩囘囙囜囝囟囡団囤囥囦囧囨囩囪囫囬囮囯困囱囲図囵囶囷囸囹固囻囼图囿圀圁圂圃圄圅圆圇圉圊圌圍圎圏圐圑園圓圔圕圖圗團圙圚圛圜圝圞'
         self.__reverse_keys = {value: i for i, value in enumerate(keys)}
         self.__read = {}
@@ -72,7 +82,7 @@ class YjMonitorDanmu(BaseDanmu):
                     msg_id, type, id = msg
                     if type == '~' and not msg_id % 2:
                         raffle_id = id
-                        printer.infos([f'{self._area_id}号弹幕监控检测到{"0":^9}的节奏风暴(id: {raffle_id})'])
+                        print(f'{self._area_id}号弹幕监控检测到{"0":^9}的节奏风暴(id: {raffle_id})')
                         # raffle_handler.exec_at_once(StormRaffleHandlerTask, 0, raffle_id)
                         bili_statistics.add2pushed_raffles('Yj协同节奏风暴', 2)
                 result = self.__combine_piece(uid, msg)
@@ -80,190 +90,93 @@ class YjMonitorDanmu(BaseDanmu):
                     return True
                 type, raffle_id, real_roomid = result
                 if type == '+':
-                    printer.infos([f'{self._area_id}号弹幕监控检测到{real_roomid:^9}的大航海(id: {raffle_id})'])
+                    print(f'{self._area_id}号弹幕监控检测到{real_roomid:^9}的大航海(id: {raffle_id})')
                     raffle_handler.push2queue(GuardRaffleHandlerTask, real_roomid, raffle_id)
                     bili_statistics.add2pushed_raffles('Yj协同大航海', 2)
             except Exception:
-                printer.warn(f'Yj监控房间内可能有恶意干扰{uid}: {ori}')
+                warn(f'Yj监控房间内可能有恶意干扰{uid}: {ori}')
         return True
-        
 
-class YjMonitorTcp:
-    structer = struct.Struct('!I')
 
-    def __init__(self, addr: dict, area_id, key, loop=None):
-        # addr['host'] 格式为 '127.0.0.1'或者url，addr['port'] 为int端口号
-        self._host = addr['host']
-        self._port = addr['port']
+class TcpYjMonitorClient(Client):
+    header_struct = Struct('>I')
+
+    def __init__(
+            self, key: str, url: str, area_id: int, loop=None):
+        heartbeat = 30.0
+        conn = TcpConn(
+            url=url,
+            receive_timeout=heartbeat + 10)
+        super().__init__(
+            area_id=area_id,
+            conn=conn,
+            heartbeat=heartbeat,
+            loop=loop)
         self._key = key
-        if loop is not None:
-            self._loop = loop
-        else:
-            self._loop = asyncio.get_event_loop()
-            
-        self._area_id = area_id
-        
-        # 建立连接过程中难以处理重设置房间或断线等问题
-        self._conn_lock = asyncio.Lock()
-        self._task_main = None
-        self._waiting = None
-        self._closed = False
+
         self._bytes_heartbeat = self._encapsulate(str_body='')
-        
-    def _encapsulate(self, str_body):
-        body = str_body.encode('utf-8')
-        len_body = len(body)
-        header = self.structer.pack(len_body)
-        return header + body
+        self._funcs_task.append(self._send_heartbeat)
 
-    async def _send_bytes(self, bytes_data):
-        try:
-            self._writer.write(bytes_data)
-            await self._writer.drain()
-        except asyncio.CancelledError:
-            return False
-        except:
-            print(sys.exc_info()[0])
-            return False
-        return True
-
-    async def _read_bytes(self, n):
-        if n <= 0:
-            return b''
-        try:
-            bytes_data = await asyncio.wait_for(
-                self._reader.readexactly(n), timeout=40)
-        except asyncio.TimeoutError:
-            print('# 由于心跳包30s一次，但是发现35内没有收到任何包，说明已经悄悄失联了，主动断开')
-            return None
-        except:
-            print(sys.exc_info()[0])
-            return None
-                
-        return bytes_data
-        
-    async def _open_conn(self):
-        try:
-            self._reader, self._writer = await asyncio.wait_for(
-                asyncio.open_connection(self._host, self._port), timeout=5)
-        except asyncio.TimeoutError:
-            print('连接超时')
-            return False
-        except:
-            print("连接无法建立，请检查本地网络状况")
-            print(sys.exc_info()[0])
-            return False
-        printer.infos([f'{self._area_id}号弹幕监控已连接推送服务器'])
-    
+    @property
+    def _hello(self):
         dict_enter = {
             'code': 0,
             'type': 'ask',
             'data': {'key': self._key}
-            }
+        }
         str_enter = json.dumps(dict_enter)
         bytes_enter = self._encapsulate(str_body=str_enter)
-        
-        return await self._send_bytes(bytes_enter)
-        
-    async def _close_conn(self):
-        self._writer.close()
-        # py3.7 才有（妈的你们真的磨叽）
-        # await self._writer.wait_closed()
-        
-    async def _heart_beat(self):
-        try:
-            while True:
-                if not await self._send_bytes(self._bytes_heartbeat):
-                    return
-                await asyncio.sleep(30)
-        except asyncio.CancelledError:
-            return
-            
+        return bytes_enter
+
+    def _encapsulate(self, str_body):
+        body = str_body.encode('utf-8')
+        len_body = len(body)
+        header = self.header_struct.pack(len_body)
+        return header + body
+
     async def _read_datas(self):
         while True:
-            header = await self._read_bytes(4)
+            header = await self._conn.read_bytes(4)
+            # 本函数对bytes进行相关操作，不特别声明，均为bytes
             if header is None:
                 return
-            
-            # 每片data都分为header和body，data和data可能粘连
-            # data_l == header_l && next_data_l == next_header_l
-            # ||header_l...header_r|body_l...body_r||next_data_l...
-            len_body, = self.structer.unpack_from(header)
-            
-            body = await self._read_bytes(len_body)
+
+            len_body, = self.header_struct.unpack_from(header)
+
+            # 心跳回复
+            if not len_body:
+                print('yj,heartbeat')
+                continue
+
+            body = await self._conn.read_json(len_body)
             if body is None:
                 return
-            
-            if not body:
-                continue
-            json_data = json.loads(body.decode('utf-8'))
-            # 人气值(或者在线人数或者类似)以及心跳
+
+            json_data = body
+
             data_type = json_data['type']
             if data_type == 'raffle':
                 if not self.handle_danmu(json_data['data']):
                     return
             # 握手确认
             elif data_type == 'entered':
-                printer.infos(
-                        [f'{self._area_id}号推送监控确认连接'])
+                print(f'{self._area_id}号数据连接确认建立连接（{self._key}）')
             elif data_type == 'error':
-                printer.warn(f'发生致命错误{json_data}')
-                await asyncio.sleep(3)
-                
-    def handle_danmu(self, data):
+                print(f'{self._area_id}号数据连接发生致命错误{json_data}')
+                return
+
+    def handle_danmu(self, data: dict):
         raffle_type = data['raffle_type']
         if raffle_type == 'STORM':
             raffle_id = data['raffle_id']
             raffle_roomid = 0
-            printer.infos([f'{self._area_id}号弹幕监控检测到{"0":^9}的节奏风暴(id: {raffle_id})'])
+            print(f'{self._area_id}号弹幕监控检测到{raffle_roomid:^9}的节奏风暴(id: {raffle_id})')
             # raffle_handler.exec_at_once(StormRaffleHandlerTask, 0, raffle_id)
             bili_statistics.add2pushed_raffles('Yj协同节奏风暴', 2)
         elif raffle_type == 'GUARD':
             raffle_id = data['raffle_id']
             raffle_roomid = data['room_id']
-            printer.infos([f'{self._area_id}号弹幕监控检测到{raffle_roomid:^9}的大航海(id: {raffle_id})'])
+            print(f'{self._area_id}号弹幕监控检测到{raffle_roomid:^9}的大航海(id: {raffle_id})')
             raffle_handler.push2queue(GuardRaffleHandlerTask, raffle_roomid, raffle_id)
             bili_statistics.add2pushed_raffles('Yj协同大航海', 2)
         return True
-        
-    async def run_forever(self):
-        self._waiting = self._loop.create_future()
-        time_now = 0
-        while not self._closed:
-            if utils.curr_time() - time_now <= 3:
-                printer.infos([f'网络波动，{self._area_id}号弹幕姬延迟3秒后重启'])
-                await asyncio.sleep(3)
-            printer.infos([f'正在启动{self._area_id}号弹幕姬'])
-            time_now = utils.curr_time()
-            
-            async with self._conn_lock:
-                if self._closed:
-                    break
-                if not await self._open_conn():
-                    continue
-                self._task_main = asyncio.ensure_future(self._read_datas())
-                task_heartbeat = asyncio.ensure_future(self._heart_beat())
-            tasks = [self._task_main, task_heartbeat]
-            _, pending = await asyncio.wait(
-                tasks, return_when=asyncio.FIRST_COMPLETED)
-            printer.infos([f'{self._area_id}号弹幕姬异常或主动断开，正在处理剩余信息'])
-            if not task_heartbeat.done():
-                task_heartbeat.cancel()
-            await self._close_conn()
-            if pending:
-                await asyncio.wait(pending)
-            printer.infos([f'{self._area_id}号弹幕姬退出，剩余任务处理完毕'])
-        self._waiting.set_result(True)
-            
-    async def close(self):
-        if not self._closed:
-            self._closed = True
-            async with self._conn_lock:
-                if self._writer is not None:
-                    await self._close_conn()
-            if self._waiting is not None:
-                await self._waiting
-            return True
-        else:
-            return False
-
