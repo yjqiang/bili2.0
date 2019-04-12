@@ -47,12 +47,10 @@ class UtilsTask:
         # None/0 都不行
         if room_id is not None and room_id:
             if await UtilsTask.is_ok_as_monitor(user, room_id, area_id):
-                printer.infos([f'{area_id}号弹幕监控选择房间（{room_id}）'])
                 return room_id
         if area_id == 1:
             room_id = 23058
             if await UtilsTask.is_ok_as_monitor(user, room_id, area_id):
-                printer.infos([f'{area_id}号弹幕监控选择房间（{room_id}）'])
                 return room_id
                 
         while True:
@@ -60,7 +58,6 @@ class UtilsTask:
             data = json_rsp['data']
             room_id = random.choice(data)['roomid']
             if await UtilsTask.is_ok_as_monitor(user, room_id, area_id):
-                printer.infos([f'{area_id}号弹幕监控选择房间（{room_id}）'])
                 return room_id
                 
     @staticmethod

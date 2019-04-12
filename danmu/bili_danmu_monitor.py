@@ -51,12 +51,13 @@ class DanmuRaffleMonitor(WsDanmuClient):
         self._room_id = await notifier.exec_func(
             -1, UtilsTask.get_room_by_area,
             self._area_id, self._room_id)
+        print(f'{self._area_id}号数据连接选择房间（{self._room_id}）')
 
     def handle_danmu(self, data: dict):
         cmd = data['cmd']
 
         if cmd == 'PREPARING':
-            print(f'{self._area_id}号弹幕监控房间下播({self._room_id})')
+            print(f'{self._area_id}号数据连接房间下播({self._room_id})')
             return False
 
         elif cmd == 'NOTICE_MSG':
@@ -82,19 +83,19 @@ class DanmuRaffleMonitor(WsDanmuClient):
                     raffle_num = 1
                     raffle_name = str_gift
                 broadcast = msg_common.split('广播')[0]
-                print(f'{self._area_id}号弹幕监控检测到{real_roomid:^9}的{raffle_name}')
+                print(f'{self._area_id}号数据连接检测到{real_roomid:^9}的{raffle_name}')
                 raffle_handler.push2queue(TvRaffleHandlerTask, real_roomid)
                 broadcast_type = 0 if broadcast == '全区' else 1
                 bili_statistics.add2pushed_raffles(raffle_name, broadcast_type, raffle_num)
             elif msg_type == 3:
                 raffle_name = msg_common.split('开通了')[-1][:2]
-                print(f'{self._area_id}号弹幕监控检测到{real_roomid:^9}的{raffle_name}')
+                print(f'{self._area_id}号数据连接检测到{real_roomid:^9}的{raffle_name}')
                 raffle_handler.push2queue(GuardRaffleHandlerTask, real_roomid)
                 broadcast_type = 0 if raffle_name == '总督' else 2
                 bili_statistics.add2pushed_raffles(raffle_name, broadcast_type)
             elif msg_type == 6:
                 raffle_name = '二十倍节奏风暴'
-                print(f'{self._area_id}号弹幕监控检测到{real_roomid:^9}的{raffle_name}')
+                print(f'{self._area_id}号数据连接检测到{real_roomid:^9}的{raffle_name}')
                 # raffle_handler.push2queue(StormRaffleHandlerTask, real_roomid)
                 bili_statistics.add2pushed_raffles(raffle_name)
         return True
