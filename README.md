@@ -12,7 +12,7 @@ bili2.0
 3. [requirements.txt](https://github.com/yjqiang/bili2.0/blob/master/requirements.txt)是所需第三方模块，执行`pip install -r requirements.txt`安装模块
 4. [/conf/user.sample.toml](https://github.com/yjqiang/bili2.0/blob/master/conf/user.sample.toml)是用户目录示例，在里面添加自己的账号；[/conf/ctrl.sample.toml](https://github.com/yjqiang/bili2.0/blob/master/conf/ctrl.sample.toml)是用户配置示例，里面有说明按需要开启功能。需要自己定制这两个文件（不是在原来sample文件上改，而是自己在conf文件夹内新建user.toml和ctrl.toml文件，在新文件上面改（注意全部复制过去后再改，sample文件只作为用户使用参考，程序运行不会读取此文件，只会读取用户的新建toml文件））
 5. Python和需要模块都装好了直接运行`python run.py`
-6. 节奏风暴默认关闭，开启需要[tasks/storm_raffle_handler.py](https://github.com/yjqiang/bili2.0/blob/master/tasks/storm_raffle_handler.py#L18)取消注释，抢风暴的逻辑可以自由定制 [/tasks/storm_raffle_handler.py](https://github.com/yjqiang/bili2.0/blob/master/tasks/storm_raffle_handler.py)
+6. 节奏风暴默认关闭，开启需要把[tasks/storm_raffle_handler.py](https://github.com/yjqiang/bili2.0/blob/master/tasks/storm_raffle_handler.py#L18)进行注释或删除，抢风暴的逻辑可以自由定制 [/tasks/storm_raffle_handler.py](https://github.com/yjqiang/bili2.0/blob/master/tasks/storm_raffle_handler.py)
 7. 动态抽奖开关在[run.py](https://github.com/yjqiang/bili2.0/blob/master/run.py#L94) ，需要在[/conf/ctrl.toml](https://github.com/yjqiang/bili2.0/blob/master/conf/ctrl.toml)更新`dyn_lottery_friends`，参与的抽奖会在dyn里面产生一个database数据库（sqlite3）。**注意：在[数据库格式更新的commit](https://github.com/yjqiang/bili2.0/commit/93fb545add5e3e51adc4704f51def3a5468d8e4a)前运行过动态抽奖的用户请先运行[add_colomn_joined2old_staus_table.py](https://github.com/yjqiang/bili2.0/blob/master/dyn/add_colomn_joined2old_staus_table.py)升级数据库。**
 
 
