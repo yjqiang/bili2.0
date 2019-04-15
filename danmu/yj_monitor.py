@@ -145,7 +145,6 @@ class TcpYjMonitorClient(Client):
 
             # 心跳回复
             if not len_body:
-                print('yj,heartbeat')
                 continue
 
             body = await self._conn.read_json(len_body)
