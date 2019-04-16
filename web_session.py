@@ -12,15 +12,18 @@ class WebSession:
     def __init__(self):
         self.var_session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=4))
 
-    async def __get_json_body(self, rsp):
+    @staticmethod
+    async def __get_json_body(rsp):
         json_body = await rsp.json(content_type=None)
         return json_body
 
-    async def __get_text_body(self, rsp):
+    @staticmethod
+    async def __get_text_body(rsp):
         text = await rsp.text()
         return text
 
-    async def __get_binary_body(self, rsp):
+    @staticmethod
+    async def __get_binary_body(rsp):
         return await rsp.read()
 
     # method 类似于aiohttp里面的对应method，目前只支持GET、POST
