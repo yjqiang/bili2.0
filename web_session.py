@@ -44,22 +44,19 @@ class WebSession:
                     async with self.var_session.request(method, url, **kwargs) as rsp:
                         if rsp.status == 200:
                             json_body = await self.__get_json_body(rsp)
-                            if not json_body:  # 有时候是None或空，直接屏蔽。下面的read/text类似，禁止返回空的东西
-                                continue
-                            json_rsp_type = ctrl.verify(json_body)
-                            # print('test', json_body, json_rsp_type)
-                            if json_rsp_type == JsonRspType.OK:
-                                return json_body
-                            if json_rsp_type == JsonRspType.IGNORE:
-                                await asyncio.sleep(1.0)
-                                continue
-                            if json_rsp_type == JsonRspType.LOGOUT:
-                                print('api提示没有登录')
-                                print(json_body)
-                                if not is_login:
-                                    raise LogoutError(msg='提示没有登陆')
-                                else:
+                            if json_body:  # 有时候是None或空，直接屏蔽。下面的read/text类似，禁止返回空的东西
+                                json_rsp_type = ctrl.verify(json_body)
+                                if json_rsp_type == JsonRspType.OK:
                                     return json_body
+                                elif json_rsp_type == JsonRspType.IGNORE:
+                                    await asyncio.sleep(1.0)
+                                elif json_rsp_type == JsonRspType.LOGOUT:
+                                    print('api提示没有登录')
+                                    print(json_body)
+                                    if not is_login:
+                                        raise LogoutError(msg='提示没有登陆')
+                                    else:
+                                        return json_body
                         elif rsp.status == 403:
                             printer.warn(f'403频繁, {url}')
                             await asyncio.sleep(240)
@@ -68,7 +65,7 @@ class WebSession:
                 except:
                     # print('当前网络不好，正在重试，请反馈开发者!!!!')
                     print(sys.exc_info()[0], sys.exc_info()[1], url)
-                    continue
+                await asyncio.sleep(0.02)
 
     async def request_binary(self,
                              method,
@@ -92,7 +89,7 @@ class WebSession:
                 except:
                     # print('当前网络不好，正在重试，请反馈开发者!!!!')
                     print(sys.exc_info()[0], sys.exc_info()[1], url)
-                    continue
+                await asyncio.sleep(0.02)
 
     async def request_text(self,
                            method,
@@ -116,4 +113,4 @@ class WebSession:
                 except:
                     # print('当前网络不好，正在重试，请反馈开发者!!!!')
                     print(sys.exc_info()[0], sys.exc_info()[1], url)
-                    continue
+                await asyncio.sleep(0.02)
