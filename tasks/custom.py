@@ -33,7 +33,7 @@ class SendLatiaoTask:
                 continue
             num_finished += num_sent
             await UtilsTask.send_gift(user, room_id, num_sent, bag_id, gift_id)
-        user.info([f'一共送出{num_finished}个辣条给{room_id}'], True)
+        user.infos([f'一共送出{num_finished}个辣条给{room_id}'])
         if num_max - num_finished == 0:
             return None
         return (0, (0, 1.5), user.id + 1, room_id, num_max - num_finished),

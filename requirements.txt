@@ -4,3 +4,4 @@ attrs
 aiohttp
 toml
 Pillow
+decorator

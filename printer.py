@@ -1,10 +1,83 @@
 import sys
 import time
+from typing import Optional
+from collections import defaultdict
 if sys.platform == 'ios':
     import console
 
         
-class BasePrinter():
+class BiliLogger():
+    # 格式化数据
+    @staticmethod
+    def format(
+            *objects,
+            extra_info: Optional[str] = None,
+            need_timestamp: bool = True):
+        timestamp = time.strftime("[%Y-%m-%d %H:%M:%S]", time.localtime())\
+            if need_timestamp else '>'
+        extra_info = f' ({extra_info})' if extra_info is not None else ''
+        if objects:
+            first_value, *others = objects
+            others = [f'# {i}' for i in others]
+            return (f'{timestamp} {first_value}{extra_info}', *others)
+        return f'{timestamp} NULL{extra_info}',
+
+    def infos(
+            self,
+            list_objects,
+            **kwargs):
+        self.info(*list_objects, **kwargs)
+
+    def info(
+            self,
+            *objects,
+            extra_info: Optional[str] = None,
+            need_timestamp: bool = True):
+        texts = self.format(
+            *objects,
+            extra_info=extra_info,
+            need_timestamp=need_timestamp)
+        for i in texts:
+            print(i)
+
+    def warn(
+            self,
+            *objects,
+            extra_info: Optional[str] = None):
+        texts = self.format(
+            *objects,
+            extra_info=extra_info,
+            need_timestamp=True)
+        for i in texts:
+            print(i, file=sys.stderr)
+        
+        with open('bili.log', 'a', encoding='utf-8') as f:
+            for i in texts:
+                f.write(f'{i}\n')
+
+    def debug(
+            self,
+            *objects,
+            **kwargs):
+        self.warn(*objects, **kwargs)
+
+    def error(
+            self,
+            *objects,
+            **kwargs):
+        self.warn(*objects, **kwargs)
+        sys.exit(-1)
+    
+    
+class PythonistaPrinter(BiliLogger):
+    def __init__(self):
+        self.dic_color = {
+            'user-level': defaultdict(list),
+            'fans-level': defaultdict(list),
+            'others': defaultdict(list)
+        }
+        self.danmu_control = False
+    
     def init_config(self, dic_color, print_control_danmu):
         self.dic_color = dic_color
         self.danmu_control = print_control_danmu
@@ -12,32 +85,6 @@ class BasePrinter():
     def control_printer(self, danmu_control=None):
         if danmu_control is not None:
             self.danmu_control = danmu_control
-            
-    def timestamp(self):
-        str_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-        return str_time
-        
-    def info(self, list_msg, tag_time=False):
-        if tag_time:
-            print(f'[{self.timestamp()}]', end=' ')
-        for msg in list_msg:
-            print(msg)
-            
-    def warn(self, msg):
-        print(msg, file=sys.stderr)
-        with open('bili.log', 'a', encoding='utf-8') as f:
-            f.write(f'{self.timestamp()} {msg}\n')
-        
-    def debug(self, msg):
-        # if ConfigLoader().dic_user['print_control']['debug']:
-        self.warn(msg)
-            
-    def error(self, msg):
-        self.warn(msg)
-        sys.exit(-1)
-    
-    
-class PythonistaPrinter(BasePrinter):
             
     # "#969696"
     def hex_to_rgb_percent(self, hex_str):
@@ -96,7 +143,16 @@ class PythonistaPrinter(BasePrinter):
         console.set_color()
 
                 
-class NormalPrinter(BasePrinter):
+class NormalPrinter(BiliLogger):
+    def __init__(self):
+        self.danmu_control = False
+    
+    def init_config(self, _, print_control_danmu):
+        self.danmu_control = print_control_danmu
+        
+    def control_printer(self, danmu_control=None):
+        if danmu_control is not None:
+            self.danmu_control = danmu_control
         
     def print_danmu(self, dic_msg, type='normal'):
         if not self.danmu_control:
@@ -133,7 +189,8 @@ class NormalPrinter(BasePrinter):
             
         list_msg.append(info[1])
         print(''.join(list_msg))
- 
+
+  
 if (sys.platform == 'ios'):
     printer = PythonistaPrinter()
 else:
@@ -143,27 +200,30 @@ else:
 def init_config(dic_color, print_control_danmu):
     printer.init_config(dic_color, print_control_danmu)
 
-
-def info(list_msg, tag_time=False):
-    printer.info(list_msg, tag_time)
-
-
-def warn(msg):
-    printer.warn(msg)
-        
-        
-def error(msg):
-    printer.error(msg)
-   
-             
-def debug(msg):
-    printer.debug(msg)
-  
-      
+ 
 def print_danmu(dic_msg, type='normal'):
     printer.print_danmu(dic_msg, type)
     
     
 def control_printer(danmu_control=None, debug_control=None):
     printer.control_printer(danmu_control)
+
             
+def info(*objects, **kwargs):
+    printer.info(*objects, **kwargs)
+
+
+def infos(list_objects, **kwargs):
+    printer.infos(list_objects, **kwargs)
+
+
+def warn(*objects, **kwargs):
+    printer.warn(*objects, **kwargs)
+
+
+def error(*objects, **kwargs):
+    printer.error(*objects, **kwargs)
+
+
+def debug(*objects, **kwargs):
+    printer.debug(*objects, **kwargs)

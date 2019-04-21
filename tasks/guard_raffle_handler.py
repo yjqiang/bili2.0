@@ -49,12 +49,12 @@ class GuardRaffleHandlerTask:
         # {'code': 400, 'msg': '你已经领取过啦', 'message': '你已经领取过啦', 'data': []}
         # await UtilsTask.enter_room(user, real_roomid)
         json_rsp = await user.req_s(GuardRaffleHandlerReq.join, user, real_roomid, raffle_id)
-        user.info([f'参与了房间{real_roomid:^9}的大航海抽奖'], True)
         if not json_rsp['code']:
             for award in json_rsp['data']['award_list']:
                 result = re.search('(^获得|^)(.*)<%(\+|X)(\d*)%>', award['name'])
                 bili_statistics.add2results(result.group(2), user.id, result.group(4))
-            user.info([f'# 房间{real_roomid:^9}大航海抽奖结果: {json_rsp["data"]["message"]}'], with_userid=False)
+            user.infos([
+                f'大航海({raffle_id})的参与结果: {json_rsp["data"]["message"]}'])
             bili_statistics.add2joined_raffles('大航海(合计)', user.id)
         else:
             print(json_rsp)

@@ -84,22 +84,26 @@ class BiliMainReq:
         json_rsp = await user.other_session.request_json('POST', url, data=data, headers=user.dict_bili['pcheaders'])
         return json_rsp
 
+    @staticmethod
     async def share_video(user, aid):
         url = 'https://api.bilibili.com/x/web-interface/share/add'
         data = {'aid': aid, 'jsonp': 'jsonp', 'csrf': user.dict_bili['csrf']}
         json_rsp = await user.other_session.request_json('POST', url, data=data, headers=user.dict_bili['pcheaders'])
         return json_rsp
         
+    @staticmethod
     async def aid2cid(user, aid):
         url = f'https://api.bilibili.com/x/web-interface/view?aid={aid}'
         json_rsp = await user.other_session.request_json('GET', url)
         return json_rsp
     
+    @staticmethod
     async def fetch_uper_videos(user, mid, page):
         url = f'https://app.bilibili.com/x/v2/space/archive?build=1&pn={page}&ps=20&vmid={mid}'
         json_rsp = await user.other_session.request_json('GET', url)
         return json_rsp
                 
+    @staticmethod
     async def fetch_top_videos(user):
         url = 'https://www.bilibili.com/ranking/all/0/0/1/'
         text_tsp = await user.other_session.request_text('GET', url)

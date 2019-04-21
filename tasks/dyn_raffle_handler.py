@@ -24,7 +24,7 @@ class DynRaffleHandlerTask:
     @staticmethod
     async def create_dyn(user):
         json_rsp = await user.req_s(DynRaffleHandlerReq.create_dyn, user)
-        user.info([f'用户生成动态 {json_rsp}'], True)
+        user.infos([f'用户生成动态 {json_rsp}'])
         return int(json_rsp['data']['doc_id'])
 
     @staticmethod
@@ -83,9 +83,9 @@ class DynRaffleHandlerTask:
         code = json_rsp['code']
         # 0(success) / -1(哎呀，系统君开小差了(⊙□⊙))
         if not code:
-            user.info([f'用户删除动态{doc_id}(doc_id)成功'], True)
+            user.infos([f'用户删除动态{doc_id}(doc_id)成功'])
             return True
-        user.info([f'用户删除动态{doc_id}(doc_id)失败，可能系统错误或重复删除请求, {json_rsp}'], True)
+        user.infos([f'用户删除动态{doc_id}(doc_id)失败，可能系统错误或重复删除请求, {json_rsp}'])
         return False
 
     @staticmethod
@@ -98,13 +98,13 @@ class DynRaffleHandlerTask:
         # {'code': 1100404, 'msg': '不能重复删除', 'message': '不能重复删除', 'data': {}}
         # {'code': 1100405, 'msg': '', 'message': '', 'data': {}}
         if not code:
-            user.info([f'用户删除动态{dyn_id}(dyn_id)成功'], True)
+            user.infos([f'用户删除动态{dyn_id}(dyn_id)成功'])
             return True
-        user.info([f'用户删除动态{dyn_id}(dyn_id)失败，可能系统错误或重复删除请求, {json_rsp}'], True)
+        user.infos([f'用户删除动态{dyn_id}(dyn_id)失败，可能系统错误或重复删除请求, {json_rsp}'])
         return False
 
     @staticmethod
-    async def check_and_fetch_raffle(user, doc_id, handle_status=-1, feed_limit=False)->tuple:
+    async def check_and_fetch_raffle(user, doc_id, handle_status=-1, feed_limit=False) -> tuple:
         json_rsp = await user.req_s(DynRaffleHandlerReq.is_dyn_raffle, user, doc_id)
         code = json_rsp['code']
         print('_____________________________________')
@@ -115,7 +115,14 @@ class DynRaffleHandlerTask:
             str_ext = item['extension']
             print(doc_id, str_ext)
             if str_ext:
-                dict_ext = json.loads(str_ext.replace('\'', ''))
+                try:
+                    dict_ext = json.loads(str_ext.replace('\'', ''))
+                except json.JSONDecodeError:
+                    print(f'dict_extension 解析失败，可能是b站api已知问题')
+                    if len(str_ext) != 1024:
+                        user.warn(doc_id, str_ext)
+                    return 1, None
+
                 # 抽奖 不符合的可能{}或者lott_cfg为空或者其他一些
                 if 'lott_cfg' in dict_ext and dict_ext['lott_cfg']:
                     lott_cfg = json.loads(dict_ext['lott_cfg'])
@@ -187,7 +194,6 @@ class DynRaffleHandlerTask:
         user.warn(f'互动抽奖初步查询 {json_rsp}')
         return -1, None
 
-
     @staticmethod
     async def fetch_dyn_raffle_results(
             user, dyn_raffle_status: DynRaffleStatus) -> Optional[DynRaffleResults]:
@@ -241,7 +247,7 @@ class DynRaffleHandlerTask:
 
     @staticmethod
     async def unfollow_raffle_organizer(user, uid):
-        user.info([f'正在处理动态抽奖的取关问题'], True)
+        user.infos([f'正在处理动态抽奖的取关问题'])
         group_id = await UtilsTask.fetch_group_id(user, '抽奖关注')
         is_following, group_ids = await UtilsTask.check_follow(user, uid)
         if group_id in group_ids:
@@ -254,25 +260,25 @@ class DynRaffleHandlerTask:
         code = json_rsp['code']
         if not code:
             return True
-        user.info([f'{doc_id}的动态抽奖不存在'], True)
+        user.infos([f'{doc_id}的动态抽奖不存在'])
         return False
 
     @staticmethod
     async def join(user, dyn_raffle_status: DynRaffleStatus):
         if dyn_raffle_status.lottery_time - utils.curr_time() < 15:
-            user.info([f'动态{dyn_raffle_status.dyn_id}马上或已经开奖，放弃参与'], True)
+            user.infos([f'动态{dyn_raffle_status.dyn_id}马上或已经开奖，放弃参与'])
         async with user.repost_del_lock:
             if dyn_raffle_status.feed_limit:  # 关注
                 await DynRaffleHandlerTask.follow_raffle_organizer(user, dyn_raffle_status.uid)
 
             # 创建动态并提交数据库
             if await DynRaffleHandlerTask.repost_dyn_raffle(user, dyn_raffle_status.dyn_id, dyn_raffle_status.at_num):
-                user.info([f'转发参与动态{dyn_raffle_status.dyn_id}成功'], True)
+                user.infos([f'转发参与动态{dyn_raffle_status.dyn_id}成功'])
                 for i in range(5):  # 经常不能及时刷新
                     await asyncio.sleep(3)
                     dyn_id = await DynRaffleHandlerTask.fetch_reposted_dynid(user, user.dict_bili['uid'], dyn_raffle_status.dyn_id)
                     if dyn_id is not None:
-                        user.info([f'查找转发动态{dyn_raffle_status.dyn_id}生成{dyn_id}'], True)
+                        user.infos([f'查找转发动态{dyn_raffle_status.dyn_id}生成{dyn_id}'])
                         dyn_raffle_joined = DynRaffleJoined(dyn_id=dyn_id, orig_dynid=dyn_raffle_status.dyn_id, uid=user.dict_bili['uid'])
                         print(dyn_raffle_joined)
                         dyn_raffle_sql.insert_dynraffle_joined_table(dyn_raffle_joined)
@@ -290,7 +296,7 @@ class DynRaffleHandlerTask:
                 uid=int_user_uid, orig_dynid=dyn_raffle_status.dyn_id)
 
             if dyn_raffle_joined is None:
-                user.info(['未从数据库中查阅到动态抽奖，可能是之前已经删除了'], True)
+                user.infos(['未从数据库中查阅到动态抽奖，可能是之前已经删除了'])
 
             elif dyn_raffle_results is None or \
                     int_user_uid not in dyn_raffle_results.prize_list_1st and \

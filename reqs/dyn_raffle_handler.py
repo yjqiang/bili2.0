@@ -45,8 +45,13 @@ class DynRaffleHandlerReq:
 
     @staticmethod
     async def del_dyn_by_docid(user, doc_id):
-        url = f'https://api.vc.bilibili.com/link_draw/v1/doc/delete?doc_id={doc_id}'
-        json_rsp = await user.other_session.request_json('GET', url, headers=user.dict_bili['pcheaders'])
+        url = f'https://api.vc.bilibili.com/link_draw/v1/doc/delete'
+        data = {
+            'doc_id': doc_id,
+            'csrf_token': user.dict_bili['csrf'],
+            'csrf': ''
+        }
+        json_rsp = await user.other_session.request_json('POST', url, data=data, headers=user.dict_bili['pcheaders'])
         return json_rsp
 
     @staticmethod

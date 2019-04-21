@@ -20,7 +20,7 @@ class JudgeCaseTask:
         json_rsp = await user.req_s(JudgeCaseReq.fetch_judged_cases, user)
         data = json_rsp['data']
         if data is None:
-            user.info([f'该用户非风纪委成员'], True)
+            user.infos([f'该用户非风纪委成员'])
             return
         today = datetime.today().date()
         sum_cases = 0
@@ -36,7 +36,7 @@ class JudgeCaseTask:
                     judging_cases += 1
                 elif case['vote'] != 3:
                     valid_cases += 1
-        user.info([f'今日投票{sum_cases}（{valid_cases}票有效（非弃权），{judging_cases}票还在进行中）'], True)
+        user.infos([f'今日投票{sum_cases}（{valid_cases}票有效（非弃权），{judging_cases}票还在进行中）'])
         
     @staticmethod
     def judge_advice(num_judged, pct):
@@ -105,7 +105,7 @@ class JudgeCaseTask:
             print('二次判定结果', advice)
         else:
             sleeptime = 180 if num_judged < 300 else 60
-            user.info([f'案件{case_id}暂时无法判定，在{sleeptime}后重新尝试'], True)
+            user.infos([f'案件{case_id}暂时无法判定，在{sleeptime}后重新尝试'])
             wait_time += sleeptime
             fluctuation = (min_pct, max_pct)
             return (1, (sleeptime, sleeptime+5), user.id, case_id, wait_time, fluctuation),

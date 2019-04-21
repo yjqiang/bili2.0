@@ -51,17 +51,22 @@ notifier.set_users(users)
     
 loop.run_until_complete(notifier.exec_func(-2, LoginTask.handle_login_status))
 
-area_ids = dict_ctrl['other_control']['area_ids']
+other_control = dict_ctrl['other_control']
+area_ids = other_control['area_ids']
 bili_statistics.init_area_num(len(area_ids))
-yj_danmu_roomid = dict_ctrl['other_control']['raffle_minitor_roomid']
-default_roomid = dict_ctrl['other_control']['default_monitor_roomid']
+default_roomid = other_control['default_monitor_roomid']
 
 async def get_printer_danmu():
     future = asyncio.Future()
+    yjmonitor_danmu_roomid = other_control['yjmonitor_danmu_roomid']
+    yjmonitor_tcp_addr = other_control['yjmonitor_tcp_addr']
+    yjmonitor_tcp_key = other_control['yjmonitor_tcp_key']
     asyncio.ensure_future(monitor_danmu_raffle.run_danmu_monitor(
             raffle_danmu_areaids=area_ids,
-            yjmonitor_danmu_roomid=yj_danmu_roomid,
+            yjmonitor_danmu_roomid=yjmonitor_danmu_roomid,
             printer_danmu_roomid=default_roomid,
+            yjmonitor_tcp_addr=yjmonitor_tcp_addr,
+            yjmonitor_tcp_key=yjmonitor_tcp_key,
             future=future))
     await future
     return future.result()

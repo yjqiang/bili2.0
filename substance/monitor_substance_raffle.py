@@ -32,22 +32,22 @@ class SubstanceRaffleMonitor:
         number = substance_raffle_status.number
 
         if substance_raffle_status.join_end_time <= utils.curr_time() + 90:
-            printer.info([f'{aid}({number})的实物抽奖已经开奖或马上开奖，不再参与/记录'], True)
+            printer.infos([f'{aid}({number})的实物抽奖已经开奖或马上开奖，不再参与/记录'])
             return
         for key_word in self.substance_raffle_description_filter:
             if key_word in substance_raffle_status.describe:
-                printer.info([f'{aid}({number})的实物抽奖正文触发关键词过滤({key_word})'], True)
+                printer.infos([f'{aid}({number})的实物抽奖正文触发关键词过滤({key_word})'])
                 return
         if substance_raffle_sql.is_raffleid_duplicate(aid, number):
-            printer.info([f'{aid}({number})的实物抽奖触发重复性过滤'], True)
+            printer.infos([f'{aid}({number})的实物抽奖触发重复性过滤'])
             return
 
         substance_raffle_sql.insert_substanceraffle_status_table(substance_raffle_status)
 
-        printer.info([f'{aid}({number})的实物抽奖通过过滤与验证，正式处理'], True)
+        printer.infos([f'{aid}({number})的实物抽奖通过过滤与验证，正式处理'])
         assert not self.should_join_immediately
         if not self.should_join_immediately:
-            printer.info([f'{aid}({number})的实物抽奖暂不参与，仅记录数据库中等候轮询'], True)
+            printer.infos([f'{aid}({number})的实物抽奖暂不参与，仅记录数据库中等候轮询'])
         return
 
     async def check_raffle(self):
@@ -130,7 +130,7 @@ class SubstanceRaffleMonitor:
         while True:
             results = substance_raffle_sql.select_rafflestatus(1, None, utils.curr_time() - 900)  # 延迟15min处理抽奖
             results += substance_raffle_sql.select_rafflestatus(-1, None, utils.curr_time() - 900)
-            printer.info(['正在查找已经结束的实物抽奖：', results], True)
+            printer.infos(['正在查找已经结束的实物抽奖：', results])
             for substance_raffle_status in results:
 
                 substance_raffle_results: Optional[SubstanceRaffleResults] = await notifier.exec_func(
@@ -150,7 +150,7 @@ class SubstanceRaffleMonitor:
         while True:
             curr_time = utils.curr_time()
             results = substance_raffle_sql.select_rafflestatus(-1, (curr_time - 45, curr_time + 90))[:5]
-            printer.info(['正在查找需要参与的实物抽奖：', results], True)
+            printer.infos(['正在查找需要参与的实物抽奖：', results])
             for substance_raffle_status in results:
                 print(substance_raffle_status)
                 aid = substance_raffle_status.aid
@@ -160,10 +160,10 @@ class SubstanceRaffleMonitor:
                     substance_raffle_sql.del_from_substanceraffle_status_table(aid, number)
                     printer.warn(f'{substance_raffle_status}消失了。。。。。')
                     continue
-                printer.info([f'{aid}({number})的实物抽奖正在参与'], True)
+                printer.infos([f'{aid}({number})的实物抽奖正在参与'])
                 await notifier.exec_task_awaitable(-2, SubstanceRaffleHandlerTask, 1, substance_raffle_status)
                 substance_raffle_sql.set_rafflestatus_handle_status(1, aid, number)
-                printer.info([f'{aid}({number})的实物抽奖参与完毕'], True)
+                printer.infos([f'{aid}({number})的实物抽奖参与完毕'])
             if not results:
                 await asyncio.sleep(60)
 
@@ -173,10 +173,10 @@ class SubstanceRaffleMonitor:
             print(substance_raffle_status)
             aid = substance_raffle_status.aid
             number = substance_raffle_status.number
-            printer.info([f'正在暴力处理上次中断的{aid}({number})的实物抽奖后续'], True)
+            printer.infos([f'正在暴力处理上次中断的{aid}({number})的实物抽奖后续'])
             substance_raffle_sql.set_rafflestatus_handle_status(1, aid, number)
 
-        printer.info([f'欢迎使用实物抽奖'], True)
+        printer.infos([f'欢迎使用实物抽奖'])
         tasks = []
         task_check_raffle = asyncio.ensure_future(self.check_raffle())
         tasks.append(task_check_raffle)

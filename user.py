@@ -60,13 +60,37 @@ class User:
             self._other_session = WebSession()
         return self._other_session
         
-    def info(self, list_msg, tag_time=False, with_userid=True):
+    def infos(
+            self,
+            list_objects,
+            with_userid=True,
+            **kwargs):
         if with_userid:
-            list_msg[0] += f'(用户id:{self.id} 名字:{self.alias})'
-        printer.info(list_msg, tag_time)
+            printer.infos(
+                list_objects,
+                **kwargs,
+                extra_info=f'用户id:{self.id} 名字:{self.alias}')
+        else:
+            printer.infos(list_objects, **kwargs)
+            
+    def info(
+            self,
+            *objects,
+            with_userid=True,
+            **kwargs):
+        if with_userid:
+            printer.info(
+                *objects,
+                **kwargs,
+                extra_info=f'用户id:{self.id} 名字:{self.alias}')
+        else:
+            printer.info(*objects, **kwargs)
         
-    def warn(self, msg):
-        printer.warn(f'{msg}, 用户id:{self.id} 名字:{self.alias}')
+    def warn(self, *objects, **kwargs):
+        printer.warn(
+            *objects,
+            **kwargs,
+            extra_info=f'用户id:{self.id} 名字:{self.alias}')
         
     def calc_sign(self, str):
         str = f'{str}{self.dict_bili["app_secret"]}'

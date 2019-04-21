@@ -133,8 +133,8 @@ class UserStatus:
     def print_status(self):
         work_status = '恭喜中奖' if self.work_status == JailStatus else '自由之身'
         time_status = '白天工作' if self.time_status == DayStatus else '夜晚休眠'
-        self.user.info([f'小黑屋状态: {work_status}'], True)
-        self.user.info([f'工作状态: {time_status}'], True)
+        self.user.infos([f'小黑屋状态: {work_status}'])
+        self.user.infos([f'工作状态: {time_status}'])
     
     def check_status(self, func):
         code, sleeptime = self.time_status.check_status(func)

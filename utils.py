@@ -35,8 +35,7 @@ def print_progress(finished_exp, sum_exp, num_sum=30):
     num_arrow = int(finished_exp / sum_exp * num_sum)
     num_line = num_sum - num_arrow
     percent = finished_exp / sum_exp * 100
-    process_bar = f'[{">" * num_arrow}{"-" * num_line}] {percent:.2f}%'
-    print(process_bar)
+    return f'[{">" * num_arrow}{"-" * num_line}] {percent:.2f}%'
     
     
 def curr_time():
