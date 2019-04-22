@@ -374,6 +374,15 @@ class UtilsTask:
             print(json_rsp['msg'])
             
     @staticmethod
+    async def check_uid_by_roomid(user, room_id):
+        json_rsp = await user.req_s(UtilsReq.init_room, user, room_id)
+        if not json_rsp['code']:
+            uid = json_rsp['data']['uid']
+            print(f'房间号{room_id}对应的UID为{uid}')
+            return int(uid)
+        return None
+            
+    @staticmethod
     async def send_danmu(user, msg, room_id):
         json_rsp = await user.req_s(UtilsReq.send_danmu, user, msg, room_id)
         print(json_rsp)

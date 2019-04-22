@@ -1,7 +1,7 @@
 # 理论上项目已有的task不要相互引用，只能引用utils的东西，防止交叉，但是自定义的无所谓，因为绝对不可能交叉
 from tasks.live_daily_job import SendGiftTask
 from tasks.utils import UtilsTask
-from reqs.custom import BuyLatiaoReq
+from reqs.custom import BuyLatiaoReq, BuyMedalReq
 
 
 class SendLatiaoTask:
@@ -46,7 +46,6 @@ class BuyLatiaoTask:
         if not json_rsp['code']:
             silver = json_rsp['data']['silver']
             return silver
-        
                 
     @staticmethod
     async def clean_latiao(user, room_id):
@@ -55,4 +54,14 @@ class BuyLatiaoTask:
         coin_type = 'silver'
         num_sent = int((await BuyLatiaoTask.fetch_silver(user)) / 100)
         await UtilsTask.buy_gift(user, room_id, num_sent, coin_type, gift_id)
+        
 
+class BuyMedalTask:
+    @staticmethod
+    async def buy_medal(user, room_id, coin_type):
+        if coin_type == 'metal' or coin_type == 'silver':
+            uid = await UtilsTask.check_uid_by_roomid(user, room_id)
+            if uid is not None:
+                json_rsp = await BuyMedalReq.buy_medal(user, uid, coin_type)
+                user.info(json_rsp['msg'])
+        user.info('请重新检查填写coin_type或者房间号')

@@ -5,7 +5,7 @@ import notifier
 from cmd import Cmd
 import getopt
 from tasks.utils import UtilsTask
-from tasks.custom import SendLatiaoTask, BuyLatiaoTask
+from tasks.custom import SendLatiaoTask, BuyLatiaoTask, BuyMedalTask
 from tasks.main_daily_job import JudgeCaseTask
           
               
@@ -39,6 +39,7 @@ class Biliconsole(Cmd):
         
         print('|２１　赠指定总数的辣条到房间　　　　|')
         print('|２２　银瓜子全部购买辣条并送到房间　|')
+        print('|２３　购买勋章（使用银瓜子或者硬币）|')
         print(' ￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣ ')
         
     def default(self, line):
@@ -151,6 +152,10 @@ class Biliconsole(Cmd):
     def do_22(self, arg):
         id, real_roomid = self.parse(arg, '-u:-p:')
         self.exec_notifier_func_threads(id, BuyLatiaoTask.clean_latiao, [real_roomid])
+        
+    def do_23(self, arg):
+        id, coin_type, real_roomid = self.parse(arg, '-u:-c:-p:')
+        self.exec_notifier_func_threads(id, BuyMedalTask.buy_medal, [real_roomid, coin_type])
             
     def fetch_real_roomid(self, room_id):
         real_roomid = [-1, UtilsTask.get_real_roomid, room_id]
