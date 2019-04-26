@@ -161,7 +161,6 @@ class BiliMainTask:
     async def send_coin2video(user, aid, num_sent):
         if num_sent not in (1, 2):
             return 1
-            return False
         # 10004 稿件已经被删除
         # 34005 超过，满了
         # -104 不足硬币
@@ -173,6 +172,8 @@ class BiliMainTask:
         else:
             print('投币失败', json_rsp)
             # -104 硬币不足 -650 用户等级太低
+            # -102 账号被封停
+            # -101 未登陆
             if code == -104 or code == -102 or code == -650:
                 return -1
             return 1
