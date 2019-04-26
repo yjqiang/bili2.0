@@ -2,7 +2,6 @@ import sys
 import signal
 import threading
 import asyncio
-from os import path
 import conf_loader
 import notifier
 import bili_statistics
@@ -30,8 +29,6 @@ from danmu import monitor_danmu_raffle
 from dyn.monitor_dyn_raffle import DynRaffleMonitor
 from substance.monitor_substance_raffle import SubstanceRaffleMonitor
 
-root_path = path.dirname(path.realpath(__file__))
-conf_loader.set_path(root_path)
 
 loop = asyncio.get_event_loop()
         
@@ -94,7 +91,7 @@ notifier.exec_task(-2, JudgeCaseTask, 0, delay_range=(0, 5))
 notifier.exec_task(-2, BiliMainTask, 0, delay_range=(0, 5))
 
 
-other_tasks = [  
+other_tasks = [
     SubstanceRaffleMonitor().run(),
     # DynRaffleMonitor(should_join_immediately=True).run(),
     ]

@@ -1,3 +1,4 @@
+from os import path
 import toml
 
 
@@ -12,11 +13,12 @@ def rgb_to_percent(list_rgb):
     
     
 class ConfLoader():
-    def set_path(self, root_path):
-        self.file_color = f'{root_path}/conf/color.toml'
-        self.file_user = f'{root_path}/conf/user.toml'
-        self.file_bili = f'{root_path}/conf/bili.toml'
-        self.file_ctrl = f'{root_path}/conf/ctrl.toml'
+    def __init__(self):
+        path_conf = f'{path.dirname(path.realpath(__file__))}/conf'
+        self.file_color = f'{path_conf}/color.toml'
+        self.file_user = f'{path_conf}/user.toml'
+        self.file_bili = f'{path_conf}/bili.toml'
+        self.file_ctrl = f'{path_conf}/ctrl.toml'
         
         '''
         self.dict_color = self.read_color()
@@ -68,10 +70,6 @@ class ConfLoader():
                 
 var = ConfLoader()
 
-
-def set_path(root_path):
-    var.set_path(root_path)
-    
 
 def write_user(dict_new, user_id):
     var.write_user(dict_new, user_id)
