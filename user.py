@@ -11,7 +11,7 @@ from tasks.login import LoginTask
 
 
 class User:
-    def __init__(self, id, dict_user, task_ctrl, dict_bili, dyn_lottery_friends):
+    def __init__(self, id, dict_user, task_ctrl, dict_bili):
         self.id = id
         self.name = dict_user['username']
         self.password = dict_user['password']
@@ -27,6 +27,7 @@ class User:
         self.update_login_data(dict_user)
         self.list_delay = []
         self.repost_del_lock = asyncio.Lock()  # 在follow与unfollow过程中必须保证安全(repost和del整个过程加锁)
+        dyn_lottery_friends = [(str(uid), name) for uid, name in task_ctrl['dyn_lottery_friends'].items()]
         self.dyn_lottery_friends = dyn_lottery_friends  # list (uid, name)
         self.storm_lock = asyncio.Semaphore(1)  # 用于控制同时进行的风暴数目(注意是单个用户的)
         

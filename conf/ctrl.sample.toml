@@ -1,8 +1,10 @@
-[print_control]
+[print_control]  # 打印
 # 控制default_monitor_roomid所指认的room弹幕打印(pythonista ios可以彩打哦)
 danmu = false
 
-[task_control]
+
+
+[global_task_control]  # 总体的task控制
 # 清理即将过期礼物，请true之后一定要把紧随其后的clean-expiring-gift2room设置为真实房间号
 clean-expiring-gift = false
 # 单位秒，这是控制定义过期礼物何时为“过期”的阈值
@@ -16,7 +18,7 @@ silver2coin = false
 
 # 自动投满佩戴勋章当日亲密度
 send2wearing-medal = false
-# 短房间号(与投满亲密度send2wearing-medal的一起使用)
+# 短房间号(与投满亲密度send2wearing-medal的一起使用)。注意⚠️如果只需要投佩戴的勋章，不用修改send2medal
 send2medal = []
 
 # 输入数字 0-5 表示主站每日自动投币
@@ -26,12 +28,19 @@ fetchrule = "bilitop"
 # up主list([123]或者[123, 234, 123]等)
 mid = [ 207539637,]
 
-[dyn_raffle]
 # 抽奖@的人，格式为 uid = "用户名"（例如 {332704117 = "白上吹雪Official", 339567211 = "赤井心Official"}）
 # 要求被@的人不能经常改名字，这样也就说明这些用户也可控，即不得随意骚扰他人
 dyn_lottery_friends = {}
 
-[other_control]
+
+
+[custom_task_control]  # 与global_task_control对应。针对某个具体用户的自定义(如果用户没有自定义的部分，就使用前面global那里的配置)
+    [custom_task_control.username]  # sub-table({'custom_task_control': {'user0': {}, 'user1': {}}})，name与user.toml内的相同
+    givecoin = 5
+
+
+
+[other_control]  # 其他细节控制
 # 默认监听房间号(用于打印弹幕功能等)
 default_monitor_roomid = 23058
 

@@ -38,11 +38,17 @@ dict_color = conf_loader.read_color()
 dict_ctrl = conf_loader.read_ctrl()
 printer.init_config(dict_color, dict_ctrl['print_control']['danmu'])
 
+# user设置
 users = []
-task_control = dict_ctrl['task_control']
-dyn_lottery_friends = [(str(uid), name) for uid, name in dict_ctrl['dyn_raffle']['dyn_lottery_friends'].items()]
+global_task_control = dict_ctrl['global_task_control']
+custom_task_control = dict_ctrl['custom_task_control']
 for i, user_info in enumerate(dict_user['users']):
-    users.append(User(i, user_info, task_control, dict_bili, dyn_lottery_friends))
+    username = user_info['username']
+    if username in custom_task_control:
+        task_control = {**global_task_control, **custom_task_control[username]}
+    else:
+        task_control = global_task_control
+    users.append(User(i, user_info, task_control, dict_bili))
 notifier.set_values(loop)
 notifier.set_users(users)
     
