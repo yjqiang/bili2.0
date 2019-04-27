@@ -37,6 +37,8 @@ dyn_lottery_friends = {}
 [custom_task_control]  # 与global_task_control对应。针对某个具体用户的自定义(如果用户没有自定义的部分，就使用前面global那里的配置)
     [custom_task_control.username]  # sub-table({'custom_task_control': {'user0': {}, 'user1': {}}})，name与user.toml内的相同
     givecoin = 5
+    [custom_task_control."xxx.qq.com"]  # 用户名如果包含.这个特殊符号需要使用双引号括起来，这里xx.qq.com就是username
+    givecoin = 5
 
 
 
