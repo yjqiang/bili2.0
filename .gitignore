@@ -105,3 +105,4 @@ venv.bak/
 *.db
 /conf/ctrl.toml
 /conf/user.toml
+.idea/
