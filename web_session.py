@@ -62,6 +62,8 @@ class WebSession:
                             await asyncio.sleep(240)
                 except RspError:
                     raise
+                except asyncio.CancelledError:
+                    raise
                 except:
                     # print('当前网络不好，正在重试，请反馈开发者!!!!')
                     print(sys.exc_info()[0], sys.exc_info()[1], url)
@@ -86,6 +88,8 @@ class WebSession:
                         elif rsp.status == 403:
                             printer.warn(f'403频繁, {url}')
                             await asyncio.sleep(240)
+                except asyncio.CancelledError:
+                    raise
                 except:
                     # print('当前网络不好，正在重试，请反馈开发者!!!!')
                     print(sys.exc_info()[0], sys.exc_info()[1], url)
@@ -110,6 +114,8 @@ class WebSession:
                         elif rsp.status == 403:
                             printer.warn(f'403频繁, {url}')
                             await asyncio.sleep(240)
+                except asyncio.CancelledError:
+                    raise
                 except:
                     # print('当前网络不好，正在重试，请反馈开发者!!!!')
                     print(sys.exc_info()[0], sys.exc_info()[1], url)

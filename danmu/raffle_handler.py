@@ -8,25 +8,28 @@ class RaffleHandler:
 
     async def run(self):
         while True:
-            raffle0 = await self.queue.get()
+            list_raffle = [await self.queue.get()]
             await asyncio.sleep(2)
-            list_raffle = [self.queue.get_nowait() for i in range(self.queue.qsize())]
-            list_raffle.append(raffle0)
-            # 后期考虑如何更好的压缩
+            while not self.queue.empty():
+                list_raffle.append(self.queue.get_nowait())
+
+            # 压缩与过滤
             list_raffle = list(set(list_raffle))
             # print('raffle_handler', list_raffle)
             for task, *args in list_raffle:
-                notifier.exec_task(-1, task, 0, *args, delay_range=(0, 2))
+                notifier.exec_task_no_wait(task, *args)
         
     def push2queue(self, *args):
         self.queue.put_nowait(args)
         
-    def exec_at_once(self, task, *args):
-        notifier.exec_task(-1, task, 0, *args, delay_range=(0, 0))
+    @staticmethod
+    def exec_at_once(task, *args):
+        notifier.exec_task_no_wait(task, *args)
 
                 
 var = RaffleHandler()
-    
+
+
 async def run():
     await var.run()
         
@@ -37,5 +40,3 @@ def push2queue(*args):
         
 def exec_at_once(task, *args):
     var.exec_at_once(task, *args)
-    
-    

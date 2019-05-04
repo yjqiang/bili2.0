@@ -2,11 +2,15 @@ import sys
 import signal
 import threading
 import asyncio
+
+import aiohttp
+
 import conf_loader
 import notifier
-import bili_statistics
-from bili_console import Biliconsole
+import bili_sched
 import printer
+import bili_statistics
+from bili_console import BiliConsole
 from user import User
 from tasks.login import LoginTask
 from tasks.live_daily_job import (
@@ -18,20 +22,23 @@ from tasks.live_daily_job import (
     WatchTvTask,
     SignFansGroupsTask,
     SendGiftTask,
-    ExchangeSilverCoinTask,
+    ExchangeSilverCoinTask
 )
 from tasks.main_daily_job import (
     JudgeCaseTask,
     BiliMainTask
-    
 )
-from danmu import monitor_danmu_raffle
-from dyn.monitor_dyn_raffle import DynRaffleMonitor
+# 弹幕
+from danmu.bili_danmu_monitor import DanmuPrinter, DanmuRaffleMonitor
+from danmu.yj_monitor import TcpYjMonitorClient
+from danmu import raffle_handler
+# 实物抽奖
 from substance.monitor_substance_raffle import SubstanceRaffleMonitor
+from dyn.monitor_dyn_raffle import DynRaffleMonitor
 
 
 loop = asyncio.get_event_loop()
-        
+
 dict_user = conf_loader.read_user()
 dict_bili = conf_loader.read_bili()
 dict_color = conf_loader.read_color()
@@ -42,68 +49,95 @@ printer.init_config(dict_color, dict_ctrl['print_control']['danmu'])
 users = []
 global_task_control = dict_ctrl['global_task_control']
 custom_task_control = dict_ctrl['custom_task_control']
-for i, user_info in enumerate(dict_user['users']):
+for user_info in dict_user['users']:
     username = user_info['username']
     if username in custom_task_control:
         task_control = {**global_task_control, **custom_task_control[username]}
     else:
         task_control = global_task_control
-    users.append(User(i, user_info, task_control, dict_bili))
-notifier.set_values(loop)
-notifier.set_users(users)
-    
-loop.run_until_complete(notifier.exec_func(-2, LoginTask.handle_login_status))
+    users.append(User(user_info, task_control, dict_bili))
+notifier.init(users=users)
+
+
+# 时间间隔为小时，同时每次休眠结束都会计时归零，重新从当前时间计算时间间隔
+# 下面表示每隔多少小时执行一次
+bili_sched.add_daily_jobs(HeartBeatTask, every_hours=6)
+bili_sched.add_daily_jobs(RecvHeartGiftTask, every_hours=6)
+bili_sched.add_daily_jobs(OpenSilverBoxTask, every_hours=6)
+bili_sched.add_daily_jobs(RecvDailyBagTask, every_hours=3)
+bili_sched.add_daily_jobs(SignTask, every_hours=6)
+bili_sched.add_daily_jobs(WatchTvTask, every_hours=6)
+bili_sched.add_daily_jobs(SignFansGroupsTask, every_hours=6)
+bili_sched.add_daily_jobs(SendGiftTask, every_hours=2)
+bili_sched.add_daily_jobs(ExchangeSilverCoinTask, every_hours=6)
+bili_sched.add_daily_jobs(JudgeCaseTask, every_hours=0.75)
+bili_sched.add_daily_jobs(BiliMainTask, every_hours=4)
+
+loop.run_until_complete(notifier.exec_task(LoginTask))
 
 other_control = dict_ctrl['other_control']
 area_ids = other_control['area_ids']
-bili_statistics.init_area_num(len(area_ids))
+bili_statistics.init(area_num=len(area_ids))
 default_roomid = other_control['default_monitor_roomid']
 
-async def get_printer_danmu():
-    future = asyncio.Future()
-    yjmonitor_danmu_roomid = other_control['yjmonitor_danmu_roomid']
+
+# aiohttp sb session
+async def init_monitors():
     yjmonitor_tcp_addr = other_control['yjmonitor_tcp_addr']
     yjmonitor_tcp_key = other_control['yjmonitor_tcp_key']
-    asyncio.ensure_future(monitor_danmu_raffle.run_danmu_monitor(
-            raffle_danmu_areaids=area_ids,
-            yjmonitor_danmu_roomid=yjmonitor_danmu_roomid,
-            printer_danmu_roomid=default_roomid,
-            yjmonitor_tcp_addr=yjmonitor_tcp_addr,
-            yjmonitor_tcp_key=yjmonitor_tcp_key,
-            future=future))
-    await future
-    return future.result()
 
-printer_danmu = loop.run_until_complete(get_printer_danmu())
+    raffle_danmu_areaids = area_ids
+    printer_danmu_roomid = default_roomid
+    yjmonitor_tcp_addr = yjmonitor_tcp_addr
+    yjmonitor_tcp_key = yjmonitor_tcp_key
+    session = aiohttp.ClientSession()
 
+    _danmu_monitors = []
+
+    for area_id in raffle_danmu_areaids:
+        monitor = DanmuRaffleMonitor(
+            room_id=0,
+            area_id=area_id,
+            session=session)
+        _danmu_monitors.append(monitor)
+
+    if yjmonitor_tcp_key:
+        monitor = TcpYjMonitorClient(
+            key=yjmonitor_tcp_key,
+            url=yjmonitor_tcp_addr,
+            area_id=0)
+        _danmu_monitors.append(monitor)
+
+    _danmu_printer = DanmuPrinter(
+        room_id=printer_danmu_roomid,
+        area_id=-1,
+        session=session)
+
+    if other_control['substance_raffle']:
+        _danmu_monitors.append(SubstanceRaffleMonitor())
+    if other_control['dyn_raffle']:
+        _danmu_monitors.append(DynRaffleMonitor(should_join_immediately=False))
+    return _danmu_printer, _danmu_monitors
+danmu_printer, monitors = loop.run_until_complete(init_monitors())
+bili_sched.init(monitors=monitors, sleep_ranges=dict_ctrl['other_control']['sleep_ranges'])
+
+
+# 初始化控制台
 if sys.platform != 'linux' or signal.getsignal(signal.SIGHUP) == signal.SIG_DFL:
     console_thread = threading.Thread(
-        target=Biliconsole(loop, default_roomid, printer_danmu).cmdloop)
+        target=BiliConsole(loop, default_roomid, danmu_printer).cmdloop)
     console_thread.start()
 else:
     console_thread = None
 
-
-notifier.exec_task(-2, HeartBeatTask, 0, delay_range=(0, 5))
-notifier.exec_task(-2, RecvHeartGiftTask, 0, delay_range=(0, 5))
-notifier.exec_task(-2, OpenSilverBoxTask, 0, delay_range=(0, 5))
-notifier.exec_task(-2, RecvDailyBagTask, 0, delay_range=(0, 5))
-notifier.exec_task(-2, SignTask, 0, delay_range=(0, 5))
-notifier.exec_task(-2, WatchTvTask, 0, delay_range=(0, 5))
-notifier.exec_task(-2, SignFansGroupsTask, 0, delay_range=(0, 5))
-notifier.exec_task(-2, SendGiftTask, 0, delay_range=(0, 5))
-notifier.exec_task(-2, ExchangeSilverCoinTask, 0, delay_range=(0, 5))
-notifier.exec_task(-2, JudgeCaseTask, 0, delay_range=(0, 5))
-notifier.exec_task(-2, BiliMainTask, 0, delay_range=(0, 5))
-
-
+tasks = [monitor.run() for monitor in monitors]
 other_tasks = [
-    SubstanceRaffleMonitor().run(),
-    # DynRaffleMonitor(should_join_immediately=True).run(),
-    ]
+    bili_sched.run(),
+    raffle_handler.run(),
+    danmu_printer.run()
+]
 if other_tasks:
-    loop.run_until_complete(asyncio.wait(other_tasks))
+    loop.run_until_complete(asyncio.wait(tasks+other_tasks))
 loop.run_forever()
 if console_thread is not None:
     console_thread.join()
-

@@ -8,74 +8,16 @@ from dyn import dyn_raffle_sql
 from dyn.bili_data_types import DynRaffleStatus, DynRaffleJoined, DynRaffleResults, DynRaffleLuckydog
 from reqs.dyn_raffle_handler import DynRaffleHandlerReq
 from .utils import UtilsTask
+from .task_func_decorator import normal
+from .base_class import ForcedTask
 
 
-class DynRaffleHandlerTask:
-    @staticmethod
-    def target(step):
-        if step == 0:
-            return DynRaffleHandlerTask.check
-        if step == 1:
-            return DynRaffleHandlerTask.join
-        if step == 2:
-            return DynRaffleHandlerTask.notice
-        return None
-
+class DynRaffleUtilsTask:
     @staticmethod
     async def create_dyn(user):
         json_rsp = await user.req_s(DynRaffleHandlerReq.create_dyn, user)
         user.infos([f'用户生成动态 {json_rsp}'])
         return int(json_rsp['data']['doc_id'])
-
-    @staticmethod
-    async def repost_dyn_raffle(user, orig_dynid, at_num):
-        if len(user.dyn_lottery_friends) < at_num:
-            return False
-        print('开始转发动态: ', orig_dynid)
-        at_users = [(str(uid), name) for uid, name in random.sample(user.dyn_lottery_friends, at_num)]
-
-        location = 0
-        ctrl = []
-        content = ''
-        for uid, name in at_users:
-            ulength = len(name)
-            ctrl_piece = {
-                'data': uid,
-                'location': location,
-                'length': ulength + 1,  # 算上at符号
-                'type': 1,
-            }
-            ctrl.append(ctrl_piece)
-            location += ulength + 1 + 1  # 空格
-            # 1个空格隔开
-            content += f'@{name} '
-
-        message = ["emmmm...", "中奖吧！", "啊~~", "抽奖玩", "拉低中奖率2333", "反正先转了再说", "先转为敬", "大佬大佬抽奖带我.jpg", "我是非酋", "欧皇驾到"]
-        content += random.choice(message)
-        at_uids = ','.join([uid for uid, _ in at_users])
-        str_ctrl = json.dumps(ctrl)
-
-        json_rsp = await user.req_s(DynRaffleHandlerReq.repost_dyn, user, orig_dynid, content, at_uids, str_ctrl)
-        data = json_rsp['data']
-        print(json_rsp)
-        return not json_rsp['code'] and data['errmsg'] == '符合条件，允许发布'
-
-    @staticmethod
-    async def fetch_reposted_dynid(user, uid, orig_dynid):
-        offset = 0
-        while True:
-            json_rsp = await user.req_s(DynRaffleHandlerReq.fetch_dyns, user, uid, offset)
-            if 'cards' not in json_rsp['data']:
-                return None
-            cards = json_rsp['data']['cards']
-            assert cards
-            for dyn in cards:
-                desc = dyn['desc']
-                print(desc['orig_dy_id'], desc['dynamic_id'])
-                if int(orig_dynid) == int(desc['orig_dy_id']):
-                    return int(desc['dynamic_id'])
-
-            offset = cards[-1]['desc']['dynamic_id']
 
     @staticmethod
     async def del_dyn_by_docid(user, doc_id):
@@ -120,7 +62,8 @@ class DynRaffleHandlerTask:
                 except json.JSONDecodeError:
                     print(f'dict_extension 解析失败，可能是b站api已知问题')
                     if len(str_ext) != 1024:
-                        user.warn(doc_id, str_ext)
+                        # TODO 可能还有doc_id=21426429 "extension":"{\"emoji_type\":1}{\"emoji_type\":1}"
+                        user.warn(f'动态抽奖{doc_id}dict_extension 解析失败', str_ext)
                     return 1, None
 
                 # 抽奖 不符合的可能{}或者lott_cfg为空或者其他一些
@@ -234,6 +177,22 @@ class DynRaffleHandlerTask:
             return None
 
     @staticmethod
+    async def check(user, doc_id: int):
+        # 确认dyn存在性
+        json_rsp = await user.req_s(DynRaffleHandlerReq.fetch_dyn_raffle, user, doc_id)
+        code = json_rsp['code']
+        if not code:
+            return True
+        user.infos([f'{doc_id}的动态抽奖不存在'])
+        return False
+
+
+class DynRaffleJoinTask(ForcedTask):
+    @staticmethod
+    async def check(_, *args):
+        return (-2, None, *args),  # 参见notifier的特殊处理，为None就会依次处理，整个过程awaitable
+
+    @staticmethod
     async def follow_raffle_organizer(user, uid):
         is_following, group_ids = await UtilsTask.check_follow(user, uid)
         if is_following:
@@ -246,40 +205,75 @@ class DynRaffleHandlerTask:
         return
 
     @staticmethod
-    async def unfollow_raffle_organizer(user, uid):
-        user.infos([f'正在处理动态抽奖的取关问题'])
-        group_id = await UtilsTask.fetch_group_id(user, '抽奖关注')
-        is_following, group_ids = await UtilsTask.check_follow(user, uid)
-        if group_id in group_ids:
-            await UtilsTask.unfollow(user, uid)
+    async def repost_dyn_raffle(user, orig_dynid, at_num):
+        if len(user.dyn_lottery_friends) < at_num:
+            return False
+        print('开始转发动态: ', orig_dynid)
+        at_users = [(str(uid), name) for uid, name in random.sample(user.dyn_lottery_friends, at_num)]
+
+        location = 0
+        ctrl = []
+        content = ''
+        for uid, name in at_users:
+            ulength = len(name)
+            ctrl_piece = {
+                'data': uid,
+                'location': location,
+                'length': ulength + 1,  # 算上at符号
+                'type': 1,
+            }
+            ctrl.append(ctrl_piece)
+            location += ulength + 1 + 1  # 空格
+            # 1个空格隔开
+            content += f'@{name} '
+
+        message = ["emmmm...", "中奖吧！", "啊~~", "抽奖玩", "拉低中奖率2333", "反正先转了再说", "先转为敬", "大佬大佬抽奖带我.jpg", "我是非酋", "欧皇驾到"]
+        content += random.choice(message)
+        at_uids = ','.join([uid for uid, _ in at_users])
+        str_ctrl = json.dumps(ctrl)
+
+        json_rsp = await user.req_s(DynRaffleHandlerReq.repost_dyn, user, orig_dynid, content, at_uids, str_ctrl)
+        data = json_rsp['data']
+        print(json_rsp)
+        return not json_rsp['code'] and data['errmsg'] == '符合条件，允许发布'
 
     @staticmethod
-    async def check(user, doc_id: int):
-        # 确认dyn存在性
-        json_rsp = await user.req_s(DynRaffleHandlerReq.fetch_dyn_raffle, user, doc_id)
-        code = json_rsp['code']
-        if not code:
-            return True
-        user.infos([f'{doc_id}的动态抽奖不存在'])
-        return False
+    async def fetch_reposted_dynid(user, uid, orig_dynid):
+        offset = 0
+        while True:
+            json_rsp = await user.req_s(DynRaffleHandlerReq.fetch_dyns, user, uid, offset)
+            if 'cards' not in json_rsp['data']:
+                return None
+            cards = json_rsp['data']['cards']
+            assert cards
+            for dyn in cards:
+                desc = dyn['desc']
+                print(desc['orig_dy_id'], desc['dynamic_id'])
+                if int(orig_dynid) == int(desc['orig_dy_id']):
+                    return int(desc['dynamic_id'])
+
+            offset = cards[-1]['desc']['dynamic_id']
 
     @staticmethod
-    async def join(user, dyn_raffle_status: DynRaffleStatus):
+    @normal
+    async def work(user, dyn_raffle_status: DynRaffleStatus):
         if dyn_raffle_status.lottery_time - utils.curr_time() < 15:
             user.infos([f'动态{dyn_raffle_status.dyn_id}马上或已经开奖，放弃参与'])
         async with user.repost_del_lock:
             if dyn_raffle_status.feed_limit:  # 关注
-                await DynRaffleHandlerTask.follow_raffle_organizer(user, dyn_raffle_status.uid)
+                await DynRaffleJoinTask.follow_raffle_organizer(user, dyn_raffle_status.uid)
 
             # 创建动态并提交数据库
-            if await DynRaffleHandlerTask.repost_dyn_raffle(user, dyn_raffle_status.dyn_id, dyn_raffle_status.at_num):
+            if await DynRaffleJoinTask.repost_dyn_raffle(user, dyn_raffle_status.dyn_id, dyn_raffle_status.at_num):
                 user.infos([f'转发参与动态{dyn_raffle_status.dyn_id}成功'])
                 for i in range(5):  # 经常不能及时刷新
                     await asyncio.sleep(3)
-                    dyn_id = await DynRaffleHandlerTask.fetch_reposted_dynid(user, user.dict_bili['uid'], dyn_raffle_status.dyn_id)
+                    dyn_id = await DynRaffleJoinTask.fetch_reposted_dynid(
+                        user, user.dict_bili['uid'], dyn_raffle_status.dyn_id)
                     if dyn_id is not None:
                         user.infos([f'查找转发动态{dyn_raffle_status.dyn_id}生成{dyn_id}'])
-                        dyn_raffle_joined = DynRaffleJoined(dyn_id=dyn_id, orig_dynid=dyn_raffle_status.dyn_id, uid=user.dict_bili['uid'])
+                        dyn_raffle_joined = DynRaffleJoined(
+                            dyn_id=dyn_id, orig_dynid=dyn_raffle_status.dyn_id, uid=user.dict_bili['uid'])
                         print(dyn_raffle_joined)
                         dyn_raffle_sql.insert_dynraffle_joined_table(dyn_raffle_joined)
                         return
@@ -288,8 +282,23 @@ class DynRaffleHandlerTask:
                 user.warn(f'转发参与动态{dyn_raffle_status.dyn_id}失败')
             return
 
+
+class DynRaffleNoticeTask(ForcedTask):
     @staticmethod
-    async def notice(user, dyn_raffle_status: DynRaffleStatus, dyn_raffle_results: Optional[DynRaffleResults]):
+    async def check(_, *args):
+        return (-2, None, *args),
+
+    @staticmethod
+    async def unfollow_raffle_organizer(user, uid):
+        user.infos([f'正在处理动态抽奖的取关问题'])
+        group_id = await UtilsTask.fetch_group_id(user, '抽奖关注')
+        is_following, group_ids = await UtilsTask.check_follow(user, uid)
+        if group_id in group_ids:
+            await UtilsTask.unfollow(user, uid)
+
+    @staticmethod
+    @normal
+    async def work(user, dyn_raffle_status: DynRaffleStatus, dyn_raffle_results: Optional[DynRaffleResults]):
         int_user_uid = int(user.dict_bili['uid'])
         async with user.repost_del_lock:
             dyn_raffle_joined = dyn_raffle_sql.select_by_primary_key_from_dynraffle_joined_table(
@@ -303,7 +312,7 @@ class DynRaffleHandlerTask:
                     int_user_uid not in dyn_raffle_results.prize_list_2nd and \
                     int_user_uid not in dyn_raffle_results.prize_list_3rd:
                 # 删除动态，并且同步数据库
-                await DynRaffleHandlerTask.del_dyn_by_dynid(user, dyn_raffle_joined.dyn_id)
+                await DynRaffleUtilsTask.del_dyn_by_dynid(user, dyn_raffle_joined.dyn_id)
                 dyn_raffle_sql.del_from_dynraffle_joind_table(
                     uid=int_user_uid,
                     orig_dynid=dyn_raffle_status.dyn_id
@@ -312,7 +321,7 @@ class DynRaffleHandlerTask:
                 # 如果本抽奖需要关注且up主的其他抽奖不再需要关注/up主不再有其他抽奖，就运行unfollow_raffle_organizer
                 if dyn_raffle_status.feed_limit and dyn_raffle_sql.should_unfollowed(
                         uid=int_user_uid, orig_uid=dyn_raffle_status.uid):
-                    await DynRaffleHandlerTask.unfollow_raffle_organizer(user, dyn_raffle_status.uid)
+                    await DynRaffleNoticeTask.unfollow_raffle_organizer(user, dyn_raffle_status.uid)
             else:
                 dyn_raffle_sql.del_from_dynraffle_joind_table(
                     uid=int_user_uid,

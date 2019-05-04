@@ -1,137 +1,163 @@
-# 总控制中心,外界调用task的入口
 import asyncio
-from typing import Optional
-from random import uniform
+import random
+from typing import Optional, List, Callable
+
+import aiojobs
+
+from user import User
+from tasks.base_class import TaskType
+from printer import info as print
+
+
+class Users:
+    def __init__(self, users: List[User]):
+        self._users = users
+
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            return self._users[key]
+        return None
+
+    @property
+    def superuser(self) -> User:
+        return self._users[0]
+
+    def gets(self, index: int):
+        if index == -2:
+            for user in self._users:
+                yield user
+            return
+        # TODO: 废除，统一为0
+        if index == -1:
+            index = 0
+        user = self._users[index]
+        yield user
 
 
 class Notifier:
-    def set_values(self, loop):
-        self._loop = loop
-        
-    def set_users(self, list_users):
-        # -2表示广播, -1表示super_user, >0表示普通
-        self.users = list_users
-        self.super_userid = 0
-        
-    # id >=0, -1
-    async def notify(self, id, func, *args):
-        if id == -1:
-            id = self.super_userid
-        if 0 <= id < len(self.users):
-            result = await self.users[id].accept(func, *args)
-            return result
-        return None
-        
-    async def notify_all(self, func, *args):
-        for user in self.users:
-            result = await user.accept(func, *args)
-            # print('notify_all 结果', result)
-        return result
-        
-    # delay_range 是一个tuple,里面是左右区间
-    # 接受id -2/-1/>=0, 输出id >=0
-    def __set_delay(self, delay_range, id):
-        if delay_range is None:
-            delay_range = 0, 0
-        if id == -2:
-            return tuple((i, uniform(*delay_range)) for i in range(len(self.users)))
-        if id == -1:
-            id = self.super_userid
-        return (id, uniform(*delay_range)),
-    
-    # 接受id >=0
-    async def __exec_one_step(self, id, task, step, future: Optional[asyncio.Future], *args):
-        # print('当前请求', task, id, step, args)
-        func = task.target(step)
-        assert func is not None
-        results = await self.notify(id, func, *args)
-        # results为()或None,就terminate,不管是否到头，这里的设计是user的拒绝执行的功能
-        # 返回必须是tuple/list！
-        # print('结果返回', results)
-        if future is None:
-            if results is None:
-                return
-            for new_step, *result in results:
-                # user的延迟执行功能实现
-                if new_step == -1:
-                    new_step = step
-                # print(f'本step结果:{result} 下一步:{new_step}')
-                delay, new_uid, *args = result
-                self.call_after(delay, new_uid, task, new_step, False, *args)
+    def __init__(self, loop=None):
+        if loop is None:
+            self._loop = asyncio.get_event_loop()
+        else:
+            self._loop = loop
+        self._users: Optional[Users] = None
+        self._scheduler: Optional[aiojobs.Scheduler] = None
+
+    def init(self, users: List[User]):
+        self._users = Users(users)
+
+    # pause 和 resume 必须在同一个循环里面用，否则可能发生类似线程不安全的东西
+    async def resume(self):
+        if self._scheduler is None:
+            self._scheduler = await aiojobs.create_scheduler()
+
+    async def pause(self):
+        if self._scheduler is not None and not self._scheduler.closed:
+            scheduler = self._scheduler
+            self._scheduler = None
+            await scheduler.close()
+
+    async def run_sched_func(self, user: User, func: Callable, *args, **kwargs):
+        scheduler = self._scheduler
+        if scheduler is not None and not scheduler.closed:
+            await scheduler.spawn(user.exec_func(func, *args, **kwargs))
+
+    # 这里是为了日常任务的check问题
+    async def run_sched_func_with_return(self, user: User, func: Callable, *args, **kwargs):
+        scheduler = self._scheduler
+        if scheduler is not None and not scheduler.closed:
+            return await user.exec_func(func, *args, **kwargs)
+
+    def run_sched_func_bg(self, *args, **kwargs):
+        self._loop.create_task(self.run_sched_func(*args, **kwargs))
+
+    # 那些间隔性推送的，推送型的task禁止使用wait until all done功能
+    async def exec_sched_task(self, task, *args, **kwargs):
+        check_results = await self.run_sched_func_with_return(
+            self._users.superuser, task.check, *args, **kwargs)
+        print('check_results:', task, check_results)
+        if check_results is None:
             return
+        for user_id, delay_range, *args in check_results:
+            if delay_range is not None:
+                for user in self._users.gets(user_id):
+                    delay = random.uniform(*delay_range)
+                    self._loop.call_later(
+                        delay, self.run_sched_func_bg, user, task.work, *args)
 
-        if results is None:
-            future.set_result([])
+    @staticmethod
+    async def run_forced_func(user: User, func: Callable, *args, **kwargs):
+        return await user.exec_func(func, *args, **kwargs)
+
+    def run_forced_func_bg(self, *args, **kwargs):
+        self._loop.create_task(self.run_forced_func(*args, **kwargs))
+
+    # 普通task,执行就完事了,不会受scheduler影响（不被cancel，一直执行到结束)
+    async def exec_forced_task(self, task, *args, **kwargs):
+        check_results = await self.run_forced_func(
+            self._users.superuser, task.check, *args, **kwargs)
+        print('check_results:', task, check_results)
+        if check_results is None:
             return
-        new_futures = []
-        for new_step, *result in results:
-            # user的延迟执行功能实现
-            if new_step == -1:
-                new_step = step
-            # print(f'本step结果:{result} 下一步:{new_step}')
-            delay, new_uid, *args = result
-            new_futures += (self.call_after(delay, new_uid, task, new_step, True, *args))
-        # print('!!!!!', func, id, args, new_futures)
-        future.set_result(new_futures)  # 这里就是下一步的所有future监控list
-        
-    def __exec_bg(self, *args):
-        asyncio.ensure_future(self.__exec_one_step(*args))
-                
-    # 接受uid -2/-1/>=0
-    def call_after(self, delay_range, id, task, step, with_future: bool, *args):
-        if not with_future:
-            for new_id, delay in self.__set_delay(delay_range, id):
-                # 这里用callafter api把notify送到queue里面立刻退出,所以不会爆
-                self._loop.call_later(delay, self.__exec_bg, new_id, task, step, None, *args)
-            return None
-        futures = []
-        for new_id, delay in self.__set_delay(delay_range, id):
-            # 这里用callafter api把notify送到queue里面立刻退出,所以不会爆
-            future = self._loop.create_future()
-            self._loop.call_later(delay, self.__exec_bg, new_id, task, step, future, *args)
-            futures.append(future)
-        return futures
-                
+        for user_id, delay_range, *args in check_results:
+            if delay_range is not None:
+                for user in self._users.gets(user_id):
+                    delay = random.uniform(*delay_range)
+                    self._loop.call_later(
+                        delay, self.run_forced_func_bg, user, task.work, *args)
+            else:  # 这里是特殊处理为None的时候，去依次执行，且wait untill all done
+                result = None
+                for user in self._users.gets(user_id):
+                    if result is None:
+                        result = await self.run_forced_func(
+                            user, task.work, *args)
+                    else:  # 不为None表示每个用户之间参数互传
+                        result = await self.run_forced_func(
+                            user, task.work, *args, result)
+                return result
 
-var = Notifier()
+    async def exec_task(self, task, *args, **kwargs):
+        if task.TASK_TYPE == TaskType.SCHED_TASK:
+            return await self.exec_sched_task(task, *args, **kwargs)
+        if task.TASK_TYPE == TaskType.FORCED_TASK:
+            return await self.exec_forced_task(task, *args, **kwargs)
 
+    async def exec_func(self, func: Callable, *args, **kwargs):
+        return await self._users.superuser.exec_func(func, *args, **kwargs)
 
-def set_values(loop):
-    var.set_values(loop)
+    def exec_task_no_wait(self, task, *args, **kwargs):
+        self._loop.create_task(self.exec_task(task, *args, **kwargs))
+
+    def get_users(self, user_id: int):
+        return self._users.gets(user_id)
 
 
-def set_users(users):
-    var.set_users(users)
-
-# 一种真task,不需要返回值的(task里面多个函数)
-# 一种伪task,需要立刻返回(task可以认为里面就一个函数)
+var_notifier = Notifier()
 
 
-# 不会返回值, task
-def exec_task(id, task, step, *args, delay_range=None):
-    # print('测试task', id, task, step, *args, delay_range)
-    var.call_after(delay_range, id, task, step, False, *args)
+def init(*args, **kwargs):
+    var_notifier.init(*args, **kwargs)
 
 
-async def exec_task_awaitable(id, task, step, *args, delay_range=None):
-    list_futures = [var.call_after(delay_range, id, task, step, True, *args)]
-
-    while list_futures:
-        new_list_futures = []
-        for futures in list_futures:
-            if futures:  # 万一futures是[]
-                # print(futures)
-                new_list_futures += await asyncio.gather(*futures)
-                # print('结果', new_list_futures)
-        list_futures = new_list_futures
-
-    print('Done')
+async def exec_task(task, *args, **kwargs):
+    return await var_notifier.exec_task(task, *args, **kwargs)
 
 
-# 伪task
-async def exec_func(id, func, *args):
-    if id == -2:
-        result = await var.notify_all(func, *args)
-    else:
-        result = await var.notify(id, func, *args)
-    return result
+def exec_task_no_wait(task, *args, **kwargs):
+    var_notifier.exec_task_no_wait(task, *args, **kwargs)
+
+
+async def exec_func(func: Callable, *args, **kwargs):
+    return await var_notifier.exec_func(func, *args, **kwargs)
+
+
+async def pause():
+    await var_notifier.pause()
+
+
+async def resume():
+    await var_notifier.resume()
+
+
+def get_users(user_id: int):
+    return var_notifier.get_users(user_id)

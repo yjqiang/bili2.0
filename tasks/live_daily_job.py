@@ -1,5 +1,4 @@
 import asyncio
-import utils
 from .utils import UtilsTask
 from reqs.live_daily_job import (
     HeartBeatReq,
@@ -12,50 +11,51 @@ from reqs.live_daily_job import (
     SendGiftReq,
     ExchangeSilverCoinReq,
 )
+from .task_func_decorator import unique
+from .base_class import SchedTask
 
 
-class HeartBeatTask:
+class HeartBeatTask(SchedTask):
     @staticmethod
-    def target(step):
-        if step == 0:
-            return HeartBeatTask.heart_beat
-        return None
+    async def check(_):
+        return (-2, (0, 30)),
         
     @staticmethod
-    async def heart_beat(user):
-        json_rsp = await user.req_s(HeartBeatReq.pc_heartbeat, user)
-        # print(json_rsp)
-        user.infos(['心跳包(5分钟左右间隔)'])
-        json_rsp = await user.req_s(HeartBeatReq.app_heartbeat, user)
-        print(json_rsp)
-        return (0, (280, 300), user.id),
+    @unique
+    async def work(user):
+        while True:
+            json_rsp = await user.req_s(HeartBeatReq.pc_heartbeat, user)
+            # print(json_rsp)
+            user.infos(['心跳包(5分钟左右间隔)'])
+            json_rsp = await user.req_s(HeartBeatReq.app_heartbeat, user)
+            print(json_rsp)
+            await asyncio.sleep(300)
 
                 
-class RecvHeartGiftTask:
+class RecvHeartGiftTask(SchedTask):
     @staticmethod
-    def target(step):
-        if step == 0:
-            return RecvHeartGiftTask.recv_heartgift
-        return None
+    async def check(_):
+        return (-2, (0, 30)),
         
     @staticmethod
-    async def recv_heartgift(user):
-        json_rsp = await user.req_s(RecvHeartGiftReq.recv_heartgift, user)
-        if json_rsp['code'] == 400:
-            user.fall_in_jail()
-            return (0, (0, 0), user.id),
-        return (0, (280, 300), user.id),
+    @unique
+    async def work(user):
+        while True:
+            json_rsp = await user.req_s(RecvHeartGiftReq.recv_heartgift, user)
+            if json_rsp['code'] == 400:
+                user.fall_in_jail()
+                return
+            await asyncio.sleep(300)
  
                
-class OpenSilverBoxTask:
+class OpenSilverBoxTask(SchedTask):
     @staticmethod
-    def target(step):
-        if step == 0:
-            return OpenSilverBoxTask.open_silver_box
-        return None
+    async def check(_):
+        return (-2, (0, 30)),
                 
     @staticmethod
-    async def open_silver_box(user):
+    @unique
+    async def work(user):
         while True:
             user.infos(["检查宝箱状态"])
             temp = await user.req_s(OpenSilverBoxReq.check_time, user)
@@ -68,117 +68,99 @@ class OpenSilverBoxTask:
                 time_end = temp['data']['time_end']
                 json_rsp = await user.req_s(OpenSilverBoxReq.open_silver_box, user, time_start, time_end)
             if json_rsp is None or json_rsp['code'] == -10017 or json_rsp['code'] == -800:
-                sleeptime = utils.seconds_until_tomorrow() + 300
-                return (0, (sleeptime, sleeptime+30), user.id),
+                return
             elif not json_rsp['code']:
                 user.infos(["打开了宝箱"])
             elif json_rsp['code'] == 400:
                 user.infos(["宝箱开启中返回了小黑屋提示"])
                 user.fall_in_jail()
                 # 马上继续调用，由下一次的user去supend这个task
-                return (0, (0, 0), user.id),
+                return
             else:
                 user.infos(["继续等待宝箱冷却..."])
                 sleeptime = (json_rsp['data'].get('surplus', 3)) * 60 + 5
-                return (0, (sleeptime, sleeptime+30), user.id),
+                await asyncio.sleep(sleeptime)
                 
                 
-class RecvDailyBagTask:
+class RecvDailyBagTask(SchedTask):
     @staticmethod
-    def target(step):
-        if step == 0:
-            return RecvDailyBagTask.recv_dailybag
-        return None
+    async def check(_):
+        return (-2, (0, 30)),
         
     @staticmethod
-    async def recv_dailybag(user):
+    @unique
+    async def work(user):
         json_rsp = await user.req_s(RecvDailyBagReq.recv_dailybag, user)
         try:
             json_rsp['data']['bag_list']
-        except:
+        except TypeError:
             user.warn(f'recv_dailybag {json_rsp}')
         for i in json_rsp['data']['bag_list']:
             user.infos([f'获得-{i["bag_name"]}-成功'])
-        sleeptime = 21600
-        return (0, (sleeptime, sleeptime+30), user.id),
 
                 
-class SignTask:
+class SignTask(SchedTask):
     @staticmethod
-    def target(step):
-        if step == 0:
-            return SignTask.sign
-        return None
+    async def check(_):
+        return (-2, (0, 30)),
         
     @staticmethod
-    async def sign(user):
-        json_rsp = await user.req_s(SignReq.sign, user)
-        user.infos([f'签到状态: {json_rsp["msg"]}'])
-        if json_rsp['code'] == -500 and '已' in json_rsp['msg']:
-            sleeptime = utils.seconds_until_tomorrow() + 300
-        else:
+    @unique
+    async def work(user):
+        while True:
+            json_rsp = await user.req_s(SignReq.sign, user)
+            user.infos([f'签到状态: {json_rsp["msg"]}'])
+            if json_rsp['code'] == -500 and '已' in json_rsp['msg']:
+                return
             sleeptime = 350
-        return (0, (sleeptime, sleeptime+30), user.id),
+            await asyncio.sleep(sleeptime)
         
         
-class WatchTvTask:
+class WatchTvTask(SchedTask):
     @staticmethod
-    def target(step):
-        if step == 0:
-            return WatchTvTask.watch_tv
-        return None
+    async def check(_):
+        return (-2, (0, 30)),
    
     @staticmethod
-    async def watch_tv(user):
-        # -400 done/not yet
-        json_rsp = await user.req_s(WatchTvReq.watch_tv, user)
-        user.infos([f'双端观看直播:  {json_rsp["msg"]}'])
-        if json_rsp['code'] == -400 and '已' in json_rsp['msg']:
-            sleeptime = utils.seconds_until_tomorrow() + 300
-        else:
+    @unique
+    async def work(user):
+        while True:
+            # -400 done/not yet
+            json_rsp = await user.req_s(WatchTvReq.watch_tv, user)
+            user.infos([f'双端观看直播:  {json_rsp["msg"]}'])
+            if json_rsp['code'] == -400 and '已' in json_rsp['msg']:
+                return
             sleeptime = 350
-        return (0, (sleeptime, sleeptime+30), user.id),
+            await asyncio.sleep(sleeptime)
         
         
-class SignFansGroupsTask:
+class SignFansGroupsTask(SchedTask):
     @staticmethod
-    def target(step):
-        if step == 0:
-            return SignFansGroupsTask.sign_groups
-        return None
+    async def check(_):
+        return (-2, (0, 30)),
    
     @staticmethod
-    async def sign_groups(user):
+    @unique
+    async def work(user):
         json_rsp = await user.req_s(SignFansGroupsReq.fetch_groups, user)
-        groups = [(i['group_id'], i['owner_uid']) for i in json_rsp['data']['list']]
-        if groups:
-            tasks = []
-            for group_id, owner_uid in groups:
-                task = asyncio.ensure_future(SignFansGroupsTask.sign_group(user, group_id, owner_uid))
-                tasks.append(task)
-            await asyncio.wait(tasks, return_when=asyncio.ALL_COMPLETED)
-        sleeptime = 21600
-        return (0, (sleeptime, sleeptime+30), user.id),
-        
-    @staticmethod
-    async def sign_group(user, group_id, owner_uid):
-        json_rsp = await user.req_s(SignFansGroupsReq.sign_group, user, group_id, owner_uid)
-        if not json_rsp['code']:
-            data = json_rsp['data']
-            if data['status']:
-                user.infos([f'应援团 {group_id} 已应援过'])
+        for group in json_rsp['data']['list']:
+            group_id = group['group_id']
+            owner_uid = group['owner_uid']
+            json_rsp = await user.req_s(SignFansGroupsReq.sign_group, user, group_id, owner_uid)
+            if not json_rsp['code']:
+                data = json_rsp['data']
+                if data['status']:
+                    user.infos([f'应援团 {group_id} 已应援过'])
+                else:
+                    user.infos([f'应援团 {group_id} 应援成功,获得 {data["add_num"]} 点亲密度'])
             else:
-                user.infos([f'应援团 {group_id} 应援成功,获得 {data["add_num"]} 点亲密度'])
-        else:
-            user.infos([f'应援团 {group_id} 应援失败'])
+                user.infos([f'应援团 {group_id} 应援失败'])
             
             
-class SendGiftTask:
+class SendGiftTask(SchedTask):
     @staticmethod
-    def target(step):
-        if step == 0:
-            return SendGiftTask.send_gift
-        return None
+    async def check(_):
+        return (-2, (0, 30)),
         
     @staticmethod
     async def fetch_giftbags(user):
@@ -255,12 +237,11 @@ class SendGiftTask:
     async def fill_intimacy(user, gift_bags, medals):
         json_rsp = await user.req_s(SendGiftReq.fetch_gift_config, user)
         gift_price = {gift['id']: (gift['price'] / 100) for gift in json_rsp['data']}
-        num_sent = 0
         for room_id, remain_intimacy, medal_name in medals:
             filled_intimacy = 0
             for gift in gift_bags:
                 gift_id, gift_num, bag_id = gift
-                if (gift_num * gift_price[gift_id] <= remain_intimacy):
+                if gift_num * gift_price[gift_id] <= remain_intimacy:
                     num_sent = gift_num
                 elif remain_intimacy >= gift_price[gift_id]:
                     num_sent = int(remain_intimacy / gift_price[gift_id])
@@ -276,35 +257,30 @@ class SendGiftTask:
         return [gift for gift in gift_bags if gift[1]]
         
     @staticmethod
-    async def send_gift(user):
+    @unique
+    async def work(user):
         await SendGiftTask.send_medal_gift(user)
         await SendGiftTask.send_expiring_gift(user)
-        sleeptime = 21600
-        return (0, (sleeptime, sleeptime+30), user.id),
 
                 
-class ExchangeSilverCoinTask:
+class ExchangeSilverCoinTask(SchedTask):
     @staticmethod
-    def target(step):
-        if step == 0:
-            return ExchangeSilverCoinTask.silver2coin
-        return None
+    async def check(_):
+        return (-2, (0, 30)),
      
     @staticmethod
-    async def silver2coin(user):
-        if not user.task_ctrl['silver2coin']:
-            sleeptime = 21600
-            return (0, (sleeptime, sleeptime+30), user.id),
-        json_rsp = await user.req_s(ExchangeSilverCoinReq.silver2coin_web, user)
-        user.infos([f'{json_rsp["msg"]}'])
-        if json_rsp['code'] == 403 and '最多' in json_rsp['msg']:
-            finish_web = True
-        else:
-            finish_web = False
-        if finish_web:
-            sleeptime = utils.seconds_until_tomorrow() + 300
-        else:
+    @unique
+    async def work(user):
+        while True:
+            if not user.task_ctrl['silver2coin']:
+                return
+            json_rsp = await user.req_s(ExchangeSilverCoinReq.silver2coin_web, user)
+            user.infos([f'{json_rsp["msg"]}'])
+            if json_rsp['code'] == 403 and '最多' in json_rsp['msg']:
+                finish_web = True
+            else:
+                finish_web = False
+            if finish_web:
+                return
             sleeptime = 350
-    
-        return (0, (sleeptime, sleeptime+30), user.id),
-    
+            await asyncio.sleep(sleeptime)

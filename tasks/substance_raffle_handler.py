@@ -9,19 +9,11 @@ from substance.bili_data_types import (
     SubstanceRaffleResults,
     SubstanceRaffleLuckydog,
 )
+from .task_func_decorator import normal
+from .base_class import ForcedTask
 
 
-class SubstanceRaffleHandlerTask:
-    @staticmethod
-    def target(step):
-        if step == 0:
-            return SubstanceRaffleHandlerTask.check
-        if step == 1:
-            return SubstanceRaffleHandlerTask.join
-        if step == 2:
-            return SubstanceRaffleHandlerTask.notice
-        return None
-
+class SubstanceRaffleUtilsTask:
     @staticmethod
     async def fetch_substance_raffle_results(
             user, substance_raffle_status: SubstanceRaffleStatus) -> Optional[SubstanceRaffleResults]:
@@ -82,8 +74,15 @@ class SubstanceRaffleHandlerTask:
         user.warn([f'实物抽奖, {json_rsp}'], True)
         return False
 
+
+class SubstanceRaffleJoinTask(ForcedTask):
     @staticmethod
-    async def join(user, substance_raffle_status: SubstanceRaffleStatus):
+    async def check(_, *args):
+        return (-2, None, *args),  # 参见notifier的特殊处理，为None就会依次处理，整个过程awaitable
+
+    @staticmethod
+    @normal
+    async def work(user, substance_raffle_status: SubstanceRaffleStatus):
         if substance_raffle_status.join_end_time - utils.curr_time() < 10:
             user.infos([f'实物{substance_raffle_status.aid}马上或已经开奖，放弃参与'])
         json_rsp = await user.req_s(
@@ -98,9 +97,18 @@ class SubstanceRaffleHandlerTask:
             )
             print(substance_raffle_joined)
             substance_raffle_sql.insert_substanceraffle_joined_table(substance_raffle_joined)
-        
+
+
+class SubstanceRaffleNoticeTask(ForcedTask):
     @staticmethod
-    async def notice(user,  substance_raffle_status: SubstanceRaffleStatus, substance_raffle_result: Optional[SubstanceRaffleResults]):
+    async def check(_, *args):
+        return (-2, None, *args),  # 参见notifier的特殊处理，为None就会依次处理，整个过程awaitable
+
+    @staticmethod
+    @normal
+    async def work(
+            user,  substance_raffle_status: SubstanceRaffleStatus,
+            substance_raffle_result: Optional[SubstanceRaffleResults]):
         int_user_uid = int(user.dict_bili['uid'])
         dyn_raffle_joined = substance_raffle_sql.select_by_primary_key_from_substanceraffle_joined_table(
             uid=int_user_uid, aid=substance_raffle_status.aid, number=substance_raffle_status.number)

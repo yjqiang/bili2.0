@@ -46,39 +46,38 @@ class WsDanmuClient(Client):
         header = self.header_struct.pack(len_data, len_header, ver, opt, seq)
         return header + body
 
-    async def _read_datas(self):
-        while True:
-            datas = await self._conn.read_bytes()
-            # 本函数对bytes进行相关操作，不特别声明，均为bytes
-            if datas is None:
-                return
-            data_l = 0
-            len_datas = len(datas)
-            while data_l != len_datas:
-                # 每片data都分为header和body，data和data可能粘连
-                # data_l == header_l && next_data_l == next_header_l
-                # ||header_l...header_r|body_l...body_r||next_data_l...
-                tuple_header = self.header_struct.unpack_from(datas[data_l:])
-                len_data, len_header, _, opt, _ = tuple_header
-                body_l = data_l + len_header
-                next_data_l = data_l + len_data
-                body = datas[body_l:next_data_l]
-                # 人气值(或者在线人数或者类似)以及心跳
-                if opt == 3:
-                    # num_watching, = struct.unpack('!I', body)
-                    # print(f'弹幕心跳检测{self._area_id}')
-                    pass
-                # cmd
-                elif opt == 5:
-                    if not self.handle_danmu(json.loads(body.decode('utf-8'))):
-                        return
-                # 握手确认
-                elif opt == 8:
-                    print(f'{self._area_id}号数据连接确认进入房间（{self._room_id}）')
-                else:
-                    print(datas[data_l:next_data_l])
+    async def _read_one(self) -> bool:
+        datas = await self._conn.read_bytes()
+        # 本函数对bytes进行相关操作，不特别声明，均为bytes
+        if datas is None:
+            return False
+        data_l = 0
+        len_datas = len(datas)
+        while data_l != len_datas:
+            # 每片data都分为header和body，data和data可能粘连
+            # data_l == header_l && next_data_l == next_header_l
+            # ||header_l...header_r|body_l...body_r||next_data_l...
+            tuple_header = self.header_struct.unpack_from(datas[data_l:])
+            len_data, len_header, _, opt, _ = tuple_header
+            body_l = data_l + len_header
+            next_data_l = data_l + len_data
+            body = datas[body_l:next_data_l]
+            # 人气值(或者在线人数或者类似)以及心跳
+            if opt == 3:
+                # num_watching, = struct.unpack('!I', body)
+                pass
+            # cmd
+            elif opt == 5:
+                if not self.handle_danmu(json.loads(body.decode('utf-8'))):
+                    return False
+            # 握手确认
+            elif opt == 8:
+                print(f'{self._area_id}号数据连接进入房间（{self._room_id}）')
+            else:
+                return False
 
-                data_l = next_data_l
+            data_l = next_data_l
+        return True
 
     def handle_danmu(self, data):
         return True

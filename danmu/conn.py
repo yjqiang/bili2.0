@@ -10,27 +10,27 @@ class Conn:
     # receive_timeout 推荐为heartbeat间隔加10/5
     def __init__(self, receive_timeout: Optional[float] = None):
         self._receive_timeout = receive_timeout
-        
+
     async def open(self) -> bool:
         return False
-    
+
     async def close(self) -> bool:
         return True
-        
+
     # 用于永久close之后一些数据清理等
     async def clean(self):
         pass
-        
+
     async def send_bytes(self, bytes_data) -> bool:
         return True
-        
+
     async def read_bytes(self) -> Optional[bytes]:
         return None
-        
+
     async def read_json(self) -> Any:
         return None
-        
-        
+
+
 class TcpConn(Conn):
     # url 格式 tcp://hostname:port
     def __init__(self, url: str, receive_timeout: Optional[float] = None):
@@ -41,7 +41,7 @@ class TcpConn(Conn):
         self._port = result.port
         self._reader = None
         self._writer = None
-        
+
     async def open(self) -> bool:
         try:
             self._reader, self._writer = await asyncio.wait_for(
@@ -51,17 +51,17 @@ class TcpConn(Conn):
         except Exception:
             return False
         return True
-        
+
     async def close(self) -> bool:
         if self._writer is not None:
             self._writer.close()
             # py3.7 才有（妈的你们真的磨叽）
             # await self._writer.wait_closed()
         return True
-    
+
     async def clean(self):
         pass
-        
+
     async def send_bytes(self, bytes_data) -> bool:
         try:
             self._writer.write(bytes_data)
@@ -71,7 +71,7 @@ class TcpConn(Conn):
         except Exception:
             return False
         return True
-        
+
     async def read_bytes(
             self,
             n: Optional[int] = None) -> Optional[bytes]:
@@ -84,9 +84,9 @@ class TcpConn(Conn):
             return None
         except Exception:
             return None
-                
+
         return bytes_data
-        
+
     async def read_json(
             self,
             n: Optional[int] = None) -> Any:
@@ -98,7 +98,7 @@ class TcpConn(Conn):
         except Exception:
             return None
         return dict_data
-                
+
 
 class WsConn(Conn):
     # url 格式 ws://hostname:port/… 或者 wss://hostname:port/…
@@ -112,7 +112,7 @@ class WsConn(Conn):
         result = urlparse(url)
         assert result.scheme == 'ws' or result.scheme == 'wss'
         self._url = url
-        
+
         if session is None:
             self._is_sharing_session = False
             self._session = ClientSession()
@@ -135,16 +135,16 @@ class WsConn(Conn):
         except Exception:
             return False
         return True
-        
+
     async def close(self) -> bool:
         if self._ws is not None:
             await self._ws.close()
         return True
-        
+
     async def clean(self):
         if not self._is_sharing_session:
             await self._session.close()
-        
+
     async def send_bytes(self, bytes_data) -> bool:
         try:
             await self._ws.send_bytes(bytes_data)
@@ -153,7 +153,7 @@ class WsConn(Conn):
         except Exception:
             return False
         return True
-                
+
     async def read_bytes(self) -> Optional[bytes]:
         try:
             bytes_data = await asyncio.wait_for(
@@ -162,7 +162,7 @@ class WsConn(Conn):
             return None
         except Exception:
             return None
-        
+
         return bytes_data
 
     async def read_json(self) -> Any:

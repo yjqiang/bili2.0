@@ -12,7 +12,7 @@ def rgb_to_percent(list_rgb):
     return list_rgb[0]/255, list_rgb[1]/255, list_rgb[2]/255
     
     
-class ConfLoader():
+class ConfLoader:
     def __init__(self):
         path_conf = f'{path.dirname(path.realpath(__file__))}/conf'
         self.file_color = f'{path_conf}/color.toml'
@@ -89,4 +89,3 @@ def read_user():
         
 def read_ctrl():
     return var.read_ctrl()
-

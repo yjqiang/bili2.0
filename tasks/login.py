@@ -2,9 +2,21 @@ import base64
 from urllib import parse
 import rsa
 from reqs.login import LoginReq
+from .task_func_decorator import normal
+from .base_class import ForcedTask
 
 
-class LoginTask:
+class LoginTask(ForcedTask):
+    @staticmethod
+    async def check(_):
+        return (-2, None),
+
+    @staticmethod
+    @normal
+    async def work(user):
+        # 搞两层的原因是normal这里catch了取消这里时，直接return，会导致user自己调用主动登陆功能失败
+        await LoginTask.handle_login_status(user)
+
     @staticmethod
     async def handle_login_status(user):
         if not user.is_online():

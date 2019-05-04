@@ -56,3 +56,12 @@ yjmonitor_tcp_key = ''
 
 # 固定的直播分区设置
 area_ids = [ 1, 2, 3, 4, 5, 6,]
+
+# 表示休眠区间，为空表示不休眠
+# 时间格式举例 sleep_ranges = [[08:00:00, 09:03:00], [14:04:00, 14:46:00]] ，24小时制，不得省略写0或省略秒数或加空格
+sleep_ranges = []
+
+# 实物抽奖开关
+substance_raffle = false
+# 动态抽奖开关
+dyn_raffle = false
