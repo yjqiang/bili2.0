@@ -41,7 +41,7 @@ class FuncCore:
 def convert2int(orig) -> Optional[int]:
     try:
         return int(orig)
-    except ValueError:
+    except (ValueError, TypeError):
         return None
 
 
