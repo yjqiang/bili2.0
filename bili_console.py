@@ -1,6 +1,7 @@
 import bili_statistics
 import printer
 import asyncio
+from typing import Optional
 import notifier
 from cmd import Cmd
 import getopt
@@ -35,6 +36,13 @@ class FuncCore:
         if asyncio.iscoroutinefunction(self.function):
             return await self.function(*args)
         return self.function(*args)
+
+
+def convert2int(orig) -> Optional[int]:
+    try:
+        return int(orig)
+    except ValueError:
+        return None
 
 
 class BiliConsole(Cmd):
@@ -92,20 +100,23 @@ class BiliConsole(Cmd):
         for opt_name in opt_names:
             opt_value = dict_results.get(opt_name)
             if opt_name == '-u':
-                if opt_value is not None and opt_value.isdigit():
-                    results.append(int(opt_value))
+                int_value = convert2int(opt_value)
+                if int_value is not None:
+                    results.append(int_value)
                 else:
                     results.append(default_u)
                     # -2是一个灾难性的东西
                     # results.append(-2)
             elif opt_name == '-n':
-                if opt_value is not None and opt_value.isdigit():
-                    results.append(int(opt_value))
+                int_value = convert2int(opt_value)
+                if int_value is not None:
+                    results.append(int_value)
                 else:
                     results.append(0)
             elif opt_name == '-p':
-                if opt_value is not None and opt_value.isdigit():
-                    room_id = int(opt_value)
+                int_value = convert2int(opt_value)
+                if int_value is not None:
+                    room_id = int_value
                 else:
                     room_id = self.default_roomid
                 if set_roomid:
