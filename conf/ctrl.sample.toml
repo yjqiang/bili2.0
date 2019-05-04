@@ -47,9 +47,6 @@ dyn_lottery_friends = {}
 default_monitor_roomid = 23058
 
 # https://github.com/yjqiang/YjMonitor
-# 以下两模式最多会启动一个，即使全部有效
-# yj协同监控弹幕模式，roomid会不启动该模块
-yjmonitor_danmu_roomid = 0
 # yj协同监控自定义中心服务器模式, key为空字符串时不启动,例如: tcp://127.0.0.1:8002
 yjmonitor_tcp_addr = ''
 yjmonitor_tcp_key = ''
