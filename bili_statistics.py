@@ -1,4 +1,7 @@
 class BiliStatistics:
+    LIST_SIZE_LIMITED = 1000
+    CLEAN_LIST_CYCLE = 350
+    
     def __init__(self, area_num=0):
         self.area_num = area_num
         # 只有一个(可以认为id为-1的super user)
@@ -67,8 +70,8 @@ class BiliStatistics:
     def add2raffle_ids(self, raffle_id):
         self.raffle_ids.append(raffle_id)
         # 定期清理，防止炸掉
-        if len(self.raffle_ids) > 150:
-            del self.raffle_ids[:75]
+        if len(self.raffle_ids) > self.CLEAN_LIST_CYCLE+self.LIST_SIZE_LIMITED:
+            del self.raffle_ids[:self.CLEAN_LIST_CYCLE]
             # print(self.raffle_ids)
     
     def is_raffleid_duplicate(self, raffle_id):
