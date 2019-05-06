@@ -4,6 +4,7 @@ class BiliStatistics:
     
     def __init__(self, area_num=0):
         self.area_num = area_num
+        self.area_duplicated = False
         # 只有一个(可以认为id为-1的super user)
         self.pushed_raffles = {}
         
@@ -14,8 +15,9 @@ class BiliStatistics:
         # 这是用于重复问题
         self.raffle_ids = []
 
-    def init(self, area_num: int):
+    def init(self, area_num: int, area_duplicated: bool):
         self.area_num = area_num
+        self.area_duplicated = area_duplicated
         
     def print_statistics(self, user_id):
         print('本次推送抽奖统计：')
@@ -48,6 +50,8 @@ class BiliStatistics:
         # broadcast_type 0全区 1分区 2本房间
         if broadcast_type == 0:
             self.pushed_raffles[raffle_name] = orig_num + num / self.area_num
+        elif broadcast_type == 1 and self.area_duplicated:
+            self.pushed_raffles[raffle_name] = orig_num + num / 2
         else:
             self.pushed_raffles[raffle_name] = orig_num + num
 
