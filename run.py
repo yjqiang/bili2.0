@@ -119,7 +119,8 @@ async def init_monitors():
     if other_control['substance_raffle']:
         _danmu_monitors.append(SubstanceRaffleMonitor())
     if other_control['dyn_raffle']:
-        _danmu_monitors.append(DynRaffleMonitor(should_join_immediately=False))
+        _danmu_monitors.append(DynRaffleMonitor(
+            should_join_immediately=other_control['join_dyn_raffle_at_once']))
     return _danmu_printer, _danmu_monitors
 danmu_printer, monitors = loop.run_until_complete(init_monitors())
 bili_sched.init(monitors=monitors, sleep_ranges=dict_ctrl['other_control']['sleep_ranges'])

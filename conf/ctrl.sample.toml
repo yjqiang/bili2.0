@@ -62,5 +62,8 @@ sleep_ranges = []
 
 # 实物抽奖开关
 substance_raffle = false
+
 # 动态抽奖开关
 dyn_raffle = false
+# 立刻参与的话，暴力搜索到就参与；否则就等到快开始抽奖了，才会参与
+join_dyn_raffle_at_once = false
