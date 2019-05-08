@@ -87,8 +87,10 @@ class PythonistaPrinter(BiliLogger):
             self.danmu_control = danmu_control
             
     # "#969696"
-    def hex_to_rgb_percent(self, hex_str):
-        return tuple(int(n, 16)/255 for n in (hex_str[1:3], hex_str[3:5], hex_str[5:7]))
+    @staticmethod
+    def hex_to_rgb_percent(hex_str):
+        return tuple(
+            int(n, 16)/255 for n in (hex_str[1:3], hex_str[3:5], hex_str[5:7]))
         
     # 弹幕 礼物 。。。。type
     def print_danmu(self, dic_msg, type='normal'):

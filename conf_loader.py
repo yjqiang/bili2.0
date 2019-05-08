@@ -4,11 +4,12 @@ import toml
 
 # "#969696"
 def hex_to_rgb_percent(str_hex):
-    return tuple(int(n, 16)/255 for n in (str_hex[1:3], str_hex[3:5], str_hex[5:7]))
+    return tuple(
+        int(n, 16)/255 for n in (str_hex[1:3], str_hex[3:5], str_hex[5:7]))
 
 
 # [255 255 255]
-def rgb_to_percent(list_rgb):
+def dec_to_rgb_percent(list_rgb):
     return list_rgb[0]/255, list_rgb[1]/255, list_rgb[2]/255
     
     
@@ -31,41 +32,42 @@ class ConfLoader:
         print(self.dict_bili)
         print("# 初始化完成")
         '''
+        
+    @staticmethod
+    def toml_load(path):
+        with open(path, encoding="utf-8") as f:
+            return toml.load(f)
+    
+    @staticmethod
+    def toml_dump(object, path):
+        with open(path, 'w', encoding="utf-8") as f:
+            toml.dump(object, f)
     
     def write_user(self, dict_new, user_id):
-        with open(self.file_user, encoding="utf-8") as f:
-            dict_user = toml.load(f)
+        dict_user = self.toml_load(self.file_user)
         for i, value in dict_new.items():
             dict_user['users'][user_id][i] = value
-        with open(self.file_user, 'w', encoding="utf-8") as f:
-            toml.dump(dict_user, f)
+        self.toml_dump(dict_user, self.file_user)
             
     def read_bili(self):
-        with open(self.file_bili, encoding="utf-8") as f:
-            dict_bili = toml.load(f)
-        return dict_bili
+        return self.toml_load(self.file_bili)
         
     def read_color(self):
-        with open(self.file_color, encoding="utf-8") as f:
-            dict_color = toml.load(f)
+        dict_color = self.toml_load(self.file_color)
         for i in dict_color.values():
             for key, color in i.items():
                 if isinstance(color, str):
                     i[key] = hex_to_rgb_percent(color)
                 elif isinstance(color, list):
-                    i[key] = rgb_to_percent(color)
+                    i[key] = dec_to_rgb_percent(color)
                         
         return dict_color
      
     def read_user(self):
-        with open(self.file_user, encoding="utf-8") as f:
-            dict_user = toml.load(f)
-        return dict_user
+        return self.toml_load(self.file_user)
         
     def read_ctrl(self):
-        with open(self.file_ctrl, encoding="utf-8") as f:
-            dict_ctrl = toml.load(f)
-        return dict_ctrl
+        return self.toml_load(self.file_ctrl)
         
                 
 var = ConfLoader()
