@@ -20,6 +20,7 @@ class ConfLoader:
         self.file_user = f'{path_conf}/user.toml'
         self.file_bili = f'{path_conf}/bili.toml'
         self.file_ctrl = f'{path_conf}/ctrl.toml'
+        self.file_task = f'{path_conf}/task.toml'
         
         '''
         self.dict_color = self.read_color()
@@ -68,6 +69,9 @@ class ConfLoader:
         
     def read_ctrl(self):
         return self.toml_load(self.file_ctrl)
+
+    def read_task(self):
+        return self.toml_load(self.file_task)
         
                 
 var = ConfLoader()
@@ -91,3 +95,7 @@ def read_user():
         
 def read_ctrl():
     return var.read_ctrl()
+
+
+def read_task():
+    return var.read_task()

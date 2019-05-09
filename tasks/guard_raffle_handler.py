@@ -9,6 +9,7 @@ from .base_class import ForcedTask
 
 
 class GuardRafflJoinTask(ForcedTask):
+    TASK_NAME = 'join_guard_raffle'
     @staticmethod
     async def check(user, real_roomid, raffle_id=None):
         if not await UtilsTask.is_normal_room(user, real_roomid):

@@ -16,6 +16,7 @@ from .base_class import SchedTask
 
 
 class HeartBeatTask(SchedTask):
+    TASK_NAME = 'heartbeat'
     @staticmethod
     async def check(_):
         return (-2, (0, 30)),
@@ -33,6 +34,7 @@ class HeartBeatTask(SchedTask):
 
                 
 class RecvHeartGiftTask(SchedTask):
+    TASK_NAME = 'recv_heart_gift'
     @staticmethod
     async def check(_):
         return (-2, (0, 30)),
@@ -49,6 +51,7 @@ class RecvHeartGiftTask(SchedTask):
  
                
 class OpenSilverBoxTask(SchedTask):
+    TASK_NAME = 'open_silver_box'
     @staticmethod
     async def check(_):
         return (-2, (0, 30)),
@@ -83,6 +86,7 @@ class OpenSilverBoxTask(SchedTask):
                 
                 
 class RecvDailyBagTask(SchedTask):
+    TASK_NAME = 'recv_daily_bag'
     @staticmethod
     async def check(_):
         return (-2, (0, 30)),
@@ -100,6 +104,7 @@ class RecvDailyBagTask(SchedTask):
 
                 
 class SignTask(SchedTask):
+    TASK_NAME = 'sign'
     @staticmethod
     async def check(_):
         return (-2, (0, 30)),
@@ -117,6 +122,7 @@ class SignTask(SchedTask):
         
         
 class WatchTvTask(SchedTask):
+    TASK_NAME = 'watch_tv'
     @staticmethod
     async def check(_):
         return (-2, (0, 30)),
@@ -135,6 +141,7 @@ class WatchTvTask(SchedTask):
         
         
 class SignFansGroupsTask(SchedTask):
+    TASK_NAME = 'sign_fans_group'
     @staticmethod
     async def check(_):
         return (-2, (0, 30)),
@@ -158,6 +165,7 @@ class SignFansGroupsTask(SchedTask):
             
             
 class SendGiftTask(SchedTask):
+    TASK_NAME = 'send_gift'
     @staticmethod
     async def check(_):
         return (-2, (0, 30)),
@@ -264,6 +272,7 @@ class SendGiftTask(SchedTask):
 
                 
 class ExchangeSilverCoinTask(SchedTask):
+    TASK_NAME = 'exchange_silver_coin'
     @staticmethod
     async def check(_):
         return (-2, (0, 30)),

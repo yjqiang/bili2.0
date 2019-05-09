@@ -106,3 +106,4 @@ venv.bak/
 /conf/ctrl.toml
 /conf/user.toml
 .idea/
+/conf/task.toml

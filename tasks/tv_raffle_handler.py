@@ -10,6 +10,7 @@ from .base_class import ForcedTask
 
 
 class TvRaffleJoinTask(ForcedTask):
+    TASK_NAME = 'join_tv_raffle'
     # 这是superuser做的,做完之后就broadcast
     @staticmethod
     async def check(user, real_roomid):  # v4

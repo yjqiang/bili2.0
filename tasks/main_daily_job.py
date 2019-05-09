@@ -9,6 +9,7 @@ from .base_class import SchedTask
 
 
 class JudgeCaseTask(SchedTask):
+    TASK_NAME = 'judge_case'
     @staticmethod
     async def check(_):
         return (-2, (0, 30)),
@@ -107,6 +108,7 @@ class JudgeCaseTask(SchedTask):
             
 
 class BiliMainTask(SchedTask):
+    TASK_NAME = 'bili_main'
     @staticmethod
     async def check(user):
         aids = await BiliMainTask.fetch_top_videos(user)

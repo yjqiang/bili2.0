@@ -76,6 +76,7 @@ class SubstanceRaffleUtilsTask:
 
 
 class SubstanceRaffleJoinTask(ForcedTask):
+    TASK_NAME = 'join_substance_raffle'
     @staticmethod
     async def check(_, *args):
         return (-2, None, *args),  # 参见notifier的特殊处理，为None就会依次处理，整个过程awaitable

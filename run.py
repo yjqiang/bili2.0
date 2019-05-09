@@ -43,19 +43,28 @@ dict_user = conf_loader.read_user()
 dict_bili = conf_loader.read_bili()
 dict_color = conf_loader.read_color()
 dict_ctrl = conf_loader.read_ctrl()
+dict_task = conf_loader.read_task()
 printer.init_config(dict_color, dict_ctrl['print_control']['danmu'])
 
 # user设置
 users = []
-global_task_control = dict_ctrl['global_task_control']
-custom_task_control = dict_ctrl['custom_task_control']
+global_task_control = dict_task['global_task_control']
+custom_task_control = dict_task['custom_task_control']
+global_task_arrangement = dict_task['global_task_arrangement']
+custom_task_arrangement = dict_task['custom_task_arrangement']
+
+
 for user_info in dict_user['users']:
     username = user_info['username']
     if username in custom_task_control:
         task_control = {**global_task_control, **custom_task_control[username]}
     else:
         task_control = global_task_control
-    users.append(User(user_info, task_control, dict_bili))
+    if username in custom_task_arrangement:
+        task_arrangement = {**global_task_arrangement, **custom_task_arrangement[username]}
+    else:
+        task_arrangement = global_task_arrangement
+    users.append(User(user_info, task_control, task_arrangement, dict_bili))
 notifier.init(users=users)
 
 

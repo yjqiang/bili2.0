@@ -8,20 +8,21 @@ import printer
 import conf_loader
 import exceptions
 from web_session import WebSession
-from user_status import UserStatus
 from tasks.login import LoginTask
 
 
 class User:
     _ids = count(0)
 
-    def __init__(self, dict_user: dict, task_ctrl: dict, dict_bili: dict):
+    def __init__(self, dict_user: dict, task_ctrl: dict, task_arrangement: dict, dict_bili: dict):
         self.id = next(self._ids)
         self.name = dict_user['username']
         self.password = dict_user['password']
         self.alias = dict_user.get('alias', self.name)
         self.task_ctrl = task_ctrl
-        self.status = UserStatus()
+        self.task_arrangement = task_arrangement
+        self.is_log_in = True  # 登陆状态，cookie、token有效性
+        self.is_in_jail = False  # 是否小黑屋
         self._bililive_session = None
         self._login_session = None
         self._other_session = None
@@ -112,16 +113,15 @@ class User:
                 rsp = await func(*args)
                 return rsp  # 如果正常，不用管是否登陆了(不少api不需要cookie)，直接return
             except exceptions.LogoutError:
-                is_online_status = self.status.check_log_status()
                 # 未登陆且未处理
-                if is_online_status:
+                if self.is_log_in:
                     self.info([f'判定出现了登陆失败，且未处理'], True)
-                    self.status.logout()
+                    self.is_log_in = False
                     # login
                     await LoginTask.handle_login_status(self)
                     print(self.list_delay)
                     self.info([f'已经登陆了'], True)
-                    self.status.login()
+                    self.is_log_in = True
                     for future in self.list_delay:
                         future.set_result(True)
                     del self.list_delay[:]
@@ -133,19 +133,17 @@ class User:
                     self.info([f'判定出现了登陆失败，已经处理'], True)
 
     async def exec_func(self, func: Callable, *args, **kwargs):
-        if self.status.check_status(func):
-            return await func(self, *args, **kwargs)
-        return None
+        return await func(self, *args, **kwargs)
 
     def fall_in_jail(self):
-        self.status.go_to_jail()
+        self.is_in_jail = True
         self.info(f'用户进入小黑屋')
 
     def out_of_jail(self):
-        self.status.out_of_jail()
+        self.is_in_jail = False
         self.info(f'抽奖脚本尝试性设置用户已出小黑屋（如果实际没出还会再判定进去）')
 
     def print_status(self):
         self.info('当前用户的RECORDING_TAKS：', self.recording_tasks)
-        status = [i for i in self.status.get_status()]
-        self.info('当前用户的状态：', *status)
+        jail_status = '恭喜中奖' if self.is_in_jail else '自由之身'
+        self.info('当前用户的状态：', jail_status)

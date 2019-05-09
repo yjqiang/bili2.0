@@ -6,6 +6,7 @@ import aiojobs
 
 from user import User
 from tasks.base_class import TaskType
+import printer
 from printer import info as print
 
 
@@ -21,6 +22,20 @@ class Users:
     @property
     def superuser(self) -> User:
         return self._users[0]
+
+    def gets_with_restrict(self, index: int, task_name: str):
+        for user in self.gets(index):
+            if user.is_in_jail and task_name in (
+                    'recv_heart_gift',
+                    'open_silver_box',
+                    'join_storm_raffle',
+                    'join_guard_raffle',
+                    'join_tv_raffle'):
+                continue
+            if task_name != 'null' and not user.task_arrangement.get(task_name, True):
+                continue
+            yield user
+
 
     def gets(self, index: int):
         if index == -2:
@@ -80,7 +95,7 @@ class Notifier:
             return
         for user_id, delay_range, *args in check_results:
             if delay_range is not None:
-                for user in self._users.gets(user_id):
+                for user in self._users.gets_with_restrict(user_id, task.TASK_NAME):
                     delay = random.uniform(*delay_range)
                     self._loop.call_later(
                         delay, self.run_sched_func_bg, user, task.work, *args)
@@ -101,13 +116,13 @@ class Notifier:
             return
         for user_id, delay_range, *args in check_results:
             if delay_range is not None:
-                for user in self._users.gets(user_id):
+                for user in self._users.gets_with_restrict(user_id, task.TASK_NAME):
                     delay = random.uniform(*delay_range)
                     self._loop.call_later(
                         delay, self.run_forced_func_bg, user, task.work, *args)
             else:  # 这里是特殊处理为None的时候，去依次执行，且wait untill all done
                 result = None
-                for user in self._users.gets(user_id):
+                for user in self._users.gets_with_restrict(user_id, task.TASK_NAME):
                     if result is None:
                         result = await self.run_forced_func(
                             user, task.work, *args)
