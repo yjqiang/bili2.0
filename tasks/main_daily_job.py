@@ -196,7 +196,9 @@ class BiliMainTask(SchedTask):
     @staticmethod
     async def send_coin(user, num_coin, aids):
         print('开始赠送硬币')
-        while num_coin > 0:
+        for _ in range(user.task_ctrl['givecoin_max_try_times']):
+            if num_coin <= 0:
+                return
             aid = random.choice(aids)
             result = await BiliMainTask.send_coin2video(user, aid, 1)
             if result == -1:

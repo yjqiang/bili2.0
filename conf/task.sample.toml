@@ -43,6 +43,8 @@ send2medal = []
 
 # 输入数字 0-5 表示主站每日自动投币
 givecoin = 0
+# 数字表示投币最大尝试次数(如果根据up主投币的话，很可能最后发现硬币满了，投不动了，这是就需要限制尝试次数，否则会死循环)
+givecoin_max_try_times = 25
 # av获取(bilitop或者uper)分别代表b站随机或者根据up主mid选取
 fetchrule = "bilitop"
 # up主list([123]或者[123, 234, 123]等)
