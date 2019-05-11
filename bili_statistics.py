@@ -14,6 +14,8 @@ class BiliStatistics:
         
         # 这是用于重复问题
         self.raffle_ids = []
+        # 用于限制每天用户最多某个任务的最大参与次数
+        self.tasks_records = {}  # {use0: {task0: 1, task1: 2}, user1: {task1: 9}}
 
     def init(self, area_num: int, area_duplicated: bool):
         self.area_num = area_num
@@ -42,6 +44,12 @@ class BiliStatistics:
             
         print('本次抽奖结果统计：')
         results_of_id = self.raffle_results.get(user_id, {})
+        for k, v in results_of_id.items():
+            print(f'{v:^5} X {k}')
+        print()
+
+        print('当日参与任务统计（null类任务不计入；只是压入计划，不一定已经参与；整点清零）：')
+        results_of_id = self.tasks_records.get(user_id, {})
         for k, v in results_of_id.items():
             print(f'{v:^5} X {k}')
             
@@ -81,6 +89,21 @@ class BiliStatistics:
     def is_raffleid_duplicate(self, raffle_id):
         return raffle_id in self.raffle_ids
 
+    def add2tasks_records(self, task_name, user_id: int, max_time: int):
+        if not max_time:  # 0显然就是一直不参与的
+            return False
+        if user_id not in self.tasks_records:
+            self.tasks_records[user_id] = {}
+        records_of_user = self.tasks_records[user_id]
+        number = records_of_user.get(task_name, 0)
+        if max_time != -1 and number >= max_time:  # -1 特殊处理，表示无限参与
+            return False
+        records_of_user[task_name] = number + 1
+        return True
+
+    def start_new_day(self):
+        self.tasks_records.clear()
+
                 
 var_bili_statistics = BiliStatistics()
 
@@ -103,6 +126,10 @@ def add2results(gift_name, user_id, num=1):
 
 def add2raffle_ids(raffle_id):
     var_bili_statistics.add2raffle_ids(int(raffle_id))
+
+
+def add2tasks_records(task_name, user_id: int, max_time: int):
+    return var_bili_statistics.add2tasks_records(task_name, user_id, max_time)
     
     
 def is_raffleid_duplicate(raffle_id):
@@ -111,3 +138,7 @@ def is_raffleid_duplicate(raffle_id):
 
 def print_statistics(user_id=None):
     var_bili_statistics.print_statistics(user_id)
+
+
+def start_new_day():
+    var_bili_statistics.start_new_day()

@@ -5,6 +5,7 @@ from typing import Optional
 import schedule
 
 import notifier
+import bili_statistics
 from printer import info as print
 
 
@@ -17,7 +18,6 @@ class BiliSched:
         self._running = True
         self._sched_daily_jobs = schedule.Scheduler()
         self._sched_shedule = schedule.Scheduler()
-
         self._monitors = []
 
     def init(self, monitors: list, sleep_ranges: list):
@@ -37,6 +37,10 @@ class BiliSched:
     def add_daily_jobs(self, task, every_hours: float, *args, **kwargs):
         self._sched_daily_jobs.every(every_hours).hours.do(
             notifier.exec_task_no_wait, task, *args, **kwargs)
+
+    @staticmethod
+    def start_new_day():
+        bili_statistics.start_new_day()
 
     def sleeping(self):
         print('🌇去睡吧')
@@ -66,8 +70,9 @@ class BiliSched:
 
     async def run(self):
         # 如果不装载任务，会挂在idle_seconds处
-        self._sched_shedule.every().day.do(self.do_nothing)
-        self._sched_daily_jobs.every().day.do(self.do_nothing)
+        # self._sched_shedule.every().day.do(self.do_nothing)
+        # self._sched_daily_jobs.every().day.do(self.do_nothing)
+        self._sched_shedule.every().day.at('00:00:00').do(self.start_new_day)
         self._sched_daily_jobs.every(4).hours.do(self.out_of_jail)
 
         while True:

@@ -4,9 +4,9 @@ from typing import Optional, List, Callable
 
 import aiojobs
 
+import bili_statistics
 from user import User
 from tasks.base_class import TaskType
-import printer
 from printer import info as print
 
 
@@ -32,10 +32,16 @@ class Users:
                     'join_guard_raffle',
                     'join_tv_raffle'):
                 continue
-            if task_name != 'null' and not user.task_arrangement.get(task_name, True):
-                continue
+            if task_name != 'null':  # null 就忽略过滤，直接参与
+                if f'probability_{task_name}' in user.task_arrangement:  # 平均概率筛选
+                    if not random.random() < user.task_arrangement[f'probability_{task_name}']:
+                        continue
+                if not bili_statistics.add2tasks_records(  # 每日次数筛选
+                        user_id=user.id,
+                        task_name=task_name,
+                        max_time=user.task_arrangement.get(task_name, -1)):
+                    continue
             yield user
-
 
     def gets(self, index: int):
         if index == -2:

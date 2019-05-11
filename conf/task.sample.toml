@@ -1,26 +1,33 @@
-[global_task_arrangement]  # task参与的控制，注意⚠对于动态实物这些，必须要ctrl.toml开启之后（那里是管理轮询的总开关），才会生效
-join_dyn_raffle = true
-join_guard_raffle = true
-join_storm_raffle = false
-join_substance_raffle = true
-join_tv_raffle = true
-heartbeat = true
-recv_heart_gift = true
-open_silver_box = true
-recv_daily_bag = true
-sign = true
-watch_tv = true
-sign_fans_group = true
-send_gift = true
-exchange_silver_coin = true
-judge_case = true
-bili_main = true
+[global_task_arrangement]  # task 参与的控制，注意⚠对于动态实物这些，必须要 ctrl.toml 开启之后（那里是管理轮询的总开关），才会生效
+# {task_name}指join_dyn_raffle、join_dyn_raffle 这些（不得随意修改名字，不得随意删除），目前下面罗列的就是全部了！！！！
+# 平均概率筛选： probability_{task_name} = 0.7   这种表示0.7的概率会参加风暴，剩余会丢弃，如果不存在这种 probability_{task_name}，即表示百分之百参与
+# 每日次数筛选： {task_name} = 0   -1 表示一天内无限制次数；0 表示一直不会参与； 正整数表示一天内最大参与次数，超过就会暴力丢弃
+# 具体逻辑为，如果存在 probability_{task_name}，按照概率筛选，否则百分之百通过概率筛选。如果通过概率筛选。再查看 {task_name} 是否有次数筛选，如果超过了，就不执行
+join_dyn_raffle = -1  # 动态 dyn_raffle_handler.py
+join_guard_raffle = -1  # 舰队 guard_raffle_handler.py
+join_storm_raffle = 0  # 风暴 storm_raffle_handler.py
+join_substance_raffle = -1  # 实物 substance_raffle_handler.py
+join_tv_raffle = -1  # 小电视 tv_raffle_handler.py
+
+heartbeat = -1  # 直播心跳 live_daily_job.py
+recv_heart_gift = -1  # 心跳礼物 live_daily_job.py
+open_silver_box = -1  # 直播宝箱 live_daily_job.py
+recv_daily_bag = -1  # 每日礼包 live_daily_job.py
+sign = -1  # 直播签到  live_daily_job.py
+watch_tv = -1  # 双端观看任务 live_daily_job.py
+sign_fans_group = -1  # 应援团签到 live_daily_job.py
+send_gift = -1  # 勋章赠送礼物、赠送即将过期的礼物 live_daily_job.py
+exchange_silver_coin = -1  # 每日瓜子硬币兑换 live_daily_job.py
+
+judge_case = -1  # 风纪委 main_daily_job.py
+bili_main = -1  # 主站每日任务，投币、分享、观看、登录 main_daily_job.py
 
 
 
 [custom_task_arrangement]  # 与global_task_arrangement对应。针对某个具体用户的自定义(如果用户没有自定义的部分，就使用前面global那里的配置)
     [custom_task_arrangement.username]  # sub-table({'custom_task_arrangement': {'user0': {}, 'user1': {}}})，name与user.toml内的相同
-    join_storm_raffle = true
+    join_storm_raffle = -1
+    probability_join_storm_raffle = 0.7
 
 
 
