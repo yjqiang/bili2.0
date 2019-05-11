@@ -149,7 +149,7 @@ class BiliMainTask(SchedTask):
     @staticmethod
     async def fetch_top_videos(user):
         text_rsp = await user.req_s(BiliMainReq.fetch_top_videos, user)
-        aids = re.findall(r'(?<=www.bilibili.com/video/av)\d+(?=/)', text_rsp)
+        aids = [i.group(1) for i in re.finditer(r'www.bilibili.com/video/av(\d+)', text_rsp)]
         if not aids:
             user.warn(f'{text_rsp}, aid这里')
         # print(aids)
