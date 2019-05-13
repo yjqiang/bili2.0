@@ -57,7 +57,7 @@ class PrintMedalsTask(ForcedTask):
         rank = f'{"RANK":^9}'
         worn_status = utils.hwid2fwid('佩戴状态', 6)
         room_id = f'{"ROOMID":^9}'
-        yield f'{medal_name} {uname} {intimacy} {today_intimacy} {rank} {worn_status} {room_id}'
+        yield f'{medal_name} {uname} {room_id} {intimacy} {today_intimacy} {worn_status} {rank}'
         if not json_rsp['code']:
             for medal in json_rsp['data']['fansMedalList']:
                 medal_name = utils.hwid2fwid(f'{medal["medal_name"]}|{medal["level"]}', 7)
@@ -68,7 +68,7 @@ class PrintMedalsTask(ForcedTask):
                 org_worn_status = '正在佩戴' if medal['status'] else '目前待机'
                 worn_status = utils.hwid2fwid(org_worn_status, 6)
                 room_id = f'{medal.get("roomid", "N/A"):^9}'
-                yield f'{medal_name} {uname} {intimacy} {today_intimacy} {rank} {worn_status} {room_id}'
+                yield f'{medal_name} {uname} {room_id} {intimacy} {today_intimacy} {worn_status} {rank}'
 
 
 class PrintMainBiliDailyJobTask(ForcedTask):
