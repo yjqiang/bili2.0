@@ -28,7 +28,7 @@ class StormRaffleJoinTask(ForcedTask):
                 next_step_setting = (-2, (2, 4), room_id, raffle_id)
                 next_step_settings.append(next_step_setting)
                 
-                bili_statistics.add2raffle_ids(raffle_id)
+                bili_statistics.add2raffle_ids(raffle_id, 'STORM')
         return next_step_settings
             
     @staticmethod

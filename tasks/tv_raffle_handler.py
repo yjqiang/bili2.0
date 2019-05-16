@@ -29,7 +29,7 @@ class TvRaffleJoinTask(ForcedTask):
                 print('本次获取到的抽奖id为', raffle_id)
                 next_step_setting = (-2, (j['time_wait'], max_wait), real_roomid, raffle_id, raffle_type)
                 next_step_settings.append(next_step_setting)
-                bili_statistics.add2raffle_ids(raffle_id)
+                bili_statistics.add2raffle_ids(raffle_id, 'TV')
                 
         return next_step_settings
         

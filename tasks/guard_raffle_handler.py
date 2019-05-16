@@ -35,7 +35,7 @@ class GuardRafflJoinTask(ForcedTask):
                 print('本次获取到的抽奖id为', raffle_id)
                 next_step_setting = (-2, (0, max_wait), real_roomid, raffle_id)
                 next_step_settings.append(next_step_setting)
-                bili_statistics.add2raffle_ids(raffle_id)
+                bili_statistics.add2raffle_ids(raffle_id, 'GUARD')
         return next_step_settings
         
     @staticmethod
