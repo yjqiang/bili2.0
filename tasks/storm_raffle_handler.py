@@ -19,8 +19,8 @@ class StormRaffleJoinTask(ForcedTask):
         next_step_settings = []
         data = json_rsp['data']
         if data:
-            raffle_id = data['id']
-            if not bili_statistics.is_raffleid_duplicate(raffle_id):
+            raffle_id = int(data['id'])
+            if not bili_statistics.is_raffleid_duplicate(raffle_id/1000000):
                 print('本次获取到的抽奖id为', raffle_id)
                 next_step_setting = (-2, (1, 3), room_id, raffle_id)
                 next_step_settings.append(next_step_setting)
@@ -28,7 +28,7 @@ class StormRaffleJoinTask(ForcedTask):
                 next_step_setting = (-2, (2, 4), room_id, raffle_id)
                 next_step_settings.append(next_step_setting)
                 
-                bili_statistics.add2raffle_ids(raffle_id, 'STORM')
+                bili_statistics.add2raffle_ids(raffle_id/1000000, 'STORM')
         return next_step_settings
             
     @staticmethod
