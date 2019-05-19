@@ -1,18 +1,14 @@
 # 不具有任何意义,仅仅是常见func
 
-import time
 from random import randint
 from bili_global import API_LIVE
+import utils
 
 
 class UtilsReq:
     @staticmethod
     def randomint():
         return ''.join(str(randint(0, 9)) for _ in range(17))
-        
-    @staticmethod
-    def curr_time():
-        return int(time.time())
         
     @staticmethod
     async def post_watching_history(user, room_id):
@@ -60,7 +56,7 @@ class UtilsReq:
             'platform': 'pc',
             'biz_code': 'live',
             'biz_id': biz_id,
-            'rnd': UtilsReq.curr_time(),
+            'rnd': utils.curr_time(),
             'storm_beat_id': '0',
             'metadata': '',
             'price': '0',
@@ -82,7 +78,7 @@ class UtilsReq:
             'platform': 'pc',
             'biz_code': 'live',
             'biz_id': biz_id,
-            'rnd': UtilsReq.curr_time(),
+            'rnd': utils.curr_time(),
             'storm_beat_id': '0',
             'metadata': '',
             'price': '0',

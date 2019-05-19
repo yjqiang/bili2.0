@@ -1,3 +1,4 @@
+import utils
 from .utils import UtilsReq
 
 
@@ -34,7 +35,7 @@ class JudgeCaseReq:
             **(user.dict_bili['pcheaders']),
             'Referer': f'https://www.bilibili.com/judgement/vote/{case_id}',
         }
-        url = f'https://api.bilibili.com/x/credit/jury/juryCase?callback=jQuery1720{UtilsReq.randomint()}_{UtilsReq.curr_time()}&cid={case_id}&_={UtilsReq.curr_time()}'
+        url = f'https://api.bilibili.com/x/credit/jury/juryCase?callback=jQuery1720{UtilsReq.randomint()}_{utils.curr_time()}&cid={case_id}&_={utils.curr_time()}'
         json_rsp = await user.other_session.request_json('GET', url, headers=headers)
         return json_rsp
         
@@ -44,7 +45,7 @@ class JudgeCaseReq:
             **(user.dict_bili['pcheaders']),
             'Referer': 'https://www.bilibili.com/judgement/index',
         }
-        url = f'https://api.bilibili.com/x/credit/jury/caseList?callback=jQuery1720{UtilsReq.randomint()}_{UtilsReq.curr_time()}&pn=1&ps=25&_={UtilsReq.curr_time()}'
+        url = f'https://api.bilibili.com/x/credit/jury/caseList?callback=jQuery1720{UtilsReq.randomint()}_{utils.curr_time()}&pn=1&ps=25&_={utils.curr_time()}'
         json_rsp = await user.other_session.request_json('GET', url, headers=headers)
         return json_rsp
         
@@ -76,7 +77,7 @@ class BiliMainReq:
             'csrf': user.dict_bili['csrf'],
             'played_time': 0,
             'realtime': 0,
-            'start_ts': UtilsReq.curr_time(),
+            'start_ts': utils.curr_time(),
             'type': 3,
             'dt': 2,
             'play_type': 1

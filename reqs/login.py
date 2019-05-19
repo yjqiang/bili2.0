@@ -5,7 +5,7 @@ try:
 except ImportError:
     Image = None
 import requests
-from .utils import UtilsReq
+import utils
 
 
 class LoginReq:
@@ -41,7 +41,7 @@ class LoginReq:
 
     @staticmethod
     async def is_token_usable(user):
-        list_url = f'access_key={user.dict_bili["access_key"]}&{user.app_params}&ts={UtilsReq.curr_time()}'
+        list_url = f'access_key={user.dict_bili["access_key"]}&{user.app_params}&ts={utils.curr_time()}'
         list_cookie = user.dict_bili['cookie'].split(';')
         params = ('&'.join(sorted(list_url.split('&') + list_cookie)))
         sign = user.calc_sign(params)
@@ -51,7 +51,7 @@ class LoginReq:
 
     @staticmethod
     async def refresh_token(user):
-        list_url = f'access_key={user.dict_bili["access_key"]}&access_token={user.dict_bili["access_key"]}&{user.app_params}&refresh_token={user.dict_bili["refresh_token"]}&ts={UtilsReq.curr_time()}'
+        list_url = f'access_key={user.dict_bili["access_key"]}&access_token={user.dict_bili["access_key"]}&{user.app_params}&refresh_token={user.dict_bili["refresh_token"]}&ts={utils.curr_time()}'
         list_cookie = user.dict_bili['cookie'].split(';')
         params = ('&'.join(sorted(list_url.split('&') + list_cookie)))
         sign = user.calc_sign(params)

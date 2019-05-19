@@ -1,5 +1,5 @@
 from bili_global import API_LIVE
-from .utils import UtilsReq
+import utils
 from json_rsp_ctrl import Ctrl, BaseCtrl, CtrlElem, Equal, In, JsonRspType
 
 
@@ -16,7 +16,7 @@ class HeartBeatReq:
 
     @staticmethod
     async def app_heartbeat(user):
-        temp_params = f'access_key={user.dict_bili["access_key"]}&{user.app_params}&ts={UtilsReq.curr_time()}'
+        temp_params = f'access_key={user.dict_bili["access_key"]}&{user.app_params}&ts={utils.curr_time()}'
         sign = user.calc_sign(temp_params)
         url = f'{API_LIVE}/mobile/userOnlineHeart?{temp_params}&sign={sign}'
         payload = {'roomid': 23058, 'scale': 'xhdpi'}
@@ -35,15 +35,15 @@ class RecvHeartGiftReq:
 class OpenSilverBoxReq:
     @staticmethod
     async def check_time(user):
-        temp_params = f'access_key={user.dict_bili["access_key"]}&{user.app_params}&ts={UtilsReq.curr_time()}'
+        temp_params = f'access_key={user.dict_bili["access_key"]}&{user.app_params}&ts={utils.curr_time()}'
         sign = user.calc_sign(temp_params)
-        GetTask_url = f'{API_LIVE}/mobile/freeSilverCurrentTask?{temp_params}&sign={sign}'
-        json_rsp = await user.bililive_session.request_json('GET', GetTask_url, headers=user.dict_bili['appheaders'])
+        url = f'{API_LIVE}/mobile/freeSilverCurrentTask?{temp_params}&sign={sign}'
+        json_rsp = await user.bililive_session.request_json('GET', url, headers=user.dict_bili['appheaders'])
         return json_rsp
     
     @staticmethod
     async def open_silver_box(user, timestart, timeend):
-        temp_params = f'access_key={user.dict_bili["access_key"]}&{user.app_params}&time_end={timeend}&time_start={timestart}&ts={UtilsReq.curr_time()}'
+        temp_params = f'access_key={user.dict_bili["access_key"]}&{user.app_params}&time_end={timeend}&time_start={timestart}&ts={utils.curr_time()}'
         sign = user.calc_sign(temp_params)
         url = f'{API_LIVE}/mobile/freeSilverAward?{temp_params}&sign={sign}'
         json_rsp = await user.bililive_session.request_json('GET', url, headers=user.dict_bili['appheaders'])
@@ -84,7 +84,7 @@ class SignFansGroupsReq:
     
     @staticmethod
     async def sign_group(user, group_id, owner_uid):
-        temp_params = f'access_key={user.dict_bili["access_key"]}&actionKey={user.dict_bili["actionKey"]}&appkey={user.dict_bili["appkey"]}&build={user.dict_bili["build"]}&device={user.dict_bili["device"]}&group_id={group_id}&mobi_app={user.dict_bili["mobi_app"]}&owner_id={owner_uid}&platform={user.dict_bili["platform"]}&ts={UtilsReq.curr_time()}'
+        temp_params = f'access_key={user.dict_bili["access_key"]}&actionKey={user.dict_bili["actionKey"]}&appkey={user.dict_bili["appkey"]}&build={user.dict_bili["build"]}&device={user.dict_bili["device"]}&group_id={group_id}&mobi_app={user.dict_bili["mobi_app"]}&owner_id={owner_uid}&platform={user.dict_bili["platform"]}&ts={utils.curr_time()}'
         sign = user.calc_sign(temp_params)
         url = f'https://api.vc.bilibili.com/link_setting/v1/link_setting/sign_in?{temp_params}&sign={sign}'
         json_rsp = await user.other_session.request_json('GET', url, headers=user.dict_bili['appheaders'])
