@@ -22,7 +22,7 @@ class CoverChecker:
             self.max_id = new_id
             self.number += 1
             return
-        if self.min_id < new_id + 10:  # 过滤掉过老的id
+        if self.min_id < new_id:  # 过滤掉过老的id
             self.min_id = min(self.min_id, new_id)
             self.max_id = max(self.max_id, new_id)
             self.number += 1
@@ -32,7 +32,7 @@ class CoverChecker:
             num_wanted = 0
             num_actual = 0
             cover = 0
-        else:    
+        else:
             num_wanted = self.max_id - self.min_id + 1
             num_actual = self.number
             cover = num_actual / num_wanted
