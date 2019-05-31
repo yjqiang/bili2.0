@@ -64,7 +64,7 @@ for user_info in dict_user['users']:
         task_arrangement = {**global_task_arrangement, **custom_task_arrangement[username]}
     else:
         task_arrangement = global_task_arrangement
-    users.append(User(user_info, task_control, task_arrangement, dict_bili))
+    users.append(User(user_info, task_control, task_arrangement, dict_bili, bili_sched.force_sleep))
 notifier.init(users=users)
 
 

@@ -14,8 +14,9 @@ from tasks.login import LoginTask
 class User:
     _ids = count(0)
 
-    def __init__(self, dict_user: dict, task_ctrl: dict, task_arrangement: dict, dict_bili: dict):
+    def __init__(self, dict_user: dict, task_ctrl: dict, task_arrangement: dict, dict_bili: dict, force_sleep: callable):
         self.id = next(self._ids)
+        self.force_sleep = force_sleep
         self.name = dict_user['username']
         self.password = dict_user['password']
         self.alias = dict_user.get('alias', self.name)
@@ -131,6 +132,9 @@ class User:
                     self.list_delay.append(future)
                     await future
                     self.info([f'判定出现了登陆失败，已经处理'], True)
+            except exceptions.ForbiddenError:
+                await asyncio.shield(self.force_sleep(3600))  # bili_sched.force_sleep
+                await asyncio.sleep(3600)  # 有的function不受sched控制，主动sleep即可，不cancel原因是怕堵死一些协程
 
     async def exec_func(self, func: Callable, *args, **kwargs):
         return await func(self, *args, **kwargs)

@@ -9,3 +9,7 @@ class RspError(Exception):
 
 class LogoutError(RspError):
     pass
+
+
+class ForbiddenError(RspError):
+    pass

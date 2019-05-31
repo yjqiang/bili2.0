@@ -15,10 +15,12 @@ class BiliSched:
             self._loop = asyncio.get_event_loop()
         else:
             self._loop = loop
-        self._running = True
+        self._sched_running = True
+        self._force_sleeping = False  # force_sleep 的使用，用于保证unique即不会重复处理
         self._sched_daily_jobs = schedule.Scheduler()
         self._sched_shedule = schedule.Scheduler()
         self._monitors = []
+        self._switch_lock = asyncio.Lock()
 
     def init(self, monitors: list, sleep_ranges: list):
         self._monitors = monitors
@@ -26,11 +28,11 @@ class BiliSched:
             self._sched_shedule.every().day.at(sleep_time.strftime("%H:%M:%S")).do(self.sleeping)
             self._sched_shedule.every().day.at(wake_time.strftime("%H:%M:%S")).do(self.waking_up)
 
-        # 如果在休眠期间，就关闭self._running
+        # 如果在休眠期间，就关闭self._sched_running
         cur_time = datetime.now().time()
         for sleep_time, wake_time in sleep_ranges:
             if sleep_time <= cur_time <= wake_time:
-                self._running = False
+                self._sched_running = False
                 return
 
     # 这是日常任务装载
@@ -44,21 +46,33 @@ class BiliSched:
 
     def sleeping(self):
         print('🌇去睡吧')
-        self._running = False
+        self._sched_running = False
 
     def waking_up(self):
         print('🌅起床啦')
-        self._running = True
+        self._sched_running = True
 
-    async def resume(self):
-        for i in self._monitors:
-            i.resume()
-        await notifier.resume()
+    async def resume(self, forced: bool = False):
+        async with self._switch_lock:
+            if self._sched_running or forced:  # 仅在确认running后，真正执行resume；这里forced其实没用过
+                for i in self._monitors:
+                    i.resume()
+                await notifier.resume()
 
-    async def pause(self):
-        for i in self._monitors:
-            i.pause()
-        await notifier.pause()
+    async def force_sleep(self, sleep_time: int):
+        if self._sched_running and not self._force_sleeping:
+            self._force_sleeping = True
+            await self.pause(forced=True)
+            await asyncio.sleep(sleep_time)
+            await self.resume()
+            self._force_sleeping = False
+
+    async def pause(self, forced: bool = False):
+        async with self._switch_lock:
+            if not self._sched_running or forced:  # 正常情况下，仅在确认not running后，真正执行pause；403时强制
+                for i in self._monitors:
+                    i.pause()
+                await notifier.pause()
 
     def do_nothing(self):
         return
@@ -77,14 +91,14 @@ class BiliSched:
 
         while True:
             self._sched_shedule.run_pending()
-            if self._running:
+            if self._sched_running:
                 await self.resume()
                 self._sched_daily_jobs.run_all()
                 while True:
                     # print(self._sched_daily_jobs.jobs)
                     self._sched_daily_jobs.run_pending()
                     self._sched_shedule.run_pending()
-                    if not self._running:
+                    if not self._sched_running:
                         break
                     idle_seconds = min(self._sched_daily_jobs.idle_seconds, self._sched_shedule.idle_seconds)
                     print(f'Will sleep {idle_seconds}s，等待任务装载')
@@ -108,3 +122,7 @@ def add_daily_jobs(task, every_hours: float, *args, **kwargs):
 
 async def run():
     await var_bili_sched.run()
+
+
+async def force_sleep(sleep_time: int):
+    await var_bili_sched.force_sleep(sleep_time)

@@ -2,7 +2,7 @@ import sys
 import asyncio
 import aiohttp
 import printer
-from exceptions import LogoutError
+from exceptions import LogoutError, ForbiddenError
 from json_rsp_ctrl import Ctrl, JsonRspType, DEFAULT_CTRL, TMP_DEFAULT_CTRL
 
 sem = asyncio.Semaphore(3)
@@ -40,8 +40,10 @@ class WebSession:
                                 return body
                         elif rsp.status in (412, 403):
                             printer.warn(f'403频繁, {url}')
-                            await asyncio.sleep(240)
+                            raise ForbiddenError(msg=url)
                 except asyncio.CancelledError:
+                    raise
+                except ForbiddenError:
                     raise
                 except:
                     # print('当前网络不好，正在重试，请反馈开发者!!!!')
