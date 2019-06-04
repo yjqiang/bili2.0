@@ -9,6 +9,9 @@
 1. <https://github.com/lzghzr/bilive_client> 该项目作者的大力支持
 2. [Grape for Github](https://itunes.apple.com/app/apple-store/id1371929193?mt=8) 的作者 <http://derekcoder.com/> 对用户任务设计等的帮助以及其开发的 Github 软件的便利
 
+### 支持与打赏
+![](support.jpeg)
+
 ### 使用方法
 
 1. 先下载项目到电脑 <https://github.com/yjqiang/bili2.0/archive/master.zip>
