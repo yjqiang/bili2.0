@@ -3,12 +3,19 @@
 from random import randint
 from bili_global import API_LIVE
 import utils
+from json_rsp_ctrl import ZERO_ONLY_CTRL
 
 
 class UtilsReq:
     @staticmethod
     def randomint():
         return ''.join(str(randint(0, 9)) for _ in range(17))
+
+    @staticmethod
+    async def fetch_blive_areas(user):
+        url = f'{API_LIVE}/room/v1/Area/getList'
+        rsp = await user.bililive_session.request_json('GET', url, ctrl=ZERO_ONLY_CTRL)
+        return rsp
         
     @staticmethod
     async def post_watching_history(user, room_id):

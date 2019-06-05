@@ -12,7 +12,12 @@ class UtilsTask:
         if not room_id:
             return
         await user.req_s(UtilsReq.post_watching_history, user, room_id)
-    
+
+    @staticmethod
+    async def fetch_blive_areas(user):
+        json_rsp = await user.req_s(UtilsReq.fetch_blive_areas, user)
+        return [int(area['id']) for area in json_rsp['data']]
+
     @staticmethod
     async def is_normal_room(user, roomid):
         if not roomid:

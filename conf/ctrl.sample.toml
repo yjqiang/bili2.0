@@ -13,8 +13,6 @@ default_monitor_roomid = 23058
 yjmonitor_tcp_addr = ''
 yjmonitor_tcp_key = ''
 
-# 固定的直播分区设置
-area_ids = [ 1, 2, 3, 4, 5, 6,]
 # 由于有时b站会在弹幕重连过程中推送会导致遗漏，如果true，会暴力对一个分区同时开两个房间来保证大幅度减少遗漏推送
 area_duplicated = false
 

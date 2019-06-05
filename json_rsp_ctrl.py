@@ -192,3 +192,12 @@ TMP_DEFAULT_CTRL = Ctrl(
     global_verifiers=DEFAULT_BASE_CTRL,
     default_result=JsonRspType.OK
 )
+
+ZERO_ONLY_CTRL = Ctrl(
+    verifiers=BaseCtrl(
+        ok_verifiers=[
+            CtrlElem(code=0),
+        ]),
+    global_verifiers=None,
+    default_result=JsonRspType.IGNORE
+)

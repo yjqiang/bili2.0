@@ -28,6 +28,7 @@ from tasks.main_daily_job import (
     JudgeCaseTask,
     BiliMainTask
 )
+from tasks.utils import UtilsTask
 # 弹幕
 from danmu.bili_danmu_monitor import DanmuPrinter, DanmuRaffleMonitor
 from danmu.yj_monitor import TcpYjMonitorClient
@@ -85,7 +86,7 @@ bili_sched.add_daily_jobs(BiliMainTask, every_hours=4)
 loop.run_until_complete(notifier.exec_task(LoginTask))
 
 other_control = dict_ctrl['other_control']
-area_ids = other_control['area_ids']
+area_ids = loop.run_until_complete(notifier.exec_func(UtilsTask.fetch_blive_areas))
 area_duplicated = other_control['area_duplicated']
 if area_duplicated:
     area_ids *= 2
