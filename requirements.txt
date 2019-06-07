@@ -3,7 +3,7 @@ rsa
 attrs
 aiohttp
 toml
-# Pillow 当你需要自己输入验证码的时候请安装
+# Pillow Don't need it unless you want to input captcha by yourself which isn't recommended.
 decorator
 aiojobs
 schedule
