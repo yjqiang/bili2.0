@@ -6,7 +6,7 @@ if sys.platform == 'ios':
     import console
 
         
-class BiliLogger():
+class BiliLogger:
     # 格式化数据
     @staticmethod
     def format(
