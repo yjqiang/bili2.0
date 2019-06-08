@@ -24,9 +24,11 @@ class User:
         self.task_arrangement = task_arrangement
         self.is_log_in = True  # 登陆状态，cookie、token有效性
         self.is_in_jail = False  # 是否小黑屋
-        self._bililive_session = None
-        self._login_session = None
-        self._other_session = None
+
+        self.bililive_session = WebSession()
+        self.login_session = WebSession()
+        self.other_session = WebSession()
+
         # 每个user里面都分享了同一个dict，必须要隔离，否则更新cookie这些的时候会互相覆盖
         self.dict_bili = copy.deepcopy(dict_bili)
         self.app_params = f'actionKey={dict_bili["actionKey"]}&' \
@@ -51,25 +53,6 @@ class User:
 
     def is_online(self):
         return self.dict_bili['pcheaders']['cookie'] and self.dict_bili['appheaders']['cookie']
-
-    @property
-    def bililive_session(self):
-        if self._bililive_session is None:
-            self._bililive_session = WebSession()
-        return self._bililive_session
-
-    @property
-    def login_session(self):
-        if self._login_session is None:
-            self._login_session = WebSession()
-            # print('测试session')
-        return self._login_session
-
-    @property
-    def other_session(self):
-        if self._other_session is None:
-            self._other_session = WebSession()
-        return self._other_session
 
     def infos(
             self,

@@ -10,6 +10,7 @@ import notifier
 import bili_sched
 import printer
 import bili_statistics
+from utils import wrap_func_as_coroutine
 from bili_console import BiliConsole
 from user import User
 from tasks.login import LoginTask
@@ -65,7 +66,15 @@ for user_info in dict_user['users']:
         task_arrangement = {**global_task_arrangement, **custom_task_arrangement[username]}
     else:
         task_arrangement = global_task_arrangement
-    users.append(User(user_info, task_control, task_arrangement, dict_bili, bili_sched.force_sleep))
+
+    user = loop.run_until_complete(
+        wrap_func_as_coroutine(User,
+                               dict_user=user_info,
+                               task_ctrl=task_control,
+                               task_arrangement=task_arrangement,
+                               dict_bili=dict_bili,
+                               force_sleep=bili_sched.force_sleep))
+    users.append(user)
 notifier.init(users=users)
 
 
