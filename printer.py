@@ -93,50 +93,49 @@ class PythonistaPrinter(BiliLogger):
             int(n, 16)/255 for n in (hex_str[1:3], hex_str[3:5], hex_str[5:7]))
         
     # 弹幕 礼物 。。。。type
-    def print_danmu(self, dic_msg, type='normal'):
+    def print_danmu(self, danmu_msg: dict):
         if not self.danmu_control:
             return
-        info = dic_msg['info']
+        danmu_msg_info = danmu_msg['info']
 
         list_msg = []
         list_color = []
-        if info[7] == 3:
+        if danmu_msg_info[7] == 3:
             # print('舰', end=' ')
             list_msg.append('⚓️ ')
             list_color.append([])
         else:
-            if info[2][3] == 1:
-                if info[2][4] == 0:
+            if danmu_msg_info[2][3] == 1:
+                if danmu_msg_info[2][4] == 0:
                     list_msg.append('爷 ')
                     list_color.append(self.dic_color['others']['vip'])
                 else:
                     list_msg.append('爷 ')
                     list_color.append(self.dic_color['others']['svip'])
-            if info[2][2] == 1:
+            if danmu_msg_info[2][2] == 1:
                 list_msg.append('房管 ')
                 list_color.append(self.dic_color['others']['admin'])
-                
+
             # 勋章
-            if info[3]:
-                list_color.append(self.dic_color['fans-level'][f'fl{info[3][0]}'])
-                list_msg.append(f'{info[3][1]}|{info[3][0]} ')
+            if danmu_msg_info[3]:
+                list_color.append(self.dic_color['fans-level'][f'fl{danmu_msg_info[3][0]}'])
+                list_msg.append(f'{danmu_msg_info[3][1]}|{danmu_msg_info[3][0]} ')
             # 等级
-            if not info[5]:
-                list_color.append(self.dic_color['user-level'][f'ul{info[4][0]}'])
-                list_msg.append(f'UL{info[4][0]} ')
+            if not danmu_msg_info[5]:
+                list_color.append(self.dic_color['user-level'][f'ul{danmu_msg_info[4][0]}'])
+                list_msg.append(f'UL{danmu_msg_info[4][0]} ')
+
+        list_msg.append(danmu_msg_info[2][1] + ':')
         try:
-            if info[2][7]:
-                list_color.append(self.hex_to_rgb_percent(info[2][7]))
-                list_msg.append(info[2][1] + ':')
+            if danmu_msg_info[2][7]:
+                list_color.append(self.hex_to_rgb_percent(danmu_msg_info[2][7]))
             else:
-                list_msg.append(info[2][1] + ':')
                 list_color.append(self.dic_color['others']['default_name'])
-        except:
+        except IndexError:
             print("# 小电视降临本直播间")
-            list_msg.append(info[2][1] + ':')
             list_color.append(self.dic_color['others']['default_name'])
             
-        list_msg.append(info[1])
+        list_msg.append(danmu_msg_info[1])
         list_color.append([])
         for i, j in zip(list_msg, list_color):
             console.set_color(*j)
@@ -156,44 +155,45 @@ class NormalPrinter(BiliLogger):
         if danmu_control is not None:
             self.danmu_control = danmu_control
         
-    def print_danmu(self, dic_msg, type='normal'):
+    def print_danmu(self, danmu_msg: dict):
         if not self.danmu_control:
             return
-        info = dic_msg['info']
+        danmu_msg_info = danmu_msg['info']
 
         list_msg = []
-        if info[7] == 3:
+        if danmu_msg_info[7] == 3:
             # print('舰', end=' ')
             list_msg.append('⚓️ ')
         else:
-            if info[2][3] == 1:
-                if info[2][4] == 0:
+            if danmu_msg_info[2][3] == 1:
+                if danmu_msg_info[2][4] == 0:
                     list_msg.append('爷 ')
                 else:
                     list_msg.append('爷 ')
-            if info[2][2] == 1:
+            if danmu_msg_info[2][2] == 1:
                 list_msg.append('房管 ')
                 
             # 勋章
-            if info[3]:
-                list_msg.append(f'{info[3][1]}|{info[3][0]} ')
+            if danmu_msg_info[3]:
+                list_msg.append(f'{danmu_msg_info[3][1]}|{danmu_msg_info[3][0]} ')
             # 等级
-            if not info[5]:
-                list_msg.append(f'UL{info[4][0]} ')
+            if not danmu_msg_info[5]:
+                list_msg.append(f'UL{danmu_msg_info[4][0]} ')
+
+        list_msg.append(danmu_msg_info[2][1] + ':')
         try:
-            if info[2][7]:
-                list_msg.append(info[2][1] + ':')
+            if danmu_msg_info[2][7]:
+                pass
             else:
-                list_msg.append(info[2][1] + ':')
-        except:
+                pass
+        except IndexError:
             print("# 小电视降临本直播间")
-            list_msg.append(info[2][1] + ':')
             
-        list_msg.append(info[1])
+        list_msg.append(danmu_msg_info[1])
         print(''.join(list_msg))
 
   
-if (sys.platform == 'ios'):
+if sys.platform == 'ios':
     printer = PythonistaPrinter()
 else:
     printer = NormalPrinter()
@@ -203,11 +203,11 @@ def init_config(dic_color, print_control_danmu):
     printer.init_config(dic_color, print_control_danmu)
 
  
-def print_danmu(dic_msg, type='normal'):
-    printer.print_danmu(dic_msg, type)
+def print_danmu(danmu_msg: dict):
+    printer.print_danmu(danmu_msg)
     
     
-def control_printer(danmu_control=None, debug_control=None):
+def control_printer(danmu_control=None, _=None):
     printer.control_printer(danmu_control)
 
             
