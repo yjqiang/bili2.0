@@ -81,8 +81,8 @@ class Client:
                 if not await self._open():
                     continue
 
-                tasks = [asyncio.ensure_future(i()) for i in self._funcs_task]
-                self._task_main = asyncio.ensure_future(self._func_main_task())
+                tasks = [self._loop.create_task(i()) for i in self._funcs_task]
+                self._task_main = self._loop.create_task(self._func_main_task())
                 tasks.append(self._task_main)
 
             _, pending = await asyncio.wait(
