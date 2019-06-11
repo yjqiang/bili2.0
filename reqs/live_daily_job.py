@@ -1,6 +1,6 @@
 from bili_global import API_LIVE
 import utils
-from json_rsp_ctrl import Ctrl, BaseCtrl, CtrlElem, Equal, In, JsonRspType
+from json_rsp_ctrl import ZERO_ONLY_CTRL
 
 
 class HeartBeatReq:
@@ -105,7 +105,7 @@ class SendGiftReq:
             'uid': user.dict_bili['uid'],
             'csrf_token': user.dict_bili['csrf']
         }
-        json_rsp = await user.bililive_session.request_json('POST', url, headers=user.dict_bili['pcheaders'], data=data, ctrl=ReqCtrl.fetch_wearing_medal_ctrl)
+        json_rsp = await user.bililive_session.request_json('POST', url, headers=user.dict_bili['pcheaders'], data=data, ctrl=ZERO_ONLY_CTRL)
         return json_rsp
     
     
@@ -119,11 +119,3 @@ class ExchangeSilverCoinReq:
         }
         json_rsp = await user.bililive_session.request_json('POST', url, headers=user.dict_bili['pcheaders'], data=data)
         return json_rsp
-        
-   
-class ReqCtrl:
-    fetch_wearing_medal_ctrl = Ctrl(
-        BaseCtrl(
-            ok_verifiers=[
-                CtrlElem(code=0),
-            ]))

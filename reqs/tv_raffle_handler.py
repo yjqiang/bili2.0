@@ -1,6 +1,6 @@
 from bili_global import API_LIVE
 import utils
-from json_rsp_ctrl import Ctrl, BaseCtrl, CtrlElem, Equal, In, JsonRspType
+from json_rsp_ctrl import Ctrl, In, JsonRspType
 
 
 class TvRaffleHandlerReq:
@@ -41,12 +41,12 @@ class TvRaffleHandlerReq:
                 
 class ReqCtrl:
     join_v4_ctrl = Ctrl(
-        BaseCtrl(
-            logout_verifiers=[CtrlElem(code=-401, others=[In('msg', '登录')])],
-            ok_verifiers=[
-                CtrlElem(code=0),
-                CtrlElem(code=-405),  # 奖品都被领完啦
-                CtrlElem(code=-403, others=[In('msg', '已')]),  # 'code': -403, 'msg': '您已参加抽奖~'
-                CtrlElem(code=-403, others=[In('msg', '拒绝')]),  # 'code': -403, 'msg': '访问被拒绝'
-                CtrlElem(code=-401, others=[In('msg', '没开始')])  # 抽奖还没开始哦
-            ]))
+        extend=(
+            {'code': -401, 'msg': In('登陆')}, JsonRspType.LOGOUT,
+            {'code': 0}, JsonRspType.OK,
+            {'code': -405}, JsonRspType.OK,  # 奖品都被领完啦
+            {'code': -403, 'msg': In('已')}, JsonRspType.OK,  # 'code': -403, 'msg': '您已参加抽奖~'
+            {'code': -403, 'msg': In('拒绝')}, JsonRspType.OK,  # 'code': -403, 'msg': '访问被拒绝'
+            {'code': -401, 'msg': In('没开始')}, JsonRspType.OK,  # 抽奖还没开始哦
+        )
+    )

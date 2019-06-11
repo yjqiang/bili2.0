@@ -1,5 +1,5 @@
 from bili_global import API_LIVE
-from json_rsp_ctrl import Ctrl, BaseCtrl, CtrlElem, Equal, In
+from json_rsp_ctrl import JsonRspType, Ctrl, In
 
 
 class SubstanceRaffleHandlerReq:
@@ -24,22 +24,20 @@ class SubstanceRaffleHandlerReq:
 
 class ReqCtrl:
     check_ctrl = Ctrl(
-        BaseCtrl(
-            logout_verifiers=[CtrlElem(code=-500)],
-            ok_verifiers=[
-                CtrlElem(code=0),
-                CtrlElem(code=-400)
-            ]
-        ))
+        extend=(
+            {'code': -500}, JsonRspType.LOGOUT,
+            {'code': 0}, JsonRspType.OK,
+            {'code': -400}, JsonRspType.OK,
+        )
+    )
         
     join_ctrl = Ctrl(
-        BaseCtrl(
-            logout_verifiers=[CtrlElem(code=-500)],
-            ok_verifiers=[
-                CtrlElem(code=0),
-                CtrlElem(code=-1),  # 未开始抽奖
-                CtrlElem(code=-400),  # 不存在/已经过期
-                CtrlElem(code=-3),  # 已抽过
-                CtrlElem(code=400, others=[In('msg', '拒绝')])  # 小黑屋
-            ]
-        ))
+        extend=(
+            {'code': -500}, JsonRspType.LOGOUT,
+            {'code': 0}, JsonRspType.OK,
+            {'code': -1}, JsonRspType.OK,  # 未开始抽奖
+            {'code': -400}, JsonRspType.OK,  # 不存在/已经过期
+            {'code': -3}, JsonRspType.OK,  # 已抽过
+            {'code': 400, 'msg': In('拒绝')}, JsonRspType.OK,  # 小黑屋
+        )
+    )

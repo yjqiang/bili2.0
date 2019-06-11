@@ -3,7 +3,7 @@ import asyncio
 import aiohttp
 import printer
 from exceptions import LogoutError, ForbiddenError
-from json_rsp_ctrl import Ctrl, JsonRspType, DEFAULT_CTRL, TMP_DEFAULT_CTRL
+from json_rsp_ctrl import Ctrl, JsonRspType, TMP_DEFAULT_CTRL
 
 sem = asyncio.Semaphore(3)
 
