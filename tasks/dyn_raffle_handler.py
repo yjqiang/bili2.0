@@ -68,7 +68,8 @@ class DynRaffleUtilsTask:
 
                 # 抽奖 不符合的可能{}或者lott_cfg为空或者其他一些
                 if 'lott_cfg' in dict_ext and dict_ext['lott_cfg']:
-                    lott_cfg = json.loads(dict_ext['lott_cfg'])
+                    assert isinstance(dict_ext['lott_cfg'], dict)
+                    lott_cfg = dict_ext['lott_cfg']
                     print('lott_cfg', lott_cfg)
                     title = lott_cfg['title']
                     # 目前未发现其他title
