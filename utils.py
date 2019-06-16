@@ -10,8 +10,6 @@ _table_hwid2fwid = str.maketrans(
     '　' + ''.join(chr(i) for i in range(65281, 65375))
     )
     
-_table_clear_whitespace = str.maketrans('', '', string.whitespace + '　')
-    
 
 # 中英文对齐（半角转全角）
 def hwid2fwid(orig_text: str, format_control=10) -> str:
@@ -19,11 +17,13 @@ def hwid2fwid(orig_text: str, format_control=10) -> str:
     return f'{new_text:　^{format_control}}'
 
 
+# 清理空白字符，比起 str.maketrans 在短的 whitespace 时挺占优势
 def clear_whitespace(orig_text: str, more_whitespace: str = '') -> str:
-    if not more_whitespace:
-        return orig_text.translate(_table_clear_whitespace)
-    return orig_text.translate(_table_clear_whitespace).\
-        translate(str.maketrans('', '', more_whitespace))
+    whitespace = f'{string.whitespace}　{more_whitespace}'
+    text = orig_text
+    for i in whitespace:
+        text = text.replace(i, '')
+    return text
 
 
 async def wrap_func_as_coroutine(function: Callable, *args, **kwargs):
