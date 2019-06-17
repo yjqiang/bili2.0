@@ -15,10 +15,12 @@ class TvRaffleJoinTask(ForcedTask):
     @staticmethod
     async def check(user, real_roomid):  # v4
         if not await UtilsTask.is_normal_room(user, real_roomid):
-            return
+            return None
         json_response = await user.req_s(TvRaffleHandlerReq.check, user, real_roomid)
         # print(json_response['data']['list'])
         checklen = json_response['data']['list']
+        if not checklen:  # sb可能返回None
+            return None
         next_step_settings = []
         for j in checklen:
             raffle_id = j['raffleId']
@@ -55,10 +57,12 @@ class TvRaffleJoinTask(ForcedTask):
     @staticmethod
     async def check_v3(user, real_roomid):
         if not await UtilsTask.is_normal_room(user, real_roomid):
-            return
+            return None
         json_response = await user.req_s(TvRaffleHandlerReq.check, user, real_roomid)
         # print(json_response['data']['list'])
         checklen = json_response['data']['list']
+        if not checklen:
+            return None
         next_step_settings = []
         for j in checklen:
             raffle_id = j['raffleId']
