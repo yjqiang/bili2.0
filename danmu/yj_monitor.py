@@ -10,6 +10,7 @@ from .client import Client
 from .conn import TcpConn
 from tasks.guard_raffle_handler import GuardRafflJoinTask
 from tasks.storm_raffle_handler import StormRaffleJoinTask
+from tasks.pk_raffle_handler import PkRaffleJoinTask
 from . import raffle_handler
 
 
@@ -93,4 +94,10 @@ class TcpYjMonitorClient(Client):
             print(f'{self._area_id}号弹幕监控检测到{raffle_roomid:^9}的大航海(id: {raffle_id})')
             raffle_handler.push2queue(GuardRafflJoinTask, raffle_roomid, raffle_id)
             bili_statistics.add2pushed_raffles('Yj协同大航海', 2)
+        elif raffle_type == 'PK':
+            raffle_id = data['raffle_id']
+            raffle_roomid = data['room_id']
+            print(f'{self._area_id}号弹幕监控检测到{raffle_roomid:^9}的大乱斗(id: {raffle_id})')
+            raffle_handler.push2queue(PkRaffleJoinTask, raffle_roomid)
+            bili_statistics.add2pushed_raffles('Yj协同大乱斗', 2)
         return True

@@ -8,6 +8,7 @@ join_guard_raffle = -1  # 舰队 guard_raffle_handler.py
 join_storm_raffle = 0  # 风暴 storm_raffle_handler.py
 join_substance_raffle = -1  # 实物 substance_raffle_handler.py
 join_tv_raffle = -1  # 小电视 tv_raffle_handler.py
+join_pk_raffle = -1  # PK pk_raffle_handler.py
 
 heartbeat = -1  # 直播心跳 live_daily_job.py
 recv_heart_gift = -1  # 心跳礼物 live_daily_job.py
