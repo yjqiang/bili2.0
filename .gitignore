@@ -107,3 +107,4 @@ venv.bak/
 /conf/user.toml
 .idea/
 /conf/task.toml
+tasks/storm_raffle_handler.py
