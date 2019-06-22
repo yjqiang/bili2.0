@@ -108,7 +108,7 @@ class SubstanceRaffleNoticeTask(ForcedTask):
     @staticmethod
     @normal
     async def work(
-            user,  substance_raffle_status: SubstanceRaffleStatus,
+            user, substance_raffle_status: SubstanceRaffleStatus,
             substance_raffle_result: Optional[SubstanceRaffleResults]):
         int_user_uid = int(user.dict_bili['uid'])
         dyn_raffle_joined = substance_raffle_sql.select_by_primary_key_from_substanceraffle_joined_table(
