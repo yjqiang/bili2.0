@@ -41,7 +41,7 @@ class CoverChecker:
 
 @attr.s(slots=True)
 class DuplicateChecker:
-    LIST_SIZE_LIMITED = 1000
+    LIST_SIZE_LIMITED = 1500
     CLEAN_LIST_CYCLE = 350
 
     number = attr.ib(
