@@ -31,7 +31,7 @@ class WebSession:
             while True:
                 i += 1
                 if i >= 10:
-                    printer.warn(url)
+                    printer.warn(f'反复请求多次未成功, {url}, {kwargs}')
                 try:
                     async with self.var_session.request(method, url, **kwargs) as rsp:
                         if rsp.status == 200:
@@ -39,7 +39,7 @@ class WebSession:
                             if body:  # 有时候是None或空，直接屏蔽。下面的read/text类似，禁止返回空的东西
                                 return body
                         elif rsp.status in (412, 403):
-                            printer.warn(f'403频繁, {url}')
+                            printer.warn(f'403频繁, {url}, {kwargs}')
                             raise ForbiddenError(msg=url)
                 except asyncio.CancelledError:
                     raise
