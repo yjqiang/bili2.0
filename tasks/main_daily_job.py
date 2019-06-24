@@ -1,6 +1,7 @@
 import re
 import random
 import asyncio
+from typing import Optional
 
 from reqs.utils import UtilsReq
 from reqs.main_daily_job import JudgeCaseReq, BiliMainReq
@@ -15,28 +16,27 @@ class JudgeCaseTask(SchedTask):
         return (-2, (0, 30)),
         
     @staticmethod
-    def judge_advice(num_judged, pct):
-        advice = None
+    def judge_advice(num_judged, pct) -> Optional[int]:
         if num_judged >= 300:
             # 认为这里可能出现了较多分歧，抬一手
             if pct >= 0.4:
-                advice = 2
+                return 2
             elif pct <= 0.25:
-                advice = 4
+                return 4
         elif num_judged >= 150:
             if pct >= 0.9:
-                advice = 2
+                return 2
             elif pct <= 0.1:
-                advice = 4
+                return 4
         elif num_judged >= 50:
             if pct >= 0.97:
-                advice = 2
+                return 2
             elif pct <= 0.03:
-                advice = 4
+                return 4
         # 抬一手
-        if advice is None and num_judged >= 400:
-            advice = 2
-        return advice
+        if num_judged >= 400:
+            return 2
+        return None
         
     @staticmethod
     async def check_case_status(user, case_id):
