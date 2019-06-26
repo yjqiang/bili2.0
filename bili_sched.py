@@ -100,11 +100,11 @@ class BiliSched:
                     self._sched_shedule.run_pending()
                     if not self._sched_running:
                         break
-                    idle_seconds = min(self._sched_daily_jobs.idle_seconds, self._sched_shedule.idle_seconds)
+                    idle_seconds = min(self._sched_daily_jobs.idle_seconds, self._sched_shedule.idle_seconds) + 1
                     print(f'Will sleep {idle_seconds}s，等待任务装载')
                     await asyncio.sleep(idle_seconds)
             await self.pause()
-            idle_seconds = self._sched_shedule.idle_seconds
+            idle_seconds = self._sched_shedule.idle_seconds + 1
             print(f'Will sleep {idle_seconds}s, 等待唤醒')
             await asyncio.sleep(idle_seconds)
 
