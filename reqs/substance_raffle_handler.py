@@ -33,7 +33,8 @@ class ReqCtrl:
         
     join_ctrl = Ctrl(
         extend=(
-            {'code': -500}, JsonRspType.LOGOUT,
+            {'code': -500, 'msg': In('登录')}, JsonRspType.LOGOUT,
+            {'code': -500, 'msg': In('非法')}, JsonRspType.OK,
             {'code': 0}, JsonRspType.OK,
             {'code': -1}, JsonRspType.OK,  # 未开始抽奖
             {'code': -400}, JsonRspType.OK,  # 不存在/已经过期
