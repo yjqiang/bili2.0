@@ -1,5 +1,4 @@
 pampy
-requests
 rsa
 attrs
 aiohttp

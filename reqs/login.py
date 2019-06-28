@@ -4,7 +4,6 @@ try:
     from PIL import Image
 except ImportError:
     Image = None
-import requests
 import utils
 
 
@@ -62,18 +61,16 @@ class LoginReq:
         return json_rsp
         
     @staticmethod
-    def cnn_captcha(content):
-        bytes_img = base64.b64encode(content)
+    async def cnn_captcha(user, content):
         url = "http://115.159.205.242:19951/captcha/v1"
-        str_img = str(bytes_img, encoding='utf-8')
-        json = {"image": str_img}
-        response = requests.post(url, json=json)
-        captcha = response.json()['message']
+        str_img = base64.b64encode(content).decode(encoding='utf-8')
+        json_rsp = await user.other_session.orig_req_json('POST', url, json={"image": str_img})
+        captcha = json_rsp['message']
         print(f"此次登录出现验证码,识别结果为{captcha}")
         return captcha
         
     @staticmethod
-    def input_captcha(content):
+    async def input_captcha(_, content):
         if Image is not None:
             img = Image.open(BytesIO(content))
             img.show()
