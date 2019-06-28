@@ -34,6 +34,7 @@ def patterns_actions(_, __, value):
 
 DEFAULT_BASE_CTRL = (
     {'code': 1024}, JsonRspType.IGNORE,
+    {'msg': In('操作太快')}, JsonRspType.IGNORE
 )
 
 
