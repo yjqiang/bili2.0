@@ -75,7 +75,7 @@ class LoginTask(ForcedTask):
         json_rsp = await LoginReq.login(user, url_name, url_password)
         while json_rsp['code'] == -105:
             binary_rsp = await LoginReq.fetch_capcha(user)
-            captcha = LoginReq.cnn_captcha(binary_rsp)
+            captcha = await LoginReq.cnn_captcha(user, binary_rsp)
             json_rsp = await LoginReq.login(user, url_name, url_password, captcha)
                 
         if not json_rsp['code'] and not json_rsp['data']['status']:
