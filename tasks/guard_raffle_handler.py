@@ -10,6 +10,7 @@ from .base_class import ForcedTask
 
 class GuardRafflJoinTask(ForcedTask):
     TASK_NAME = 'join_guard_raffle'
+    result_pattern = re.compile(r'(获得|)([^<+X\d]+)\D*(\d+)')
     @staticmethod
     async def check(user, real_roomid, raffle_id=None):
         if not await UtilsTask.is_normal_room(user, real_roomid):
@@ -48,8 +49,8 @@ class GuardRafflJoinTask(ForcedTask):
         json_rsp = await user.req_s(GuardRaffleHandlerReq.join, user, real_roomid, raffle_id)
         if not json_rsp['code']:
             for award in json_rsp['data']['award_list']:
-                result = re.search(r'(^获得|^)(.*)<%([+X])(\d*)%>', award['name'])
-                bili_statistics.add2results(result.group(2), user.id, result.group(4))
+                result = GuardRafflJoinTask.result_pattern.search(award['name'])
+                bili_statistics.add2results(result.group(2), user.id, result.group(3))
             user.infos([
                 f'大航海({raffle_id})的参与结果: {json_rsp["data"]["message"]}'])
             bili_statistics.add2joined_raffles('大航海(合计)', user.id)
