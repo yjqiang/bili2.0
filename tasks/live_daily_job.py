@@ -225,8 +225,10 @@ class SendGiftTask(SchedTask):
             medals = await SendGiftTask.fetch_wearing_medal(user)
             if not medals:
                 print('暂未佩戴任何勋章')
-        if user.task_ctrl['send2medal']:
-            medals += await UtilsTask.fetch_medals(user, user.task_ctrl['send2medal'])
+
+        send2medal_by_uid = user.task_ctrl['send2medal_by_uid']
+        if send2medal_by_uid:
+            medals += await UtilsTask.fetch_medals(user, send2medal_by_uid)
         # print('目前的勋章', medals)
         
         print('正在投递勋章')

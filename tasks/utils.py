@@ -113,27 +113,28 @@ class UtilsTask:
             gift_bags.append((bag_id, gift_id, gift_num, gift_name, left_days, left_time))
         return gift_bags
 
-    # medals_wanted [roomid0, roomid1 …]
+    # medals_wanted_by_uid [uid0, uid1 …]
     @staticmethod
-    async def fetch_medals(user, medals_wanted=None):
+    async def fetch_medals(user, medals_wanted_by_uid=None):
         json_rsp = await user.req_s(UtilsReq.fetch_medals, user)
         # print(json_rsp)
-        medals = []
         if not json_rsp['code']:
+            medals = []
             for medal in json_rsp['data']['fansMedalList']:
                 # 有的房间封禁了
-                if 'roomid' in medal:
+                if 'roomid' in medal and 'target_id' in medal:
                     room_id = medal['roomid']
-                    remain_intimacy = int(medal['dayLimit']) - int(medal['todayFeed'])
+                    remain_intimacy = medal['day_limit'] - medal['today_feed']
                     medal_name = medal['medal_name']
                     level = medal['level']
-                    medals.append((room_id, remain_intimacy, medal_name, level))
+                    uid = medal['target_id']
+                    medals.append((room_id, remain_intimacy, medal_name, level, uid))
 
-            if medals_wanted is not None:
+            if medals_wanted_by_uid is not None:
                 results = []
-                for room_id in medals_wanted:
+                for uid in medals_wanted_by_uid:
                     for medal in medals:
-                        if medal[0] == room_id:
+                        if medal[4] == uid:
                             results.append(medal[:3])
                             break
             else:
