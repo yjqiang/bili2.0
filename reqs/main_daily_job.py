@@ -107,6 +107,6 @@ class BiliMainReq:
     @staticmethod
     async def fetch_top_videos(user):
         url = 'https://www.bilibili.com/ranking/all/0/0/1/'
-        text_tsp = await user.other_session.request_text('GET', url)
+        text_tsp = await user.other_session.request_text('GET', url, headers=user.dict_bili['pcheaders'])
         return text_tsp
     

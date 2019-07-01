@@ -44,10 +44,11 @@ clean-expiring-gift2room = 0
 # 一天最多一个硬币兑换机会
 silver2coin = false
 
-# 自动投满佩戴勋章当日亲密度
+# 投满正在佩戴的勋章当日亲密度
 send2wearing-medal = false
-# 短房间号(与投满亲密度send2wearing-medal的一起使用)。注意⚠️如果只需要投佩戴的勋章，不用修改send2medal
-send2medal = []
+# 投满勋章当日亲密度（填写目标的 UID 号，投递按照填写的顺序投递）
+# ⚠此处与 send2wearing-medal 不相干。如果只想投正在佩戴的勋章，不需要额外填写此处；此处仅用于投递其他未正在佩戴的勋章
+send2medal_by_uid = []
 
 # 输入数字 0-5 表示主站每日自动投币
 givecoin = 0
