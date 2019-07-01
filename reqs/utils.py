@@ -30,6 +30,7 @@ class UtilsReq:
     @staticmethod
     async def init_room(user, roomid):
         url = f"{API_LIVE}/room/v1/Room/room_init?id={roomid}"
+        # {"code":60004,"msg":"房间不存在","message":"房间不存在","data":[]}
         response = await user.bililive_session.request_json('GET', url)
         return response
         
@@ -42,6 +43,7 @@ class UtilsReq:
     @staticmethod
     async def get_room_info(user, roomid):
         url = f"{API_LIVE}/room/v1/Room/get_info?room_id={roomid}"
+        # {"code":1,"msg":"未找到该房间","message":"未找到该房间","data":[]}
         json_rsp = await user.bililive_session.request_json('GET', url)
         return json_rsp
     

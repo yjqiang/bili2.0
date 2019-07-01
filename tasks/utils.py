@@ -2,7 +2,6 @@ import random
 import asyncio
 from operator import itemgetter
 
-import printer
 from reqs.utils import UtilsReq
 
 
@@ -19,21 +18,14 @@ class UtilsTask:
         return [int(area['id']) for area in json_rsp['data']]
 
     @staticmethod
-    async def is_normal_room(user, roomid):
-        if not roomid:
+    async def is_normal_room(user, room_id) -> bool:
+        if not room_id:
             return True
-        json_response = await user.req_s(UtilsReq.init_room, user, roomid)
-        if not json_response['code']:
-            data = json_response['data']
-            param1 = data['is_hidden']
-            param2 = data['is_locked']
-            param3 = data['encrypted']
-            if any((param1, param2, param3)):
-                printer.infos([f'抽奖脚本检测到房间{roomid:^9}为异常房间'])
-                return False
-            else:
-                printer.infos([f'抽奖脚本检测到房间{roomid:^9}为正常房间'])
-                return True
+        json_rsp = await user.req_s(UtilsReq.init_room, user, room_id)
+        if not json_rsp['code']:
+            data = json_rsp['data']
+            return not any((data['is_hidden'], data['is_locked'], data['encrypted']))
+        return False
     
     @staticmethod
     async def get_room_by_area(user, area_id, room_id=None):
@@ -54,21 +46,17 @@ class UtilsTask:
                 return room_id
                 
     @staticmethod
-    async def is_ok_as_monitor(user, room_id, area_id):
-        json_response = await user.req_s(UtilsReq.init_room, user, room_id)
-        data = json_response['data']
-        is_hidden = data['is_hidden']
-        is_locked = data['is_locked']
-        is_encrypted = data['encrypted']
-        is_normal = not any((is_hidden, is_locked, is_encrypted))
-                
-        json_response = await user.req_s(UtilsReq.get_room_info, user, room_id)
-        data = json_response['data']
-        is_open = True if data['live_status'] == 1 else False
-        current_area_id = data['parent_area_id']
-        # print(is_hidden, is_locked, is_encrypted, is_open, current_area_id)
-        is_ok = (area_id == current_area_id) and is_normal and is_open
-        return is_ok
+    async def is_ok_as_monitor(user, room_id, area_id) -> bool:
+        if not await UtilsTask.is_normal_room(user, room_id):
+            return False
+
+        json_rsp = await user.req_s(UtilsReq.get_room_info, user, room_id)
+        if not json_rsp['code']:
+            data = json_rsp['data']
+            is_open = bool(data['live_status'])  # 1/0
+            current_area_id = data['parent_area_id']
+            return area_id == current_area_id and is_open
+        return False
         
     @staticmethod
     async def send_gift(user, room_id, num_sent, bag_id, gift_id):
