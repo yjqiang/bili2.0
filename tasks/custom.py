@@ -38,7 +38,7 @@ class SendLatiaoTask(ForcedTask):
                 continue
             num_finished += num_sent
             await UtilsTask.send_gift(user, room_id, num_sent, bag_id, gift_id)
-        user.infos([f'一共送出{num_finished}个辣条给{room_id}'])
+        user.info(f'一共送出{num_finished}个辣条给{room_id}')
         return remain - num_finished
         
 

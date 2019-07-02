@@ -27,7 +27,7 @@ class HeartBeatTask(SchedTask):
         while True:
             json_rsp = await user.req_s(HeartBeatReq.pc_heartbeat, user)
             # print(json_rsp)
-            user.infos(['心跳包(5分钟左右间隔)'])
+            user.info('心跳包(5分钟左右间隔)')
             json_rsp = await user.req_s(HeartBeatReq.app_heartbeat, user)
             print(json_rsp)
             await asyncio.sleep(300)
@@ -60,11 +60,11 @@ class OpenSilverBoxTask(SchedTask):
     @unique
     async def work(user):
         while True:
-            user.infos(["检查宝箱状态"])
+            user.info("检查宝箱状态")
             temp = await user.req_s(OpenSilverBoxReq.check_time, user)
             # print (temp['code'])    #宝箱领完返回的code为-10017
             if temp['code'] == -10017:
-                user.infos(["今日宝箱领取完毕"])
+                user.info("今日宝箱领取完毕")
                 json_rsp = None
             else:
                 time_start = temp['data']['time_start']
@@ -73,14 +73,14 @@ class OpenSilverBoxTask(SchedTask):
             if json_rsp is None or json_rsp['code'] == -10017 or json_rsp['code'] == -800:
                 return
             elif not json_rsp['code']:
-                user.infos(["打开了宝箱"])
+                user.info("打开了宝箱")
             elif json_rsp['code'] == 400:
-                user.infos(["宝箱开启中返回了小黑屋提示"])
+                user.info("宝箱开启中返回了小黑屋提示")
                 user.fall_in_jail()
                 # 马上继续调用，由下一次的user去supend这个task
                 return
             else:
-                user.infos(["继续等待宝箱冷却..."])
+                user.info("继续等待宝箱冷却...")
                 sleeptime = (json_rsp['data'].get('surplus', 3)) * 60 + 5
                 await asyncio.sleep(sleeptime)
                 
@@ -100,7 +100,7 @@ class RecvDailyBagTask(SchedTask):
         except TypeError:
             user.warn(f'recv_dailybag {json_rsp}')
         for i in json_rsp['data']['bag_list']:
-            user.infos([f'获得-{i["bag_name"]}-成功'])
+            user.info(f'获得-{i["bag_name"]}-成功')
 
                 
 class SignTask(SchedTask):
@@ -114,7 +114,7 @@ class SignTask(SchedTask):
     async def work(user):
         while True:
             json_rsp = await user.req_s(SignReq.sign, user)
-            user.infos([f'签到状态: {json_rsp["msg"]}'])
+            user.info(f'签到状态: {json_rsp["msg"]}')
             if json_rsp['code'] == -500 and '已' in json_rsp['msg']:
                 return
             sleeptime = 350
@@ -133,7 +133,7 @@ class WatchTvTask(SchedTask):
         while True:
             # -400 done/not yet
             json_rsp = await user.req_s(WatchTvReq.watch_tv, user)
-            user.infos([f'双端观看直播:  {json_rsp["msg"]}'])
+            user.info(f'双端观看直播:  {json_rsp["msg"]}')
             if json_rsp['code'] == -400 and '已' in json_rsp['msg']:
                 return
             sleeptime = 350
@@ -157,11 +157,11 @@ class SignFansGroupsTask(SchedTask):
             if not json_rsp['code']:
                 data = json_rsp['data']
                 if data['status']:
-                    user.infos([f'应援团 {group_id} 已应援过'])
+                    user.info(f'应援团 {group_id} 已应援过')
                 else:
-                    user.infos([f'应援团 {group_id} 应援成功,获得 {data["add_num"]} 点亲密度'])
+                    user.info(f'应援团 {group_id} 应援成功,获得 {data["add_num"]} 点亲密度')
             else:
-                user.infos([f'应援团 {group_id} 应援失败'])
+                user.info(f'应援团 {group_id} 应援失败')
             
             
 class SendGiftTask(SchedTask):
@@ -262,7 +262,7 @@ class SendGiftTask(SchedTask):
                 await UtilsTask.send_gift(user, room_id, num_sent, bag_id, gift_id)
                 filled_intimacy += score
                 remain_intimacy -= score
-            user.infos([f'对 {medal_name} 共送出亲密度为{filled_intimacy}的礼物'])
+            user.info(f'对 {medal_name} 共送出亲密度为{filled_intimacy}的礼物')
         # 过滤掉送光了的礼物包
         return [gift for gift in gift_bags if gift[1]]
         
@@ -286,7 +286,7 @@ class ExchangeSilverCoinTask(SchedTask):
             if not user.task_ctrl['silver2coin']:
                 return
             json_rsp = await user.req_s(ExchangeSilverCoinReq.silver2coin_web, user)
-            user.infos([f'{json_rsp["msg"]}'])
+            user.info(f'{json_rsp["msg"]}')
             if json_rsp['code'] == 403 and '最多' in json_rsp['msg']:
                 finish_web = True
             else:

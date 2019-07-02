@@ -51,8 +51,8 @@ class GuardRafflJoinTask(ForcedTask):
             for award in json_rsp['data']['award_list']:
                 result = GuardRafflJoinTask.result_pattern.search(award['name'])
                 bili_statistics.add2results(result.group(2), user.id, result.group(3))
-            user.infos([
-                f'大航海({raffle_id})的参与结果: {json_rsp["data"]["message"]}'])
+            user.info(
+                f'大航海({raffle_id})的参与结果: {json_rsp["data"]["message"]}')
             bili_statistics.add2joined_raffles('大航海(合计)', user.id)
         else:
             print(json_rsp)
