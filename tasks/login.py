@@ -33,16 +33,16 @@ class LoginTask(ForcedTask):
     async def is_token_usable(user):
         json_rsp = await LoginReq.is_token_usable(user)
         if not json_rsp['code'] and 'mid' in json_rsp['data']:
-            user.infos(['token有效期检查: 仍有效'])
+            user.info('token有效期检查: 仍有效')
             return True
-        user.infos(['token可能过期'])
+        user.info('token可能过期')
         return False
 
     @staticmethod
     async def refresh_token(user):
         json_rsp = await LoginReq.refresh_token(user)
         if not json_rsp['code'] and 'mid' in json_rsp['data']['token_info']:
-            user.infos(['token刷新成功'])
+            user.info('token刷新成功')
             data = json_rsp['data']
             access_key = data['token_info']['access_token']
             refresh_token = data['token_info']['refresh_token']
@@ -94,7 +94,7 @@ class LoginTask(ForcedTask):
                 }
             
             user.update_login_data(login_data)
-            user.infos(['登陆成功'])
+            user.info('登陆成功')
             return True
         else:
             login_data = {
@@ -106,5 +106,5 @@ class LoginTask(ForcedTask):
                 }
             # print(dic_saved_session)
             user.update_login_data(login_data)
-            user.infos([f'登录失败,错误信息为:{json_rsp}'])
+            user.info(f'登录失败,错误信息为:{json_rsp}')
             return False
