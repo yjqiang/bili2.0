@@ -193,7 +193,7 @@ class UtilsTask:
         json_rsp = await user.req_s(UtilsReq.follow_user, user, uid)
         print('follow', json_rsp)
         if not json_rsp['code']:
-            user.infos([f'用户关注{uid}成功'])
+            user.info(f'用户关注{uid}成功')
             return True
         user.warn(f'用户关注{uid}失败,{json_rsp}')
         return False
@@ -205,7 +205,7 @@ class UtilsTask:
             await asyncio.sleep(1)
             is_following, _ = await UtilsTask.check_follow(user, uid)
             if not is_following:
-                user.infos([f'用户取关{uid}成功'])
+                user.info(f'用户取关{uid}成功')
                 return True
             await asyncio.sleep(0.5)
 
