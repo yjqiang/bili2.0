@@ -22,12 +22,6 @@ class BiliLogger:
             return (f'{timestamp} {first_value}{extra_info}', *others)
         return f'{timestamp} NULL{extra_info}',
 
-    def infos(
-            self,
-            list_objects,
-            **kwargs):
-        self.info(*list_objects, **kwargs)
-
     def info(
             self,
             *objects,
@@ -213,10 +207,6 @@ def control_printer(danmu_control=None, _=None):
             
 def info(*objects, **kwargs):
     printer.info(*objects, **kwargs)
-
-
-def infos(list_objects, **kwargs):
-    printer.infos(list_objects, **kwargs)
 
 
 def warn(*objects, **kwargs):

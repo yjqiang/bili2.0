@@ -54,19 +54,6 @@ class User:
     def is_online(self):
         return self.dict_bili['pcheaders']['cookie'] and self.dict_bili['appheaders']['cookie']
 
-    def infos(
-            self,
-            list_objects,
-            with_userid=True,
-            **kwargs):
-        if with_userid:
-            printer.infos(
-                list_objects,
-                **kwargs,
-                extra_info=f'用户id:{self.id} 名字:{self.alias}')
-        else:
-            printer.infos(list_objects, **kwargs)
-
     def info(
             self,
             *objects,
