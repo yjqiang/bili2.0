@@ -86,12 +86,12 @@ class User:
             except exceptions.LogoutError:
                 # 未登陆且未处理
                 if self.is_log_in:
-                    self.info([f'判定出现了登陆失败，且未处理'], True)
+                    self.info(f'判定出现了登陆失败，且未处理')
                     self.is_log_in = False
                     # login
                     await LoginTask.handle_login_status(self)
                     print(self.list_delay)
-                    self.info([f'已经登陆了'], True)
+                    self.info(f'已经登陆了')
                     self.is_log_in = True
                     for future in self.list_delay:
                         future.set_result(True)
@@ -101,7 +101,7 @@ class User:
                     future = asyncio.Future()
                     self.list_delay.append(future)
                     await future
-                    self.info([f'判定出现了登陆失败，已经处理'], True)
+                    self.info(f'判定出现了登陆失败，已经处理')
             except exceptions.ForbiddenError:
                 await asyncio.shield(self.force_sleep(3600))  # bili_sched.force_sleep
                 await asyncio.sleep(3600)  # 有的function不受sched控制，主动sleep即可，不cancel原因是怕堵死一些协程
