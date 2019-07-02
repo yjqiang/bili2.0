@@ -42,7 +42,7 @@ class PkRaffleJoinTask(ForcedTask):
             data = json_rsp['data']
             award_text = data['award_text']
             gift_name, gift_num = award_text.split('X')
-            user.infos([f'大乱斗({raffleid})的参与结果: {gift_name}X{gift_num}'])
+            user.info(f'大乱斗({raffleid})的参与结果: {gift_name}X{gift_num}')
             bili_statistics.add2results(gift_name, user.id, int(gift_num))
         else:
             user.warn(f'大乱斗{raffleid})的参与结果: {json_rsp}')

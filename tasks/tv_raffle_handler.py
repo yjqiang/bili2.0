@@ -47,7 +47,7 @@ class TvRaffleJoinTask(ForcedTask):
             data = json_rsp['data']
             gift_name = data['gift_name']
             gift_num = data['gift_num']
-            user.infos([f'小电视({raffleid})的参与结果: {gift_name}X{gift_num}'])
+            user.info(f'小电视({raffleid})的参与结果: {gift_name}X{gift_num}')
             bili_statistics.add2results(gift_name, user.id, gift_num)
         elif code == -403 and '拒绝' in json_rsp['msg']:
             user.fall_in_jail()
@@ -85,7 +85,7 @@ class TvRaffleJoinTask(ForcedTask):
         # await UtilsTask.enter_room(user, real_roomid)
         json_response2 = await user.req_s(TvRaffleHandlerReq.join, user, real_roomid, raffleid)
         bili_statistics.add2joined_raffles('小电视(合计)', user.id)
-        user.infos([f'小电视({raffleid})的参与状态: {json_response2["msg"]}'])
+        user.info(f'小电视({raffleid})的参与状态: {json_response2["msg"]}')
         # -400不存在
         # -500繁忙
         code = json_response2['code']
@@ -106,7 +106,7 @@ class TvRaffleJoinTask(ForcedTask):
                 # {'code': 0, 'msg': '正在抽奖中..', 'message': '正在抽奖中..', 'data': {'gift_id': '-1', 'gift_name': '', 'gift_num': 0, 'gift_from': '', 'gift_type': 0, 'gift_content': '', 'status': 3}}
                 if json_response['data']['gift_id'] != '-1':
                     data = json_response['data']
-                    user.infos([f'小电视({raffleid})的参与结果: {data["gift_name"]}X{data["gift_num"]}'])
+                    user.info(f'小电视({raffleid})的参与结果: {data["gift_name"]}X{data["gift_num"]}')
                     bili_statistics.add2results(data['gift_name'], user.id, data['gift_num'])
                 else:
                     user.warn(f'小电视({raffleid})的参与结果: {json_response}')
