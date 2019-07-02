@@ -1,8 +1,8 @@
 # bili2.0  
 
-1. 本项目已经取代 <https://github.com/yjqiang/bilibili-live-tools>
+1. 本项目已经取代 <https://github.com/yjqiang/bilibili-live-tools>，旧项目已经***完全废除***，不再提供更新和 bug 修复
 1. 项目初期只是想作为多用户分支，结果做完后发现，比原来项目做了很多。比如结构优化、很多函数调整、web_session 独立以及一些新的功能等，而且对单用户也很友好
-1. [旧项目](https://github.com/yjqiang/bilibili-live-tools) 已经***完全废除***，不再提供更新和 bug 修复
+1. [WIKI](https://github.com/yjqiang/bili2.0/wiki) 里面有一些功能说明，以及代码一些设计细节
 
 ### 特别感谢
 
