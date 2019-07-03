@@ -47,10 +47,13 @@ class DynRaffleUtilsTask:
 
     @staticmethod
     async def check_and_fetch_raffle(user, doc_id, handle_status=-1, feed_limit=False) -> tuple:
+        black_uids = [28008897, 28272016, 140389827, 24598781, 28008860, 28008880, 28008743,
+                      28008948, 28009292, 319696958, 90138218, 28272000, 8831288, 28271978, 28272047]
         json_rsp = await user.req_s(DynRaffleHandlerReq.is_dyn_raffle, user, doc_id)
         code = json_rsp['code']
-        print('_____________________________________')
-        print('is_dyn_raffle:', doc_id, 'code:', code)
+        #print('_____________________________________')
+        #print(json_rsp)
+        #print('is_dyn_raffle:', doc_id, 'code:', code)
         if not code:
             data = json_rsp['data']
             item = data['item']
@@ -80,6 +83,8 @@ class DynRaffleUtilsTask:
                     # 目前未发现其他title
                     if title == '互动抽奖':
                         uid = data['user']['uid']
+                        if int(uid) in black_uids:
+                            return 1, None
                         post_time = int(item['upload_timestamp'])
                         describe = item['description']
                     else:
@@ -89,7 +94,9 @@ class DynRaffleUtilsTask:
             else:
                 return 1, None
         elif code == 110001:
-            return 404, None
+            if 'data' in json_rsp and 'item' not in json_rsp['data']:
+                return 404, None
+            return 1, None
         else:
             # 目前未发现其他code
             user.warn(f'互动抽奖初步查询 {json_rsp}')

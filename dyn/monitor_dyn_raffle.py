@@ -74,6 +74,7 @@ class DynRaffleMonitor:
             self.init_docid = init_docid + 1
         curr_docid = self.init_docid
         i = 0
+        step = 10
         while True:
             if self._waiting_pause is not None:
                 print(f'暂停启动动态抽奖查找刷新循环，等待RESUME指令')
@@ -83,15 +84,20 @@ class DynRaffleMonitor:
             await asyncio.sleep(0.4)
             if code == 404:
                 print(f'动态抽奖可能不存在或者到达顶点（开区间）{curr_docid}')
-                for tmp_docid in range(curr_docid + 1, curr_docid + 11):
+                for tmp_docid in range(curr_docid + 1, curr_docid + 1 + step):
                     code, raffle = await notifier.exec_func(
                         DynRaffleUtilsTask.check_and_fetch_raffle, tmp_docid, self._init_handle_status, self._init_feed_limit)
                     await asyncio.sleep(0.4)
                     if code != 404:
                         curr_docid = tmp_docid
+                        step = 10
                         break
                 else:
                     print(f'当前动态抽奖的顶点为{curr_docid}（开区间）')
+                    if step > 100:
+                        step = 10
+                    else:
+                        step += 10
                     await asyncio.sleep(30)
                     continue
 
@@ -101,6 +107,8 @@ class DynRaffleMonitor:
                 await asyncio.sleep(10)
             curr_docid += 1
             i += 1
+            if not i % 10:
+                print(f'动态抽奖当前Id（开区间）{curr_docid}')
             if not i % 50:
                 dyn_raffle_sql.insert_or_replace_other_able('init_docid', curr_docid)
 
