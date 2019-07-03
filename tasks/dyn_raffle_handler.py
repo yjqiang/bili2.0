@@ -56,7 +56,7 @@ class DynRaffleUtilsTask:
             data = json_rsp['data']
             item = data['item']
             str_ext = item['extension']
-            print(doc_id, str_ext)
+            #print(doc_id, str_ext)
             if str_ext:
                 try:
                     dict_ext = json.loads(str_ext.replace('\'', ''))
