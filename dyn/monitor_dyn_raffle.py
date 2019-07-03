@@ -98,10 +98,10 @@ class DynRaffleMonitor:
                     if code != 404:
                         curr_docid = tmp_docid
                         break
-            else:
-                print(f'当前动态抽奖的顶点为{curr_docid}（开区间）')
-                await asyncio.sleep(30)
-                continue
+                    else:
+                        print(f'当前动态抽奖的顶点为{curr_docid}（开区间）')
+                        await asyncio.sleep(30)
+                        continue
 
             if not code:
                 print('动态抽奖刷新获取到抽奖信息', raffle)
