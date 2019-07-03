@@ -46,7 +46,7 @@ class DynRaffleMonitor:
                     key_word in dyn_raffle_status.prize_cmt_3rd:
                 print(f'{doc_id}的动态抽奖正文触发关键词过滤({key_word})')
                 return
-        if dyn_raffle_status.uid in dyn_black_uids_filter:
+        if dyn_raffle_status.uid in self.dyn_black_uids_filter:
             print(f'{doc_id}的动态抽奖发起人触发黑名单过滤({dyn_raffle_status.uid})')
             return
         # 如果是刚刚出来的抽奖，就延迟150秒，
