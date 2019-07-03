@@ -49,14 +49,14 @@ class DynRaffleUtilsTask:
     async def check_and_fetch_raffle(user, doc_id, handle_status=-1, feed_limit=False) -> tuple:
         json_rsp = await user.req_s(DynRaffleHandlerReq.is_dyn_raffle, user, doc_id)
         code = json_rsp['code']
-        #print('_____________________________________')
+        print('_____________________________________')
         #print(json_rsp)
-        #print('is_dyn_raffle:', doc_id, 'code:', code)
+        print('is_dyn_raffle:', doc_id, 'code:', code)
         if not code:
             data = json_rsp['data']
             item = data['item']
             str_ext = item['extension']
-            #print(doc_id, str_ext)
+            print(doc_id, str_ext)
             if str_ext:
                 try:
                     dict_ext = json.loads(str_ext.replace('\'', ''))
@@ -80,7 +80,7 @@ class DynRaffleUtilsTask:
                     title = lott_cfg['title']
                     # 目前未发现其他title
                     if title == '互动抽奖':
-                        uid = data['user']['uid']                        
+                        uid = data['user']['uid']
                         post_time = int(item['upload_timestamp'])
                         describe = item['description']
                     else:
