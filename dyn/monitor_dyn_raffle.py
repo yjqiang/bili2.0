@@ -18,9 +18,13 @@ class DynRaffleMonitor:
         self._loop = asyncio.get_event_loop()
         self._waiting_pause: Optional[asyncio.Future] = None
         self.init_docid = init_docid
-
+        
+        # 动态正文过滤（排除）
         self.dyn_raffle_description_filter = []
+        # 动态奖品过滤（排除）
         self.dyn_prize_cmt_filter = []
+        # 动态发起人过滤（排除）
+        self.dyn_black_uids_filter = [28008897, 28272016, 140389827, 24598781, 28008860, 28008880, 28008743,28008948, 28009292, 319696958, 90138218, 28272000, 8831288, 28271978, 28272047]
 
         self.should_join_immediately = should_join_immediately
         self._init_handle_status = -1 if not self.should_join_immediately else 0
@@ -41,6 +45,10 @@ class DynRaffleMonitor:
                     key_word in dyn_raffle_status.prize_cmt_2nd or \
                     key_word in dyn_raffle_status.prize_cmt_3rd:
                 print(f'{doc_id}的动态抽奖正文触发关键词过滤({key_word})')
+                return
+        for key_word in self.dyn_black_uids_filter:
+            if key_word in dyn_raffle_status.uid:
+                print(f'{doc_id}的动态抽奖发起人触发黑名单过滤({key_word})')
                 return
         # 如果是刚刚出来的抽奖，就延迟150秒，
         if dyn_raffle_status.post_time >= utils.curr_time() - 150:
@@ -92,14 +100,14 @@ class DynRaffleMonitor:
                         curr_docid = tmp_docid
                         step = 10
                         break
+            else:
+                print(f'当前动态抽奖的顶点为{curr_docid}（开区间）')
+                if step > 100:
+                    step = 10
                 else:
-                    print(f'当前动态抽奖的顶点为{curr_docid}（开区间）')
-                    if step > 100:
-                        step = 10
-                    else:
-                        step += 10
-                    await asyncio.sleep(30)
-                    continue
+                    step += 10
+                await asyncio.sleep(30)
+                continue
 
             if not code:
                 print('动态抽奖刷新获取到抽奖信息', raffle)
