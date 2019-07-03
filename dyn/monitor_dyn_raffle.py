@@ -108,8 +108,6 @@ class DynRaffleMonitor:
                 await asyncio.sleep(10)
             curr_docid += 1
             i += 1
-            if not i % 10:
-                print(f'动态抽奖当前Id（开区间）{curr_docid}')
             if not i % 50:
                 dyn_raffle_sql.insert_or_replace_other_able('init_docid', curr_docid)
 
