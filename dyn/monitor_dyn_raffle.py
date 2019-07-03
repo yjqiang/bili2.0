@@ -20,9 +20,9 @@ class DynRaffleMonitor:
         self.init_docid = init_docid
 
         # 动态正文过滤（排除）
-        self.dyn_raffle_description_filter = []
+        self.dyn_raffle_description_filter = ()
         # 动态奖品过滤（排除）
-        self.dyn_prize_cmt_filter = []
+        self.dyn_prize_cmt_filter = ()
         # 动态发起人过滤（排除）
         self.dyn_black_uids_filter = (28008897, 28272016, 140389827, 24598781, 28008860, 28008880, 28008743,28008948, 28009292, 319696958, 90138218, 28272000, 8831288, 28271978, 28272047)
 
