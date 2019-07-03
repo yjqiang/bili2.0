@@ -167,8 +167,14 @@ class SignFansGroupsTask(SchedTask):
 class SendGiftTask(SchedTask):
     TASK_NAME = 'send_gift'
     @staticmethod
-    async def check(_):
-        return (-2, (0, 30)),
+    async def check(user):
+        gift_price = await SendGiftTask.fetch_gift_price(user)
+        return (-2, (0, 30), gift_price),
+
+    @staticmethod
+    async def fetch_gift_price(user) -> dict:
+        json_rsp = await user.req_s(SendGiftReq.fetch_gift_config, user)
+        return {gift['id']: int(gift['price'] / 100) for gift in json_rsp['data']}
         
     @staticmethod
     async def fetch_giftbags(user):
@@ -193,7 +199,7 @@ class SendGiftTask(SchedTask):
                 return []
     
     @staticmethod
-    async def send_expiring_gift(user):
+    async def send_expiring_gift(user, gift_price: dict):
         if not user.task_ctrl['clean-expiring-gift']:
             return
         gift_bags = await SendGiftTask.fetch_giftbags(user)
@@ -210,7 +216,7 @@ class SendGiftTask(SchedTask):
             if user.task_ctrl['clean_expiring_gift2all_medal']:
                 print('正在清理过期礼物到用户勋章')
                 medals = await UtilsTask.fetch_medals(user)
-                expiring_giftbags = await SendGiftTask.fill_intimacy(user, expiring_giftbags, medals)
+                expiring_giftbags = await SendGiftTask.fill_intimacy(user, expiring_giftbags, medals, gift_price)
                 
             print('正在清理过期礼物到指定房间')
             for gift_id, gift_num, bag_id in expiring_giftbags:
@@ -219,7 +225,7 @@ class SendGiftTask(SchedTask):
             print('未发现即将过期的礼物')
     
     @staticmethod
-    async def send_medal_gift(user):
+    async def send_medal_gift(user, gift_price: dict):
         medals = []
         if user.task_ctrl['send2wearing-medal']:
             medals = await SendGiftTask.fetch_wearing_medal(user)
@@ -239,38 +245,41 @@ class SendGiftTask(SchedTask):
             gift_id = int(gift[0])
             left_time = gift[3]
             # 过滤某些特定礼物以及永久礼物
-            if (gift_id not in [4, 3, 9, 10]) and left_time is not None:
+            if gift_id not in (4, 3, 9, 10) and left_time is not None:
                 send_giftbags.append(gift[:3])
-        await SendGiftTask.fill_intimacy(user, send_giftbags, medals)
+        await SendGiftTask.fill_intimacy(user, send_giftbags, medals, gift_price)
         
     @staticmethod
-    async def fill_intimacy(user, gift_bags, medals):
-        json_rsp = await user.req_s(SendGiftReq.fetch_gift_config, user)
-        gift_price = {gift['id']: (gift['price'] / 100) for gift in json_rsp['data']}
+    async def fill_intimacy(user, gift_bags, medals, gift_price: dict):
+        gift_bags = [list(gift) for gift in gift_bags]  # gift_bags 元素必须是 list！！！！
         for room_id, remain_intimacy, medal_name in medals:
-            filled_intimacy = 0
-            for gift in gift_bags:
-                gift_id, gift_num, bag_id = gift
-                if gift_num * gift_price[gift_id] <= remain_intimacy:
-                    num_sent = gift_num
-                elif remain_intimacy >= gift_price[gift_id]:
-                    num_sent = int(remain_intimacy / gift_price[gift_id])
-                else:
-                    continue
-                gift[1] -= num_sent
-                score = gift_price[gift_id] * num_sent
-                await UtilsTask.send_gift(user, room_id, num_sent, bag_id, gift_id)
-                filled_intimacy += score
-                remain_intimacy -= score
-            user.info(f'对 {medal_name} 共送出亲密度为{filled_intimacy}的礼物')
-        # 过滤掉送光了的礼物包
-        return [gift for gift in gift_bags if gift[1]]
+            if not remain_intimacy:  # 剩余亲密度为 0，就跳过
+                user.info(f'勋章 {medal_name} 本日亲密度上限还剩{remain_intimacy}')
+            else:
+                init_remain_intimacy = remain_intimacy
+                for gift in gift_bags:
+                    gift_id, gift_num, bag_id = gift
+                    gift_price_by_giftid = gift_price[gift_id]
+                    if gift_num * gift_price_by_giftid <= remain_intimacy:  # 即使全部送走也送不满亲密度
+                        num_sent = gift_num
+                    elif remain_intimacy >= gift_price_by_giftid:  # 单价小于等于剩余亲密度
+                        num_sent = int(remain_intimacy / gift_price_by_giftid)
+                    else:
+                        continue
+                    await UtilsTask.send_gift(user, room_id, num_sent, bag_id, gift_id)
+                    gift[1] -= num_sent
+                    remain_intimacy -= gift_price_by_giftid * num_sent
+
+                user.info(
+                    f'勋章 {medal_name} 本次提升{init_remain_intimacy-remain_intimacy}亲密度，离上限还剩{remain_intimacy}')
+
+        return [gift for gift in gift_bags if gift[1]]  # 过滤掉送光了的礼物包
         
     @staticmethod
     @unique
-    async def work(user):
-        await SendGiftTask.send_medal_gift(user)
-        await SendGiftTask.send_expiring_gift(user)
+    async def work(user, gift_price: dict):
+        await SendGiftTask.send_medal_gift(user, gift_price)
+        await SendGiftTask.send_expiring_gift(user, gift_price)
 
                 
 class ExchangeSilverCoinTask(SchedTask):
