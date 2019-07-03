@@ -19,8 +19,12 @@ class DynRaffleMonitor:
         self._waiting_pause: Optional[asyncio.Future] = None
         self.init_docid = init_docid
 
-        self.dyn_raffle_description_filter = []
-        self.dyn_prize_cmt_filter = []
+        # 动态正文过滤（排除）
+        self.dyn_raffle_description_filter = ()
+        # 动态奖品过滤（排除）
+        self.dyn_prize_cmt_filter = ()
+        # 动态发起人过滤（排除）
+        self.dyn_black_uids_filter = (28008897, 28272016, 140389827, 24598781, 28008860, 28008880, 28008743,28008948, 28009292, 319696958, 90138218, 28272000, 8831288, 28271978, 28272047)
 
         self.should_join_immediately = should_join_immediately
         self._init_handle_status = -1 if not self.should_join_immediately else 0
@@ -42,6 +46,9 @@ class DynRaffleMonitor:
                     key_word in dyn_raffle_status.prize_cmt_3rd:
                 print(f'{doc_id}的动态抽奖正文触发关键词过滤({key_word})')
                 return
+        if dyn_raffle_status.uid in self.dyn_black_uids_filter:
+            print(f'{doc_id}的动态抽奖发起人触发黑名单过滤({dyn_raffle_status.uid})')
+            return
         # 如果是刚刚出来的抽奖，就延迟150秒，
         if dyn_raffle_status.post_time >= utils.curr_time() - 150:
             print(f'{doc_id}的动态抽奖触发时间约束，休眠150秒后再正式参与')

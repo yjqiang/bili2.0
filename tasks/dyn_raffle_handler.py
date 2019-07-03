@@ -89,7 +89,9 @@ class DynRaffleUtilsTask:
             else:
                 return 1, None
         elif code == 110001:
-            return 404, None
+            if 'user' not in json_rsp['data']:
+                return 404, None
+            return 1, None
         else:
             # 目前未发现其他code
             user.warn(f'互动抽奖初步查询 {json_rsp}')
