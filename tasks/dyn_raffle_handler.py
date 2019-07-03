@@ -50,7 +50,6 @@ class DynRaffleUtilsTask:
         json_rsp = await user.req_s(DynRaffleHandlerReq.is_dyn_raffle, user, doc_id)
         code = json_rsp['code']
         print('_____________________________________')
-        #print(json_rsp)
         print('is_dyn_raffle:', doc_id, 'code:', code)
         if not code:
             data = json_rsp['data']
