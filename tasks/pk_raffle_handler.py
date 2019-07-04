@@ -23,7 +23,7 @@ class PkRaffleJoinTask(ForcedTask):
             max_wait = raffle['time'] - 10
             # 处理一些重复
             if not bili_statistics.is_raffleid_duplicate(raffle_id):
-                print('本次获取到的抽奖id为', raffle_id)
+                user.info(f'确认获取到大乱斗抽奖 {raffle_id}', with_userid=False)
                 next_step_setting = (-2, (0, max_wait), real_roomid, raffle_id)
                 next_step_settings.append(next_step_setting)
                 bili_statistics.add2raffle_ids(raffle_id, 'PK')
