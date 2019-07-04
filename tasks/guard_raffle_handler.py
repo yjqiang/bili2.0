@@ -33,7 +33,7 @@ class GuardRafflJoinTask(ForcedTask):
             # 总督长达一天，额外处理
             max_wait = min(j['time'] - 15, 240)
             if not bili_statistics.is_raffleid_duplicate(raffle_id):
-                print('本次获取到的抽奖id为', raffle_id)
+                user.info(f'确认获取到大航海抽奖 {raffle_id}', with_userid=False)
                 next_step_setting = (-2, (0, max_wait), real_roomid, raffle_id)
                 next_step_settings.append(next_step_setting)
                 bili_statistics.add2raffle_ids(raffle_id, 'GUARD')

@@ -21,7 +21,7 @@ class StormRaffleJoinTask(ForcedTask):
         if data:
             raffle_id = int(data['id'])
             if not bili_statistics.is_raffleid_duplicate(raffle_id/1000000):
-                print('本次获取到的抽奖id为', raffle_id)
+                user.info(f'确认获取到飓风暴抽奖 {raffle_id}', with_userid=False)
                 next_step_setting = (-2, (1, 3), room_id, raffle_id)
                 next_step_settings.append(next_step_setting)
                 

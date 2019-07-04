@@ -233,7 +233,7 @@ class SendGiftTask(SchedTask):
         medals = []
         if user.task_ctrl['send2wearing-medal']:
             medal = await SendGiftTask.fetch_wearing_medal(user)
-            if medals is None:
+            if medal is None:
                 print('暂未佩戴任何勋章')
             else:
                 medals.append(medal)
