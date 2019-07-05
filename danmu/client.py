@@ -70,9 +70,9 @@ class Client:
     async def run(self):
         self._waiting_end = self._loop.create_future()
         while not self._closed:
-            print(f'正在启动{self._area_id}号数据链接')
+            print(f'正在启动{self._area_id}号数据连接')
             if self._waiting_pause is not None:
-                print(f'暂停启动{self._area_id}号数据链接，等待RESUME指令')
+                print(f'暂停启动{self._area_id}号数据连接，等待RESUME指令')
                 await self._waiting_pause
             async with self._conn_lock:
                 if self._closed:
