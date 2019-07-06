@@ -8,15 +8,12 @@ class RaffleHandler:
 
     async def run(self):
         while True:
-            list_raffle = [await self.queue.get()]
-            await asyncio.sleep(2)
+            raffles = {await self.queue.get()}  # 过滤压缩使用 set
+            await asyncio.sleep(2.5)
             while not self.queue.empty():
-                list_raffle.append(self.queue.get_nowait())
+                raffles.add(self.queue.get_nowait())
 
-            # 压缩与过滤
-            list_raffle = list(set(list_raffle))
-            # print('raffle_handler', list_raffle)
-            for task, *args in list_raffle:
+            for task, *args in raffles:
                 notifier.exec_task_no_wait(task, *args)
         
     def push2queue(self, *args):
