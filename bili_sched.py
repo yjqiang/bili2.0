@@ -10,6 +10,11 @@ from printer import info as print
 
 
 class BiliSched:
+    __slots__ = (
+        '_loop', '_sched_running', '_force_sleeping', '_sched_daily_jobs',
+        '_sched_shedule', '_monitors', '_switch_lock',
+    )
+
     def __init__(self, loop: Optional[asyncio.AbstractEventLoop] = None):
         if loop is None:
             self._loop = asyncio.get_event_loop()

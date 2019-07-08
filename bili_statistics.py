@@ -71,6 +71,12 @@ class DuplicateChecker:
 
 
 class BiliStatistics:
+    __slots__ = (
+        'area_num', 'area_duplicated', 'pushed_raffles',
+        'joined_raffles', 'raffle_results',
+        'danmu_raffleid_checker', 'cover_checker0', 'cover_checker1', 'tasks_records',
+    )
+
     def __init__(self, area_num=0):
         self.area_num = area_num
         self.area_duplicated = False

@@ -13,6 +13,8 @@ class JsonRspType(enum.IntEnum):
 
 
 class In:
+    __slots__ = ('_value',)
+
     def __init__(self, value):
         self._value = value
 
