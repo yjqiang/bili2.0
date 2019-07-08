@@ -11,6 +11,8 @@ from printer import info as print
 
 
 class Users:
+    __slots__ = ('_users', )
+
     def __init__(self, users: List[User]):
         self._users = users
 
@@ -56,6 +58,8 @@ class Users:
 
 
 class Notifier:
+    __slots__ = ('_loop', '_users', '_scheduler',)
+
     def __init__(self, loop=None):
         if loop is None:
             self._loop = asyncio.get_event_loop()

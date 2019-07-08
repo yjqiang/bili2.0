@@ -13,8 +13,18 @@ from tasks.login import LoginTask
 
 class User:
     _ids = count(0)
+    __slots__ = (
+        'id', 'force_sleep', 'name', 'password', 'alias', 'task_ctrl',
+        'task_arrangement', 'is_log_in', 'is_in_jail',
 
-    def __init__(self, dict_user: dict, task_ctrl: dict, task_arrangement: dict, dict_bili: dict, force_sleep: callable):
+        'bililive_session', 'login_session', 'other_session',
+
+        'dict_bili', 'app_params', 'list_delay', 'repost_del_lock',
+        'dyn_lottery_friends', 'storm_lock', 'recording_tasks',
+    )
+
+    def __init__(
+            self, dict_user: dict, task_ctrl: dict, task_arrangement: dict, dict_bili: dict, force_sleep: callable):
         self.id = next(self._ids)
         self.force_sleep = force_sleep
         self.name = dict_user['username']

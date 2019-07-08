@@ -12,6 +12,8 @@ sem = asyncio.Semaphore(3)
 
 
 class WebSession:
+    __slots__ = ('var_session',)
+
     def __init__(self):
         self.var_session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=4))
 

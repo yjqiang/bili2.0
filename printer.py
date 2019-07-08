@@ -7,6 +7,7 @@ if sys.platform == 'ios':
 
         
 class BiliLogger:
+    __slots__ = ()
     # 格式化数据
     @staticmethod
     def format(
@@ -64,6 +65,8 @@ class BiliLogger:
     
     
 class PythonistaPrinter(BiliLogger):
+    __slots__ = ('dic_color', 'danmu_control',)
+
     def __init__(self):
         self.dic_color = {
             'user-level': defaultdict(list),
@@ -139,6 +142,8 @@ class PythonistaPrinter(BiliLogger):
 
                 
 class NormalPrinter(BiliLogger):
+    __slots__ = ('danmu_control',)
+
     def __init__(self):
         self.danmu_control = False
     
