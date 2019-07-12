@@ -3,6 +3,7 @@ import asyncio
 from operator import itemgetter
 
 from reqs.utils import UtilsReq
+import utils
 
 
 class UtilsTask:
@@ -97,20 +98,15 @@ class UtilsTask:
     async def fetch_giftbags(user):
         json_rsp = await user.req_s(UtilsReq.fetch_giftbags, user)
         gift_bags = []
-        cur_time = json_rsp['data']['time']
+        cur_time = utils.curr_time()
         for gift in json_rsp['data']['list']:
             bag_id = gift['bag_id']
             gift_id = gift['gift_id']
             gift_num = gift['gift_num']
             gift_name = gift['gift_name']
             expire_at = gift['expire_at']
-            left_time = expire_at - cur_time
-            if not expire_at:
-                left_days = '+∞'.center(6)
-                left_time = None
-            else:
-                left_days = round(left_time / 86400, 1)
-            gift_bags.append((bag_id, gift_id, gift_num, gift_name, left_days, left_time))
+            left_time = None if not expire_at else expire_at - cur_time
+            gift_bags.append((bag_id, gift_id, gift_num, gift_name, left_time))
         return gift_bags
 
     # medals_wanted_by_uid [uid0, uid1 …]

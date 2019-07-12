@@ -185,10 +185,8 @@ class SendGiftTask(SchedTask):
     @staticmethod
     async def fetch_giftbags(user):
         gift_bags = await UtilsTask.fetch_giftbags(user)
-        results = []
-        for bag_id, gift_id, gift_num, _, _, left_time in gift_bags:
-            results.append([gift_id, gift_num, bag_id, left_time])
-        return results
+        return [[gift_id, gift_num, bag_id, left_time]
+                for bag_id, gift_id, gift_num, _, left_time in gift_bags]
         
     @staticmethod
     async def fetch_wearing_medal(user):

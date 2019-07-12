@@ -31,7 +31,8 @@ class PrintGiftbagsTask(ForcedTask):
     async def work(user):
         gift_bags = await UtilsTask.fetch_giftbags(user)
         yield '查询可用礼物'
-        for _, _, gift_num, gift_name, left_days, _ in gift_bags:
+        for _, _, gift_num, gift_name, left_time in gift_bags:
+            left_days = '+∞' if left_time is None else str(round(left_time / 86400, 2))
             yield f'{gift_name:^3}X{gift_num:^4} (在{left_days:^6}天后过期)'
 
 

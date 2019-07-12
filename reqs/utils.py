@@ -49,7 +49,8 @@ class UtilsReq:
     
     @staticmethod
     async def fetch_giftbags(user):
-        url = f'{API_LIVE}/gift/v2/gift/bag_list'
+        # {"code":-101,"message":"账号未登录","ttl":1}
+        url = f'{API_LIVE}/xlive/web-room/v1/gift/bag_list'
         json_rsp = await user.bililive_session.request_json('GET', url, headers=user.dict_bili['pcheaders'])
         return json_rsp
         
@@ -236,4 +237,3 @@ class UtilsReq:
         }
         json_rsp = await user.other_session.request_json('POST', url, data=payload, headers=headers)
         return json_rsp
-
