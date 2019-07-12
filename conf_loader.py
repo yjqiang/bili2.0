@@ -4,8 +4,9 @@ import toml
 
 # "#969696"
 def hex_to_rgb_percent(str_hex):
-    return tuple(
-        int(n, 16)/255 for n in (str_hex[1:3], str_hex[3:5], str_hex[5:7]))
+    return int(str_hex[1:3], 16)/255, \
+           int(str_hex[3:5], 16)/255, \
+           int(str_hex[5:7], 16)/255
 
 
 # [255 255 255]
