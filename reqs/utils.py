@@ -124,13 +124,15 @@ class UtilsReq:
     
     @staticmethod
     async def fetch_livebili_userinfo_pc(user):
-        url = f"{API_LIVE}/i/api/liveinfo"
+        url = f"{API_LIVE}/live_user/v1/UserInfo/live_info"
+        # {"code":3,"msg":"请先登录","message":"请先登录","data":[]}
         json_rsp = await user.bililive_session.request_json('GET', url, headers=user.dict_bili['pcheaders'])
         return json_rsp
     
     @staticmethod
     async def fetch_livebili_userinfo_ios(user):
-        url = f'{API_LIVE}/mobile/getUser?access_key={user.dict_bili["access_key"]}&platform=ios'
+        url = f'{API_LIVE}/live_user/v1/UserInfo/my_info?access_key={user.dict_bili["access_key"]}&platform=ios'
+        # {"code":3,"msg":"user no login","message":"user no login","data":[]}
         json_rsp = await user.bililive_session.request_json('GET', url)
         return json_rsp
         
