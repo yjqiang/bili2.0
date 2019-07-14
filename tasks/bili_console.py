@@ -180,8 +180,7 @@ class PrintMainBiliUserInfoTask(ForcedTask):
         if next_exp == -1:
             next_exp = current_exp
         yield f'主站等级值 {level_info["current_level"]}'
-        yield f'主站经验值 {current_exp}/{next_exp}'
-        yield utils.print_progress(current_exp, next_exp)
+        yield f'主站经验值 {utils.print_progress(current_exp, next_exp)}'
 
 
 class PrintLiveBiliUserInfoTask(ForcedTask):
@@ -231,10 +230,8 @@ class PrintLiveBiliUserInfoTask(ForcedTask):
             yield f'硬币数 {coins}'
             yield f'Ｂ币数 {bili_coins}'
             yield f'成就值 {achieve}'
-            yield f'等级值 {user_level}———>{user_next_level}'
-            yield f'经验值 {user_intimacy}'
-            yield f'剩余值 {user_next_intimacy - user_intimacy}'
-            yield utils.print_progress(user_intimacy, user_next_intimacy)
+            yield f'等级值 {user_level}------->{user_next_level}'
+            yield f'经验值 {utils.print_progress(user_intimacy, user_next_intimacy)}'
             yield f'等级榜 {user_level_rank}'
 
 
