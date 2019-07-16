@@ -40,17 +40,17 @@ class JudgeCaseTask(SchedTask):
         
     @staticmethod
     async def check_case_status(user, case_id):
-        # 3放弃
-        # 2 否 voterule
-        # 4 删除 votedelete
-        # 1 封杀 votebreak
+        # 3 放弃
+        # 2 否 vote_rule
+        # 4 删除 vote_delete
+        # 1 封杀 vote_break
         json_rsp = await user.req_s(JudgeCaseReq.check_case_status, user, case_id)
         data = json_rsp['data']
-        votebreak = data['voteBreak']
-        voteDelete = data['voteDelete']
-        voteRule = data['voteRule']
-        num_voted = votebreak + voteDelete + voteRule
-        ok_percent = (voteRule / num_voted) if num_voted else 0
+        vote_break = data['voteBreak']
+        vote_delete = data['voteDelete']
+        vote_rule = data['voteRule']
+        num_voted = vote_break + vote_delete + vote_rule
+        ok_percent = (vote_rule / num_voted) if num_voted else 0
         user.info(f'案件{case_id}目前已投票{num_voted}, 认为言论合理比例{ok_percent}')
         return num_voted, ok_percent
         
