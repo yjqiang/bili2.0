@@ -23,28 +23,29 @@ class In:
 
 
 def patterns_actions(_, __, value):
-    if isinstance(value, tuple) or isinstance(value, list):
+    if isinstance(value, (tuple, list)):
         if not len(value) % 2:
-            for pattern, action in zip(value[0::2], value[1::2]):
-                if not isinstance(pattern, dict) or not isinstance(action, JsonRspType):
-                    raise ValueError('pattern必须为dict，action必须为JsonRspType')
+            iterator = iter(value)
+            for pattern, action in zip(iterator, iterator):
+                if not isinstance(action, JsonRspType):
+                    raise ValueError(f'action 必须为 JsonRspType({action})')
             return
-        else:
-            raise ValueError('必须pattern、action配对')
-    raise ValueError('必须是tuple或list')
+        raise ValueError('必须 pattern、action 配对')
+    raise ValueError('必须是 tuple 或 list')
 
 
 DEFAULT_BASE_CTRL = (
     {'code': 1024}, JsonRspType.IGNORE,
     {'msg': In('操作太快')}, JsonRspType.IGNORE,
     {'msg': In('系统繁忙')}, JsonRspType.IGNORE,
+    {'msg': In('过于频繁')}, JsonRspType.IGNORE,
 )
 
 
 @attr.s(slots=True, frozen=True)
 class Ctrl:
     extend = attr.ib(
-        validator=patterns_actions)
+        validator=attr.validators.optional(patterns_actions))
 
     # 是否支持全局的那个配置（1024之类的）
     base = attr.ib(
@@ -63,8 +64,12 @@ class Ctrl:
             if result != JsonRspType.UNDEFINED:
                 return result
 
-        result = pampy.match(dict_var, *self.extend, default=JsonRspType.UNDEFINED)
-        return result if result != JsonRspType.UNDEFINED else self.default
+        if self.extend is not None:
+            result = pampy.match(dict_var, *self.extend, default=JsonRspType.UNDEFINED)
+            if result != JsonRspType.UNDEFINED:
+                return result
+
+        return self.default
 
 
 # TODO: delete
