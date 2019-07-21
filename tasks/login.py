@@ -65,11 +65,12 @@ class LoginTask(ForcedTask):
         password = user.password
         json_rsp = await LoginReq.fetch_key(user)
         data = json_rsp['data']
-        key = data['key']
-        hash = str(data['hash'])
-        pubkey = rsa.PublicKey.load_pkcs1_openssl_pem(key.encode())
-        hashed_password = base64.b64encode(rsa.encrypt((hash + password).encode('utf-8'), pubkey))
-        url_password = parse.quote_plus(hashed_password)
+
+        pubkey = rsa.PublicKey.load_pkcs1_openssl_pem(data['key'])
+        crypto_password = base64.b64encode(
+            rsa.encrypt((data['hash'] + password).encode('utf-8'), pubkey)
+        )
+        url_password = parse.quote_plus(crypto_password)
         url_name = parse.quote_plus(name)
         
         json_rsp = await LoginReq.login(user, url_name, url_password)
