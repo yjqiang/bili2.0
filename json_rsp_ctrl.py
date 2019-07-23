@@ -35,10 +35,15 @@ def patterns_actions(_, __, value):
 
 
 DEFAULT_BASE_CTRL = (
+    {'code': 0}, JsonRspType.OK,  # 目前为止，0 肯定成功，如果例外，自己另写
+
     {'code': 1024}, JsonRspType.IGNORE,
     {'msg': In('操作太快')}, JsonRspType.IGNORE,
     {'msg': In('系统繁忙')}, JsonRspType.IGNORE,
     {'msg': In('过于频繁')}, JsonRspType.IGNORE,
+
+    {'msg': In('登录')}, JsonRspType.LOGOUT,
+    {'msg': In('no login')}, JsonRspType.LOGOUT,
 )
 
 
