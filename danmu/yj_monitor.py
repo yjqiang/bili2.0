@@ -1,6 +1,7 @@
 # https://github.com/yjqiang/YjMonitor
 
 import json
+import asyncio
 from struct import Struct
 
 from printer import info as print
@@ -70,13 +71,13 @@ class TcpYjMonitorClient(Client):
 
         data_type = json_data['type']
         if data_type == 'raffle':
-            if not self.handle_danmu(json_data['data']):
-                return False
+            return self.handle_danmu(json_data['data'])
         # 握手确认
         elif data_type == 'entered':
             print(f'{self._area_id}号数据连接确认建立连接（{self._key}）')
         elif data_type == 'error':
             warn(f'{self._area_id}号数据连接发生致命错误{json_data}')
+            await asyncio.sleep(1.0)
             return False
         return True
 
