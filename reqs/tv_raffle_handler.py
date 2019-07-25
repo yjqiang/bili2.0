@@ -11,11 +11,11 @@ class TvRaffleHandlerReq:
         return response
     
     @staticmethod
-    async def join(user, real_roomid, TV_raffleid):
+    async def join(user, real_roomid, raffle_id):
         url = f"{API_LIVE}/gift/v3/smalltv/join"
         payload = {
             "roomid": real_roomid,
-            "raffleId": TV_raffleid,
+            "raffleId": raffle_id,
             "type": "Gift",
             "csrf_token": user.dict_bili['csrf']
             }
@@ -33,8 +33,8 @@ class TvRaffleHandlerReq:
         return json_rsp
     
     @staticmethod
-    async def notice(user, TV_roomid, TV_raffleid):
-        url = f"{API_LIVE}/gift/v3/smalltv/notice?type=small_tv&raffleId={TV_raffleid}"
+    async def notice(user, room_id, raffle_id):
+        url = f"{API_LIVE}/gift/v3/smalltv/notice?type=small_tv&raffleId={raffle_id}"
         response = await user.bililive_session.request_json('GET', url, headers=user.dict_bili['pcheaders'])
         return response
 
@@ -42,7 +42,7 @@ class TvRaffleHandlerReq:
 class ReqCtrl:
     join_v4_ctrl = Ctrl(
         extend=(
-            {'code': -401, 'msg': In('登陆')}, JsonRspType.LOGOUT,
+            {'code': -401, 'msg': In('登录')}, JsonRspType.LOGOUT,
             {'code': 0}, JsonRspType.OK,
             {'code': -405}, JsonRspType.OK,  # 奖品都被领完啦
             {'code': -403, 'msg': In('已')}, JsonRspType.OK,  # 'code': -403, 'msg': '您已参加抽奖~'
