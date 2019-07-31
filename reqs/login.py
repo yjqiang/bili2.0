@@ -62,7 +62,7 @@ class LoginReq:
         
     @staticmethod
     async def cnn_captcha(user, content):
-        url = "http://115.159.205.242:19951/captcha/v1"
+        url = "http://152.32.186.69:19951/captcha/v1"
         str_img = base64.b64encode(content).decode(encoding='utf-8')
         json_rsp = await user.other_session.orig_req_json('POST', url, json={"image": str_img})
         captcha = json_rsp['message']
