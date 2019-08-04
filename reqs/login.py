@@ -1,9 +1,11 @@
 import base64
 from io import BytesIO
+
 try:
     from PIL import Image
 except ImportError:
     Image = None
+    
 import utils
 
 

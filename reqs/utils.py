@@ -1,6 +1,7 @@
 # 不具有任何意义,仅仅是常见func
 
 from random import randint
+
 from bili_global import API_LIVE
 import utils
 from json_rsp_ctrl import ZERO_ONLY_CTRL

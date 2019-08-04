@@ -1,6 +1,8 @@
 import base64
 from urllib import parse
+
 import rsa
+
 from reqs.login import LoginReq
 from .task_func_decorator import normal
 from .base_class import ForcedTask
