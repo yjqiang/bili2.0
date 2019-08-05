@@ -4,6 +4,7 @@
 import os
 from re import compile
 from typing import Optional
+from string import whitespace
 
 import toml
 
@@ -19,7 +20,7 @@ def txt2toml(split_str: Optional[str] = None):
     if split_str is None:
         split_str = '-'
     assert len(split_str) == 1
-    split_elements = f'{split_str} 　'
+    split_elements = f'{split_str}{whitespace}　'
     split_pattern = compile(
         f'([^{split_elements}]+)[{split_elements}]+([^{split_elements}]+)')
     
