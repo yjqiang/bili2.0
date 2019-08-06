@@ -36,6 +36,7 @@ class WebSession:
             i += 1
             if i >= 10:
                 printer.warn(f'反复请求多次未成功, {url}, {kwargs}')
+                await asyncio.sleep(0.75)
             try:
                 async with self.var_session.request(method, url, **kwargs) as rsp:
                     if rsp.status == 200:
@@ -47,7 +48,6 @@ class WebSession:
             except:
                 # print('当前网络不好，正在重试，请反馈开发者!!!!')
                 print(sys.exc_info()[0], sys.exc_info()[1], url)
-            await asyncio.sleep(0.02)
 
     async def orig_req_json(self,
                             method,
@@ -63,6 +63,7 @@ class WebSession:
                 i += 1
                 if i >= 10:
                     printer.warn(f'反复请求多次未成功, {url}, {kwargs}')
+                    await asyncio.sleep(0.75)
                 try:
                     async with self.var_session.request(method, url, **kwargs) as rsp:
                         if rsp.status == 200:
@@ -79,7 +80,6 @@ class WebSession:
                 except:
                     # print('当前网络不好，正在重试，请反馈开发者!!!!')
                     print(sys.exc_info()[0], sys.exc_info()[1], url)
-                await asyncio.sleep(0.02)
 
     # is_login 后期移除
     async def request_json(self,
@@ -96,7 +96,7 @@ class WebSession:
             if json_rsp_type == JsonRspType.OK:
                 return body
             elif json_rsp_type == JsonRspType.IGNORE:
-                await asyncio.sleep(1.0)
+                await asyncio.sleep(0.75)
             elif json_rsp_type == JsonRspType.LOGOUT:
                 print('api提示没有登录')
                 print(body)
