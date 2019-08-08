@@ -9,19 +9,6 @@ class TvRaffleHandlerReq:
         url = f"{API_LIVE}/gift/v3/smalltv/check?roomid={real_roomid}"
         response = await user.bililive_session.request_json('GET', url)
         return response
-    
-    @staticmethod
-    async def join(user, real_roomid, raffle_id):
-        url = f"{API_LIVE}/gift/v3/smalltv/join"
-        payload = {
-            "roomid": real_roomid,
-            "raffleId": raffle_id,
-            "type": "Gift",
-            "csrf_token": user.dict_bili['csrf']
-            }
-            
-        response = await user.bililive_session.request_json('POST', url, data=payload, headers=user.dict_bili['pcheaders'])
-        return response
         
     @staticmethod
     async def join_v4(user, real_roomid, raffle_id, raffle_type):
@@ -31,12 +18,6 @@ class TvRaffleHandlerReq:
         payload = f'{temp_params}&sign={sign}'
         json_rsp = await user.bililive_session.request_json('POST', url, params=payload, headers=user.dict_bili['appheaders'], ctrl=ReqCtrl.join_v4_ctrl)
         return json_rsp
-    
-    @staticmethod
-    async def notice(user, room_id, raffle_id):
-        url = f"{API_LIVE}/gift/v3/smalltv/notice?type=small_tv&raffleId={raffle_id}"
-        response = await user.bililive_session.request_json('GET', url, headers=user.dict_bili['pcheaders'])
-        return response
 
                 
 class ReqCtrl:
