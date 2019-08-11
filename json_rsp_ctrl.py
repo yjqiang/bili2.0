@@ -34,7 +34,7 @@ def patterns_actions(_, __, value):
     raise ValueError('必须是 tuple 或 list')
 
 
-DEFAULT_BASE_CTRL = (
+BASE_CTRL = (
     {'code': 0}, JsonRspType.OK,  # 目前为止，0 肯定成功，如果例外，自己另写
 
     {'code': 1024}, JsonRspType.IGNORE,
@@ -54,7 +54,7 @@ class Ctrl:
 
     # 是否支持全局的那个配置（1024之类的）
     base = attr.ib(
-        default=DEFAULT_BASE_CTRL,
+        default=BASE_CTRL,
         validator=attr.validators.optional(patterns_actions)
     )
     # 如果都不匹配该怎么办
@@ -77,17 +77,9 @@ class Ctrl:
         return self.default
 
 
-# TODO: delete
-# 这是为了过渡上一代的（code == 3 or code == -401 or code == 1003 or code == -101 or code == 401）这样的
-TMP_DEFAULT_CTRL = Ctrl(
-    extend=(
-        {'code': 3}, JsonRspType.LOGOUT,
-        {'code': -401}, JsonRspType.LOGOUT,
-        {'code': 1003}, JsonRspType.LOGOUT,
-        {'code': -101}, JsonRspType.LOGOUT,
-        {'code': 401}, JsonRspType.LOGOUT,
-    ),
-    base=DEFAULT_BASE_CTRL,
+DEFAULT_CTRL = Ctrl(
+    extend=None,
+    base=BASE_CTRL,
     default=JsonRspType.OK
 )
 
@@ -97,4 +89,13 @@ ZERO_ONLY_CTRL = Ctrl(
     ),
     base=None,
     default=JsonRspType.IGNORE
+)
+
+# 经观察不少情况下 -101 表示未登录（{"code":-101}，没有其他东西）
+LOGOUT_101_CTRL = Ctrl(
+    extend=(
+        {'code': -101}, JsonRspType.LOGOUT,
+    ),
+    base=BASE_CTRL,
+    default=JsonRspType.OK
 )

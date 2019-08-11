@@ -6,7 +6,7 @@ import aiohttp
 
 import printer
 from exceptions import LogoutError, ForbiddenError
-from json_rsp_ctrl import Ctrl, JsonRspType, TMP_DEFAULT_CTRL
+from json_rsp_ctrl import Ctrl, JsonRspType, DEFAULT_CTRL
 
 sem = asyncio.Semaphore(3)
 
@@ -86,7 +86,7 @@ class WebSession:
                            method,
                            url,
                            is_login=False,
-                           ctrl: Ctrl = TMP_DEFAULT_CTRL,
+                           ctrl: Ctrl = DEFAULT_CTRL,
                            **kwargs) -> dict:
         while True:
             body = await self.__req(self.__receive_json, method, url, **kwargs)

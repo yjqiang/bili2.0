@@ -4,7 +4,7 @@ from random import randint
 
 from bili_global import API_LIVE
 import utils
-from json_rsp_ctrl import ZERO_ONLY_CTRL
+from json_rsp_ctrl import ZERO_ONLY_CTRL, LOGOUT_101_CTRL
 
 
 class UtilsReq:
@@ -109,7 +109,7 @@ class UtilsReq:
     async def fetch_bilimain_tasks(user):
         url = 'https://account.bilibili.com/home/reward'
         # {"code":-101}
-        json_rsp = await user.other_session.request_json('GET', url, headers=user.dict_bili['pcheaders'])
+        json_rsp = await user.other_session.request_json('GET', url, headers=user.dict_bili['pcheaders'], ctrl=LOGOUT_101_CTRL)
         return json_rsp
         
     @staticmethod
@@ -123,7 +123,7 @@ class UtilsReq:
     async def fetch_bilimain_userinfo(user):
         url = 'https://account.bilibili.com/home/userInfo'
         # {"code":-101}
-        json_rsp = await user.other_session.request_json('GET', url, headers=user.dict_bili['pcheaders'])
+        json_rsp = await user.other_session.request_json('GET', url, headers=user.dict_bili['pcheaders'], ctrl=LOGOUT_101_CTRL)
         return json_rsp
     
     @staticmethod
