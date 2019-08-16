@@ -87,7 +87,6 @@ class DanmuRaffleMonitor(WsDanmuClient):
                 broadcast, description0,  raffle_name = self.NOTICE_MSG_TV_PATTERN.match(msg_common).group(1, 3, 5)
                 # (不匹配"n个"或"***了")或者(就是"***了")默认设置1；（"n个"）提取文字
                 raffle_num = int(description0) if description0 is not None else 1
-                broadcast = msg_common.split('广播')[0]
                 print(f'{self._area_id}号数据连接检测到{real_roomid:^9}的{raffle_name}')
                 raffle_handler.push2queue(TvRaffleJoinTask, real_roomid)
                 broadcast_type = 0 if broadcast == '全区' else 1
