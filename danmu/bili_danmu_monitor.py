@@ -1,5 +1,6 @@
 import asyncio
 from typing import Optional
+import re
 
 from aiohttp import ClientSession
 
@@ -13,6 +14,7 @@ from tasks.guard_raffle_handler import GuardRafflJoinTask
 from tasks.storm_raffle_handler import StormRaffleJoinTask
 from tasks.utils import UtilsTask
 from . import raffle_handler
+from utils import clear_whitespace
 
 
 class DanmuPrinter(WsDanmuClient):
@@ -24,6 +26,17 @@ class DanmuPrinter(WsDanmuClient):
 
 
 class DanmuRaffleMonitor(WsDanmuClient):
+    # clear_whitespace之后
+    # 全区广播:<%生而为人要温柔%>送给<%岛岛子%>1个应援喵，点击前往TA的房间去抽奖吧
+    # 全区广播:主播<%咩咩想喝甜奶盖%>的直播间得到了偶像恋人的回应，快去前往抽奖吧！
+    # 娱乐区广播:<%阿a飘piao大草莓pizza%>送给<%雫るる_Official%>1个摩天大楼，点击前往TA的房间去抽奖吧
+    # .+X>(?!.*X) 是匹配最后一个 X
+    NOTICE_MSG_TV_PATTERN = re.compile(r'([^：:]+)广播.+%>(?!.*%>)((\d+)个|([^了]+)了)?([^，,]+)', re.DOTALL)
+
+    # clear_whitespace之后
+    # <%阿奎祝君某生日快乐%>在本房间开通了舰长
+    NOTICE_MSG_GUARD_PATTERN = re.compile(r'.+%>(?!.*%>)[^了]+了(\S{2})', re.DOTALL)
+
     def __init__(
             self, room_id: int, area_id: int,
             session: Optional[ClientSession] = None, loop=None):
@@ -69,26 +82,18 @@ class DanmuRaffleMonitor(WsDanmuClient):
             # 6 <%user_name%> 在直播间 <%529%> 使用了 <%20%> 倍节奏风暴，大家快去跟风领取奖励吧！(只报20的)
             msg_type = data['msg_type']
             real_roomid = data['real_roomid']
-            msg_common = data['msg_common'].replace(' ', '')
-            msg_common = msg_common.replace('”', '')
-            msg_common = msg_common.replace('“', '')
+            msg_common = clear_whitespace(data['msg_common'], '“”')
             if msg_type == 2 or msg_type == 8:
-                str_gift = msg_common.split('%>')[-1].split('，')[0]
-                if '个' in str_gift:
-                    raffle_num, raffle_name = str_gift.split('个')
-                elif '了' in str_gift:
-                    raffle_num = 1
-                    raffle_name = str_gift.split('了')[-1]
-                else:
-                    raffle_num = 1
-                    raffle_name = str_gift
+                broadcast, description0,  raffle_name = self.NOTICE_MSG_TV_PATTERN.match(msg_common).group(1, 3, 5)
+                # (不匹配"n个"或"***了")或者(就是"***了")默认设置1；（"n个"）提取文字
+                raffle_num = int(description0) if description0 is not None else 1
                 broadcast = msg_common.split('广播')[0]
                 print(f'{self._area_id}号数据连接检测到{real_roomid:^9}的{raffle_name}')
                 raffle_handler.push2queue(TvRaffleJoinTask, real_roomid)
                 broadcast_type = 0 if broadcast == '全区' else 1
                 bili_statistics.add2pushed_raffles(raffle_name, broadcast_type, raffle_num)
             elif msg_type == 3:
-                raffle_name = msg_common.split('开通了')[-1][:2]
+                raffle_name = self.NOTICE_MSG_GUARD_PATTERN.match(msg_common).group(1)
                 print(f'{self._area_id}号数据连接检测到{real_roomid:^9}的{raffle_name}')
                 raffle_handler.push2queue(GuardRafflJoinTask, real_roomid)
                 broadcast_type = 0 if raffle_name == '总督' else 2
