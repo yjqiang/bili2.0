@@ -44,4 +44,4 @@ class GuardRafflJoinTask(ForcedTask):
             user.info(f'大航海({raffle_id})的参与结果: {gift_name}X{gift_num}')
             bili_statistics.add2results(gift_name, user.id, gift_num)
         else:
-            user.warn(f'大航海({raffle_id})的参与结果: {json_rsp}')
+            user.info(f'大航海({raffle_id})的参与结果: {json_rsp}')

@@ -43,4 +43,4 @@ class TvRaffleJoinTask(ForcedTask):
         elif code == -403 and '拒绝' in json_rsp['msg']:
             user.fall_in_jail()
         else:
-            user.warn(f'小电视({raffle_id})的参与结果: {json_rsp}')
+            user.info(f'小电视({raffle_id})的参与结果: {json_rsp}')
