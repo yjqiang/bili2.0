@@ -30,6 +30,8 @@ class GuardRaffleHandlerReq:
         {'code': 400, 'data': None, 'message': '你已经领取过啦', 'msg': '你已经领取过啦'}
         
         {'code': 400, 'data': None, 'message': '已经过期啦,下次早点吧', 'msg': '已经过期啦,下次早点吧'}
+        
+        {'code': -403, 'data': None, 'message': '访问被拒绝', 'msg': '访问被拒绝'}
         '''
         data = {
             'roomid': real_roomid,

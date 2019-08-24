@@ -32,6 +32,8 @@ class TvRaffleHandlerReq:
         {'code': -403, 'data': None, 'message': '您已参加抽奖~', 'msg': '您已参加抽奖~'}
         
         {'code': -405, 'data': None, 'message': '奖品都被领完啦！下次下手快点哦~', 'msg': '奖品都被领完啦！下次下手快点哦~'} 
+        
+        {'code': -403, 'data': None, 'message': '访问被拒绝', 'msg': '访问被拒绝'}
         '''
         data = {
             'id': raffle_id,
