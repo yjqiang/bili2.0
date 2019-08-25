@@ -37,8 +37,8 @@ class UtilsReq:
         
     @staticmethod
     async def get_rooms_by_area(user, areaid):
-        url = f'{API_LIVE}/room/v1/area/getRoomList?platform=web&parent_area_id={areaid}&cate_id=0&area_id=0&sort_type=online&page=1&page_size=15'
-        json_rsp = await user.bililive_session.request_json('GET', url)
+        url = f'{API_LIVE}/room/v3/area/getRoomList?parent_area_id={areaid}&sort_type=online&page_size=10'
+        json_rsp = await user.bililive_session.request_json('GET', url, ctrl=ZERO_ONLY_CTRL)
         return json_rsp
         
     @staticmethod

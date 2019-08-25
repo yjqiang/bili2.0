@@ -27,7 +27,8 @@ class UtilsTask:
             data = json_rsp['data']
             return not any((data['is_hidden'], data['is_locked'], data['encrypted']))
         return False
-    
+
+    # TODO: 把room_id删了，会导致下播后又选择几率过高
     @staticmethod
     async def get_room_by_area(user, area_id, room_id=None):
         # None/0 都不行
@@ -41,10 +42,11 @@ class UtilsTask:
                 
         while True:
             json_rsp = await user.req_s(UtilsReq.get_rooms_by_area, user, area_id)
-            data = json_rsp['data']
-            room_id = random.choice(data)['roomid']
-            if await UtilsTask.is_ok_as_monitor(user, room_id, area_id):
-                return room_id
+            list_rooms = json_rsp['data']['list']
+            if list_rooms:
+                room_id = random.choice(list_rooms)['roomid']
+                if await UtilsTask.is_ok_as_monitor(user, room_id, area_id):
+                    return room_id
                 
     @staticmethod
     async def is_ok_as_monitor(user, room_id, area_id) -> bool:
@@ -54,9 +56,8 @@ class UtilsTask:
         json_rsp = await user.req_s(UtilsReq.get_room_info, user, room_id)
         if not json_rsp['code']:
             data = json_rsp['data']
-            is_open = bool(data['live_status'])  # 1/0
-            current_area_id = data['parent_area_id']
-            return area_id == current_area_id and is_open
+            # data['live_status']  # 1/0
+            return area_id == data['parent_area_id'] and data['live_status']
         return False
         
     @staticmethod
