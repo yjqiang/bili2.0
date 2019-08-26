@@ -28,13 +28,8 @@ class UtilsTask:
             return not any((data['is_hidden'], data['is_locked'], data['encrypted']))
         return False
 
-    # TODO: 把room_id删了，会导致下播后又选择几率过高
     @staticmethod
-    async def get_room_by_area(user, area_id, room_id=None):
-        # None/0 都不行
-        if room_id is not None and room_id:
-            if await UtilsTask.is_ok_as_monitor(user, room_id, area_id):
-                return room_id
+    async def get_room_by_area(user, area_id):
         if area_id == 1:
             room_id = 23058
             if await UtilsTask.is_ok_as_monitor(user, room_id, area_id):

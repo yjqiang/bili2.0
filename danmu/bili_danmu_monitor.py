@@ -50,20 +50,19 @@ class DanmuRaffleMonitor(WsDanmuClient):
 
     async def _check_area(self):
         try:
-            while True:
+            await asyncio.sleep(300)
+            while await asyncio.shield(
+                    notifier.exec_func(UtilsTask.is_ok_as_monitor, self._room_id, self._area_id)):
                 await asyncio.sleep(300)
-                is_ok = await asyncio.shield(
-                    notifier.exec_func(UtilsTask.is_ok_as_monitor, self._room_id, self._area_id))
-                if not is_ok:
-                    print(f'{self._room_id}不再适合作为监控房间，即将切换')
-                    return
+            print(f'{self._room_id}不再适合作为监控房间，即将切换')
         except asyncio.CancelledError:
             pass
 
     async def _prepare_client(self):
+        # 1566786363: 把room_id删了，否则导致下播后又选择几率过高（b站api有延迟）
         self._room_id = await notifier.exec_func(
             UtilsTask.get_room_by_area,
-            self._area_id, self._room_id)
+            self._area_id)
         print(f'{self._area_id}号数据连接选择房间（{self._room_id}）')
 
     def handle_danmu(self, data: dict):
