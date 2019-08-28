@@ -52,7 +52,7 @@ class UtilsTask:
         if not json_rsp['code']:
             data = json_rsp['data']
             # data['live_status']  # 1/0
-            return area_id == data['parent_area_id'] and data['live_status']
+            return area_id == data['parent_area_id'] and bool(data['live_status'])
         return False
         
     @staticmethod
