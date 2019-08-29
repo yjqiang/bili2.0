@@ -62,29 +62,31 @@ class OpenSilverBoxTask(SchedTask):
     async def work(user):
         while True:
             user.info("检查宝箱状态")
-            temp = await user.req_s(OpenSilverBoxReq.check_time, user)
-            # print (temp['code'])    #宝箱领完返回的code为-10017
-            if temp['code'] == -10017:
+            json_rsp_check = await user.req_s(OpenSilverBoxReq.check_time, user)
+            code_check = json_rsp_check['code']
+
+            if not code_check:
+                json_rsp_open = await user.req_s(OpenSilverBoxReq.open_silver_box, user)
+                code_open = json_rsp_open['code']
+                if not code_open:
+                    user.info("打开了宝箱")
+                elif code_open == -500:
+                    user.info('继续等待宝箱冷却...')
+                    sleeptime = json_rsp_open['data']['surplus'] * 60 + 5
+                    await asyncio.sleep(sleeptime)
+                elif code_open == -903:
+                    return
+                elif code_open == 400:
+                    user.info("宝箱开启中返回了小黑屋提示")
+                    user.fall_in_jail()
+                    # 马上继续调用，由下一次的user去supend这个task
+                    return
+                else:
+                    user.warn(f'OpenSilverBoxTask {json_rsp_open}, {json_rsp_check}')
+            elif code_check == -10017:
                 user.info("今日宝箱领取完毕")
-                json_rsp = None
-            else:
-                time_start = temp['data']['time_start']
-                time_end = temp['data']['time_end']
-                json_rsp = await user.req_s(OpenSilverBoxReq.open_silver_box, user, time_start, time_end)
-            if json_rsp is None or json_rsp['code'] == -10017 or json_rsp['code'] == -800:
                 return
-            elif not json_rsp['code']:
-                user.info("打开了宝箱")
-            elif json_rsp['code'] == 400:
-                user.info("宝箱开启中返回了小黑屋提示")
-                user.fall_in_jail()
-                # 马上继续调用，由下一次的user去supend这个task
-                return
-            else:
-                user.info("继续等待宝箱冷却...")
-                sleeptime = (json_rsp['data'].get('surplus', 3)) * 60 + 5
-                await asyncio.sleep(sleeptime)
-                
+
                 
 class RecvDailyBagTask(SchedTask):
     TASK_NAME = 'recv_daily_bag'
