@@ -178,7 +178,7 @@ class SendGiftTask(SchedTask):
     async def fetch_gift_intimacy(user) -> dict:
         json_rsp = await user.req_s(SendGiftReq.fetch_gift_config, user)
         gift_intimacy = {}
-        for gift in json_rsp['data']:
+        for gift in json_rsp['data']['list']:
             if gift['coin_type'] == 'silver':  # 应该这个表示是否是包裹的（错了大不了不送了，嘻嘻）
                 price = gift['price']
                 if price >= 100:  # 猜测小于 100 的不会增加亲密度（错了大不了不送了，嘻嘻）

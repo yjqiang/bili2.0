@@ -98,7 +98,7 @@ class SignFansGroupsReq:
 class SendGiftReq:
     @staticmethod
     async def fetch_gift_config(user):
-        url = f'{API_LIVE}/gift/v3/live/gift_config'
+        url = f'{API_LIVE}/gift/v4/Live/giftConfig'
         json_rsp = await user.bililive_session.request_json('GET', url, ctrl=ZERO_ONLY_CTRL)
         return json_rsp
         
