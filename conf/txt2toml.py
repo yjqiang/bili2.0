@@ -3,7 +3,6 @@
 
 import os
 from re import compile
-from typing import Optional
 from string import whitespace
 
 import toml
@@ -16,9 +15,7 @@ path_toml = f'{path_curr}/orig_user.toml'
 
 # split_str只填一个字符就行。但是split_str禁止存在于密码与用户名中，空格也禁止
 # 每行数据的左右空白字符均会被删除
-def txt2toml(split_str: Optional[str] = None):
-    if split_str is None:
-        split_str = '-'
+def txt2toml(split_str: str):
     assert len(split_str) == 1
     split_elements = f'{split_str}{whitespace}　'
     split_pattern = compile(
@@ -54,4 +51,4 @@ def txt2toml(split_str: Optional[str] = None):
         toml.dump(dict_users, f)
 
       
-txt2toml()
+txt2toml(' ')
