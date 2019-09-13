@@ -66,7 +66,7 @@ class OpenSilverBoxTask(SchedTask):
             code_check = json_rsp_check['code']
 
             if not code_check:
-                json_rsp_open = await user.req_s(OpenSilverBoxReq.open_silver_box, user)
+                json_rsp_open = await user.req_s(OpenSilverBoxReq.open_silver_box_old, user)
                 code_open = json_rsp_open['code']
                 if not code_open:
                     user.info("打开了宝箱")
