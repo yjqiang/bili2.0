@@ -34,7 +34,7 @@ class RecvHeartGiftReq:
                 
 class OpenSilverBoxReq:
     @staticmethod
-    async def check_time(user):
+    async def check(user):
         url = f'{API_LIVE}/lottery/v1/SilverBox/getCurrentTask'
         # {"code":0,"msg":"","message":"","data":{"minute":3,"silver":30,"time_start":1566611611,"time_end":1566611791,"times":1,"max_times":3}}
         # {'code': -10017, 'msg': '今天所有的宝箱已经领完!', 'message': '今天所有的宝箱已经领完!', ...}
@@ -42,7 +42,7 @@ class OpenSilverBoxReq:
         return json_rsp
     
     @staticmethod
-    async def open_silver_box(user):  # 此 api 限制必须绑定手机号
+    async def join(user):  # 此 api 限制必须绑定手机号
         temp_params = f'access_key={user.dict_bili["access_key"]}&{user.app_params}&ts={utils.curr_time()}'
         # {'code': 0, 'msg': 'ok', 'message': 'ok', 'data': {'silver': '894135', 'awardSilver': 30, 'isEnd': 0}}
         # {'code': -500, 'msg': '领取时间未到, 请稍后再试', 'message': '领取时间未到, 请稍后再试', 'data': {'surplus': 3}}
@@ -51,17 +51,6 @@ class OpenSilverBoxReq:
         # {'code': -800, 'msg': '未绑定手机', ...}
         sign = user.calc_sign(temp_params)
         url = f'{API_LIVE}/lottery/v1/SilverBox/getAward?{temp_params}&sign={sign}'
-        json_rsp = await user.bililive_session.request_json('GET', url, headers=user.dict_bili['appheaders'])
-        return json_rsp
-
-    @staticmethod
-    async def open_silver_box_old(user):
-        temp_params = f'access_key={user.dict_bili["access_key"]}&{user.app_params}&ts={utils.curr_time()}'
-        sign = user.calc_sign(temp_params)
-        url = f'{API_LIVE}/mobile/freeSilverAward?{temp_params}&sign={sign}'
-        # {'code': 0, 'msg': 'ok', 'message': 'ok', 'data': {'silver': '907101', 'awardSilver': 30, 'isEnd': 0}}
-        # {'code': -500, 'msg': '领取时间未到, 请稍后再试', 'message': '领取时间未到, 请稍后再试', 'data': {'surplus': 3}}
-        # {'code': -903, 'msg': '已经领取过这个宝箱', 'message': '已经领取过这个宝箱', 'data': {'surplus': -1.3333333333333}}
         json_rsp = await user.bililive_session.request_json('GET', url, headers=user.dict_bili['appheaders'])
         return json_rsp
         

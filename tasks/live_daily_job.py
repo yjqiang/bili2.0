@@ -62,11 +62,11 @@ class OpenSilverBoxTask(SchedTask):
     async def work(user):
         while True:
             user.info("检查宝箱状态")
-            json_rsp_check = await user.req_s(OpenSilverBoxReq.check_time, user)
+            json_rsp_check = await user.req_s(OpenSilverBoxReq.check, user)
             code_check = json_rsp_check['code']
 
             if not code_check:
-                json_rsp_open = await user.req_s(OpenSilverBoxReq.open_silver_box_old, user)
+                json_rsp_open = await user.req_s(OpenSilverBoxReq.join, user)
                 code_open = json_rsp_open['code']
                 if not code_open:
                     user.info("打开了宝箱")
@@ -81,8 +81,12 @@ class OpenSilverBoxTask(SchedTask):
                     user.fall_in_jail()
                     # 马上继续调用，由下一次的user去supend这个task
                     return
+                elif code_open == -800:
+                    user.info('未绑定手机，该用户无法参与日常宝箱任务，正在退出')
+                    return
                 else:
                     user.warn(f'OpenSilverBoxTask {json_rsp_open}, {json_rsp_check}')
+                    return
             elif code_check == -10017:
                 user.info("今日宝箱领取完毕")
                 return
