@@ -79,7 +79,7 @@ class WsDanmuClient(Client):
             data_l = next_data_l
         return True
 
-    def handle_danmu(self, data):
+    def handle_danmu(self, data: dict) -> bool:
         return True
 
     async def reset_roomid(self, room_id):

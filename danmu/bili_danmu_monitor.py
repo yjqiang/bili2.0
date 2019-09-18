@@ -58,14 +58,15 @@ class DanmuRaffleMonitor(WsDanmuClient):
         except asyncio.CancelledError:
             pass
 
-    async def _prepare_client(self):
+    async def _prepare_client(self) -> bool:
         # 1566786363: 把room_id删了，否则导致下播后又选择几率过高（b站api有延迟）
         self._room_id = await notifier.exec_func(
             UtilsTask.get_room_by_area,
             self._area_id)
         print(f'{self._area_id}号数据连接选择房间（{self._room_id}）')
+        return self._room_id is not None
 
-    def handle_danmu(self, data: dict):
+    def handle_danmu(self, data: dict) -> bool:
         cmd = data['cmd']
 
         if cmd == 'PREPARING':

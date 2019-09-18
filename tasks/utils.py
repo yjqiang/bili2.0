@@ -29,7 +29,7 @@ class UtilsTask:
         return False
 
     @staticmethod
-    async def get_room_by_area(user, area_id):
+    async def get_room_by_area(user, area_id: int):
         if area_id == 1:
             room_id = 23058
             if await UtilsTask.is_ok_as_monitor(user, room_id, area_id):
@@ -42,6 +42,9 @@ class UtilsTask:
                 room_id = random.choice(list_rooms)['roomid']
                 if await UtilsTask.is_ok_as_monitor(user, room_id, area_id):
                     return room_id
+            elif not area_id in await UtilsTask.fetch_blive_areas(user): # 运行过程中某个分区删除
+                return None
+            await asyncio.sleep(30)
                 
     @staticmethod
     async def is_ok_as_monitor(user, room_id, area_id) -> bool:

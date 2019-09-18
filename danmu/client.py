@@ -64,8 +64,8 @@ class Client:
     async def _read_one(self) -> bool:
         return True
 
-    async def _prepare_client(self):
-        return
+    async def _prepare_client(self) -> bool:
+        return True
 
     async def run(self):
         self._waiting_end = self._loop.create_future()
@@ -75,9 +75,9 @@ class Client:
                 print(f'暂停启动{self._area_id}号数据连接，等待RESUME指令')
                 await self._waiting_pause
             async with self._conn_lock:
-                if self._closed:
+                if self._closed or not await self._prepare_client():
+                    print(f'{self._area_id}号数据连接确认收到关闭信号，正在处理')
                     break
-                await self._prepare_client()
                 if not await self._open():
                     continue
 
@@ -115,5 +115,4 @@ class Client:
                 await self._waiting_end
             await self._conn.clean()
             return True
-        else:
-            return False
+        return False
