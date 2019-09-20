@@ -1,9 +1,9 @@
-pampy
-rsa
-attrs
-aiohttp
-toml
+aiohttp == 3.6.1
+aiojobs == 0.2.2
+attrs == 19.1.0
+decorator == 4.4.0
+pampy == 0.2.1
+rsa == 4.0
+schedule == 0.6.0
+toml == 0.10.0
 # Pillow Don't need it unless you want to input captcha by yourself which isn't recommended.
-decorator
-aiojobs
-schedule
