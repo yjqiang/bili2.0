@@ -31,11 +31,19 @@ class DanmuRaffleMonitor(WsDanmuClient):
     # 全区广播:主播<%咩咩想喝甜奶盖%>的直播间得到了偶像恋人的回应，快去前往抽奖吧！
     # 娱乐区广播:<%阿a飘piao大草莓pizza%>送给<%雫るる_Official%>1个摩天大楼，点击前往TA的房间去抽奖吧
     # .+X>(?!.*X) 是匹配最后一个 X
-    NOTICE_MSG_TV_PATTERN = re.compile(r'([^：:]+)广播.+%>(?!.*%>)((\d+)个|([^了]+)了)?([^，,]+)', re.DOTALL)
+    NOTICE_MSG_TV_PATTERN = r = re.compile(r'([^：:]+)广播'  # 广播类型
+                                           # 匹配最后一个 %>
+                                           r'.+%>(?!.*%>)'
+                                           # X个、XXX了、直播间XX了、暴力保留，
+                                           # ⚠还有匹配的优先级（因为第二个和第三个可能混合"开启了XX直播间抽奖"（我自己造的））
+                                           r'(?:(\d+)个|[^，,了]+了|[^，,]+?(?:直播间|房间)[^，,了]{2}了?)?'
+                                           # 前面的动作之后，第一个逗号之前
+                                           r'([^，,]+)', re.DOTALL)
 
     # clear_whitespace之后
     # <%阿奎祝君某生日快乐%>在本房间开通了舰长
-    NOTICE_MSG_GUARD_PATTERN = re.compile(r'.+%>(?!.*%>)[^了]+了(\S{2})', re.DOTALL)
+    NOTICE_MSG_GUARD_PATTERN = re.compile(r'.+%>(?!.*%>)'  # 匹配最后一个 %>
+                                          r'[^，,了]+了(.{2})', re.DOTALL)
 
     def __init__(
             self, room_id: int, area_id: int,
@@ -84,8 +92,7 @@ class DanmuRaffleMonitor(WsDanmuClient):
             real_roomid = data['real_roomid']
             msg_common = clear_whitespace(data['msg_common'], '“”')
             if msg_type == 2 or msg_type == 8:
-                broadcast, description0,  raffle_name = self.NOTICE_MSG_TV_PATTERN.match(msg_common).group(1, 3, 5)
-                # (不匹配"n个"或"***了")或者(就是"***了")默认设置1；（"n个"）提取文字
+                broadcast, description0,  raffle_name = self.NOTICE_MSG_TV_PATTERN.match(msg_common).group(1, 2, 3)
                 raffle_num = int(description0) if description0 is not None else 1
                 print(f'{self._area_id}号数据连接检测到{real_roomid:^9}的{raffle_name}')
                 raffle_handler.push2queue(TvRaffleJoinTask, real_roomid)
