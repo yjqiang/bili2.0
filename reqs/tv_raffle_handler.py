@@ -6,16 +6,7 @@ class TvRaffleHandlerReq:
     @staticmethod
     async def check(user, real_roomid):
         url = f'{API_LIVE}/xlive/lottery-interface/v1/lottery/Check?roomid={real_roomid}'
-        '''
-        {"code":0,"message":"0","ttl":1,
-         "data":{
-             "pk":[],
-             "guard":[],
-             "gift":[{"raffleId":391119,"type":"GIFT_30277","from_user":{"uid":0,"uname":"友人江","face":"***.jpg"},"time_wait":32,"time":92,"max_time":120,"status":1,"sender_type":0,"asset_icon":"***.png","asset_animation_pic":"***.gif","thank_text":"感谢\u003c%友人江%\u003e 赠送的应援喵","weight":0,"gift_id":30277}]
-        }}
-        '''
-        json_rsp = await user.bililive_session.request_json('GET', url, headers=user.dict_bili['pcheaders'],
-                                                            ctrl=ZERO_ONLY_CTRL)
+        json_rsp = await user.bililive_session.request_json('GET', url, ctrl=ZERO_ONLY_CTRL)
         return json_rsp
         
     @staticmethod

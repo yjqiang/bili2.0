@@ -6,16 +6,7 @@ class GuardRaffleHandlerReq:
     @staticmethod
     async def check(user, real_roomid):
         url = f'{API_LIVE}/xlive/lottery-interface/v1/lottery/Check?roomid={real_roomid}'
-        '''
-        {"code":0,"message":"0","ttl":1,
-         "data":{
-             "pk":[],
-             "guard":[{"id":1388385,"sender":{"uid":12724278,"uname":"洛小倾丶","face":"***.jpg"},"keyword":"guard","privilege_type":2,"time":5281,"status":1,"time_wait":0,"asset_icon":"***.png","asset_animation_pic":"***.gif","thank_text":"恭喜\u003c%洛小倾丶%\u003e上任提督","weight":0},],
-             "gift":[]
-        }}
-        '''
-        json_rsp = await user.bililive_session.request_json('GET', url, headers=user.dict_bili['pcheaders'],
-                                                            ctrl=ZERO_ONLY_CTRL)
+        json_rsp = await user.bililive_session.request_json('GET', url, ctrl=ZERO_ONLY_CTRL)
         return json_rsp
     
     @staticmethod
