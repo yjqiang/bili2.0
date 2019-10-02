@@ -1,6 +1,6 @@
 aiohttp == 3.6.1
 aiojobs == 0.2.2
-attrs == 19.1.0
+attrs == 19.2.0
 decorator == 4.4.0
 pampy == 0.2.1
 rsa == 4.0
