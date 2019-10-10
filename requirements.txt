@@ -1,4 +1,4 @@
-aiohttp == 3.6.1
+aiohttp == 3.6.2
 aiojobs == 0.2.2
 attrs == 19.2.0
 decorator == 4.4.0
