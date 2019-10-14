@@ -85,13 +85,13 @@ class Notifier:
     async def run_sched_func(self, user: User, func: Callable, *args, **kwargs):
         scheduler = self._scheduler
         if scheduler is not None and not scheduler.closed:
-            await scheduler.spawn(user.exec_func(func, *args, **kwargs))
+            await scheduler.spawn(func(user, *args, **kwargs))
 
     # 这里是为了日常任务的check问题
     async def run_sched_func_with_return(self, user: User, func: Callable, *args, **kwargs):
         scheduler = self._scheduler
         if scheduler is not None and not scheduler.closed:
-            return await user.exec_func(func, *args, **kwargs)
+            return await func(user, *args, **kwargs)
 
     def run_sched_func_bg(self, *args, **kwargs):
         self._loop.create_task(self.run_sched_func(*args, **kwargs))
@@ -112,7 +112,7 @@ class Notifier:
 
     @staticmethod
     async def run_forced_func(user: User, func: Callable, *args, **kwargs):
-        return await user.exec_func(func, *args, **kwargs)
+        return await func(user, *args, **kwargs)
 
     def run_forced_func_bg(self, *args, **kwargs):
         self._loop.create_task(self.run_forced_func(*args, **kwargs))
@@ -148,7 +148,7 @@ class Notifier:
             return await self.exec_forced_task(task, *args, **kwargs)
 
     async def exec_func(self, func: Callable, *args, **kwargs):
-        return await self._users.superuser.exec_func(func, *args, **kwargs)
+        return await func(self._users.superuser, *args, **kwargs)
 
     def exec_task_no_wait(self, task, *args, **kwargs):
         self._loop.create_task(self.exec_task(task, *args, **kwargs))

@@ -24,7 +24,7 @@ class User:
     )
 
     def __init__(
-            self, dict_user: dict, task_ctrl: dict, task_arrangement: dict, dict_bili: dict, force_sleep: callable):
+            self, dict_user: dict, task_ctrl: dict, task_arrangement: dict, dict_bili: dict, force_sleep: Callable):
         self.id = next(self._ids)
         self.force_sleep = force_sleep
         self.name = dict_user['username']
@@ -115,9 +115,6 @@ class User:
             except exceptions.ForbiddenError:
                 await asyncio.shield(self.force_sleep(3600))  # bili_sched.force_sleep
                 await asyncio.sleep(3600)  # 有的function不受sched控制，主动sleep即可，不cancel原因是怕堵死一些协程
-
-    async def exec_func(self, func: Callable, *args, **kwargs):
-        return await func(self, *args, **kwargs)
 
     def fall_in_jail(self):
         self.is_in_jail = True
