@@ -76,9 +76,7 @@ class DynRaffleUtilsTask:
                     else:
                         return -1, None
                     print('lott_cfg', lott_cfg)
-                    title = lott_cfg['title']
-                    # 目前未发现其他title
-                    if title == '互动抽奖':
+                    if 'lottery_id' in lott_cfg:
                         uid = data['user']['uid']
                         post_time = int(item['upload_timestamp'])
                         describe = item['description']
