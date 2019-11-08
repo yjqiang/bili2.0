@@ -2,7 +2,7 @@ aiohttp == 3.6.2
 aiojobs == 0.2.2
 attrs == 19.3.0
 decorator == 4.4.1
-pampy == 0.2.1
+pampy == 0.3.0
 rsa == 4.0
 schedule == 0.6.0
 toml == 0.10.0
