@@ -121,7 +121,7 @@ class SignTask(SchedTask):
     async def work(user):
         while True:
             json_rsp = await user.req_s(SignReq.sign, user)
-            user.info(f'签到状态: {json_rsp["msg"]}')
+            user.info(f'签到状态: {json_rsp["message"]}')
             if json_rsp['code'] == -500 and '已' in json_rsp['msg']:
                 return
             sleeptime = 350
