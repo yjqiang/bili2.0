@@ -36,7 +36,7 @@ class LoginReq:
         temp_params = f'actionKey={user.dict_bili["actionKey"]}&appkey={user.dict_bili["appkey"]}&build={user.dict_bili["build"]}&captcha={captcha}&device={user.dict_bili["device"]}&mobi_app={user.dict_bili["mobi_app"]}&password={url_password}&platform={user.dict_bili["platform"]}&username={url_name}'
         sign = user.calc_sign(temp_params)
         payload = f'{temp_params}&sign={sign}'
-        url = "https://passport.bilibili.com/api/v2/oauth2/login"
+        url = "https://passport.bilibili.com/api/v3/oauth2/login"
         json_rsp = await user.login_session.request_json('POST', url, params=payload, is_login=True)
         return json_rsp
 
