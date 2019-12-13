@@ -41,6 +41,7 @@ BASE_CTRL = (
     {'msg': In('操作太快')}, JsonRspType.IGNORE,
     {'msg': In('系统繁忙')}, JsonRspType.IGNORE,
     {'msg': In('过于频繁')}, JsonRspType.IGNORE,
+    {'msg': In('服务繁忙')}, JsonRspType.IGNORE,
 
     {'msg': In('登录')}, JsonRspType.LOGOUT,
     {'msg': In('no login')}, JsonRspType.LOGOUT,
