@@ -97,14 +97,15 @@ class DanmuRaffleMonitor(WsDanmuClient):
             real_roomid = data['real_roomid']
             msg_common = clear_whitespace(data['msg_common'], '“”')
             if msg_type == 2 or msg_type == 8:
-                description0, raffle_name = self.NOTICE_MSG_TV_PATTERN.match(msg_common).group(1, 2)
-                broadcast = 'nmb'
-                raffle_num = int(description0) if description0 is not None else 1
-                print(f'{self._area_id}号数据连接检测到{real_roomid:^9}的{raffle_name}')
-                raffle_handler.push2queue(TvRaffleJoinTask, real_roomid)
-                broadcast_type = 0 if broadcast == '全区' else 1
-                bili_statistics.add2pushed_raffles(raffle_name, broadcast_type, raffle_num)
-                # printer.warn(data['link_url'], msg_common)
+                if data['msg_common']:
+                    # description0, raffle_name = self.NOTICE_MSG_TV_PATTERN.match(msg_common).group(1, 2)
+                    broadcast = 'nmb'
+                    raffle_num = 1
+                    raffle_name = '小电视'
+                    print(f'{self._area_id}号数据连接检测到{real_roomid:^9}的{raffle_name}')
+                    raffle_handler.push2queue(TvRaffleJoinTask, real_roomid)
+                    broadcast_type = 0 if broadcast == '全区' else 1
+                    bili_statistics.add2pushed_raffles(raffle_name, broadcast_type, raffle_num)
             elif msg_type == 3:
                 raffle_name = self.NOTICE_MSG_GUARD_PATTERN.match(msg_common).group(1)
                 print(f'{self._area_id}号数据连接检测到{real_roomid:^9}的{raffle_name}')
