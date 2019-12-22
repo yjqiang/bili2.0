@@ -2,7 +2,7 @@ import copy
 import asyncio
 import hashlib
 from itertools import count
-from typing import Callable
+from typing import Callable, Optional
 
 import printer
 import conf_loader
@@ -41,10 +41,14 @@ class User:
 
         # 每个user里面都分享了同一个dict，必须要隔离，否则更新cookie这些的时候会互相覆盖
         self.dict_bili = copy.deepcopy(dict_bili)
-        self.app_params = f'actionKey={dict_bili["actionKey"]}&' \
-            f'appkey={dict_bili["appkey"]}&build={dict_bili["build"]}&' \
-            f'device={dict_bili["device"]}&mobi_app={dict_bili["mobi_app"]}&' \
-            f'platform={dict_bili["platform"]}'
+        self.app_params = [
+            f'actionKey={dict_bili["actionKey"]}',
+            f'appkey={dict_bili["appkey"]}',
+            f'build={dict_bili["build"]}',
+            f'device={dict_bili["device"]}',
+            f'mobi_app={dict_bili["mobi_app"]}',
+            f'platform={dict_bili["platform"]}',
+        ]
         self.update_login_data(dict_user)
         self.list_delay = []
         self.repost_del_lock = asyncio.Lock()  # 在follow与unfollow过程中必须保证安全(repost和del整个过程加锁)
@@ -83,9 +87,14 @@ class User:
             **kwargs,
             extra_info=f'用户id:{self.id} 名字:{self.alias}')
 
-    def calc_sign(self, text):
-        text = f'{text}{self.dict_bili["app_secret"]}'
-        return hashlib.md5(text.encode('utf-8')).hexdigest()
+    def sort_and_sign(self, extra_params: Optional[list] = None) -> str:
+        if extra_params is None:
+            text = "&".join(self.app_params)
+        else:
+            text = "&".join(sorted(self.app_params+extra_params))
+        text_with_appsecret = f'{text}{self.dict_bili["app_secret"]}'
+        sign = hashlib.md5(text_with_appsecret.encode('utf-8')).hexdigest()
+        return f'{text}&sign={sign}'
 
     # 保证在线
     async def req_s(self, func, *args):

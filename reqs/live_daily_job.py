@@ -16,11 +16,14 @@ class HeartBeatReq:
 
     @staticmethod
     async def app_heartbeat(user):
-        temp_params = f'access_key={user.dict_bili["access_key"]}&{user.app_params}&ts={utils.curr_time()}'
-        sign = user.calc_sign(temp_params)
-        url = f'{API_LIVE}/mobile/userOnlineHeart?{temp_params}&sign={sign}'
+        extra_params = [
+            f'access_key={user.dict_bili["access_key"]}',
+            f'ts={utils.curr_time()}'
+        ]
+        params = user.sort_and_sign(extra_params)
+        url = f'{API_LIVE}/mobile/userOnlineHeart'
         payload = {'roomid': 23058, 'scale': 'xhdpi'}
-        json_rsp = await user.bililive_session.request_json('POST', url, data=payload, headers=user.dict_bili['appheaders'])
+        json_rsp = await user.bililive_session.request_json('POST', url, data=payload, headers=user.dict_bili['appheaders'] ,params=params)
         return json_rsp
 
                 
@@ -43,15 +46,18 @@ class OpenSilverBoxReq:
     
     @staticmethod
     async def join(user):  # 此 api 限制必须绑定手机号
-        temp_params = f'access_key={user.dict_bili["access_key"]}&{user.app_params}&ts={utils.curr_time()}'
+        extra_params = [
+            f'access_key={user.dict_bili["access_key"]}',
+            f'ts={utils.curr_time()}'
+        ]
         # {'code': 0, 'msg': 'ok', 'message': 'ok', 'data': {'silver': '894135', 'awardSilver': 30, 'isEnd': 0}}
         # {'code': -500, 'msg': '领取时间未到, 请稍后再试', 'message': '领取时间未到, 请稍后再试', 'data': {'surplus': 3}}
         # {'code': -903, 'msg': '已经领取过这个宝箱', 'message': '已经领取过这个宝箱', 'data': {'surplus': -8.0166666666667}}
         # {'code': 400, 'msg': '访问被拒绝', 'message': '访问被拒绝', 'data': []}
         # {'code': -800, 'msg': '未绑定手机', ...}
-        sign = user.calc_sign(temp_params)
-        url = f'{API_LIVE}/lottery/v1/SilverBox/getAward?{temp_params}&sign={sign}'
-        json_rsp = await user.bililive_session.request_json('GET', url, headers=user.dict_bili['appheaders'])
+        params = user.sort_and_sign(extra_params)
+        url = f'{API_LIVE}/lottery/v1/SilverBox/getAward'
+        json_rsp = await user.bililive_session.request_json('GET', url, headers=user.dict_bili['appheaders'], params=params)
         return json_rsp
         
 
@@ -89,10 +95,15 @@ class SignFansGroupsReq:
     
     @staticmethod
     async def sign_group(user, group_id, owner_uid):
-        temp_params = f'access_key={user.dict_bili["access_key"]}&actionKey={user.dict_bili["actionKey"]}&appkey={user.dict_bili["appkey"]}&build={user.dict_bili["build"]}&device={user.dict_bili["device"]}&group_id={group_id}&mobi_app={user.dict_bili["mobi_app"]}&owner_id={owner_uid}&platform={user.dict_bili["platform"]}&ts={utils.curr_time()}'
-        sign = user.calc_sign(temp_params)
-        url = f'https://api.vc.bilibili.com/link_setting/v1/link_setting/sign_in?{temp_params}&sign={sign}'
-        json_rsp = await user.other_session.request_json('GET', url, headers=user.dict_bili['appheaders'])
+        extra_params = [
+            f'access_key={user.dict_bili["access_key"]}',
+            f'group_id={group_id}',
+            f'owner_id={owner_uid}'
+            f'ts={utils.curr_time()}'
+        ]
+        params = user.sort_and_sign(extra_params)
+        url = f'https://api.vc.bilibili.com/link_setting/v1/link_setting/sign_in'
+        json_rsp = await user.other_session.request_json('GET', url, headers=user.dict_bili['appheaders'], params=params)
         return json_rsp
         
         

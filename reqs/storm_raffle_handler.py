@@ -25,8 +25,13 @@ class StormRaffleHandlerReq:
    
     @staticmethod
     async def join(user, raffle_id):
-        temp_params = f'access_key={user.dict_bili["access_key"]}&actionKey={user.dict_bili["actionKey"]}&appkey={user.dict_bili["appkey"]}&build={user.dict_bili["build"]}&device={user.dict_bili["device"]}&id={raffle_id}&mobi_app={user.dict_bili["mobi_app"]}&platform={user.dict_bili["platform"]}&ts={utils.curr_time()}'
-        sign = user.calc_sign(temp_params)
-        url = f'{API_LIVE}/lottery/v1/Storm/join?{temp_params}&sign={sign}'
-        json_rsp = await user.bililive_session.request_json('POST', url, headers=user.dict_bili['appheaders'])
+        extra_params = [
+            f'access_key={user.dict_bili["access_key"]}',
+            f'id={raffle_id}',
+            f'ts={utils.curr_time()}'
+        ]
+        params = user.sort_and_sign(extra_params)
+        url = f'{API_LIVE}/lottery/v1/Storm/join'
+        json_rsp = await user.bililive_session.request_json('POST', url, headers=user.dict_bili['appheaders'], params=params)
+        print(json_rsp)
         return json_rsp
