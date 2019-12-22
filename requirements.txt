@@ -6,4 +6,3 @@ pampy==0.3.0
 rsa==4.0
 schedule==0.6.0
 toml==0.10.0
-# Pillow Don't need it unless you want to input captcha by yourself which isn't recommended.

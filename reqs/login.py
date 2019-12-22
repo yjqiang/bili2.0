@@ -1,10 +1,4 @@
 import base64
-from io import BytesIO
-
-try:
-    from PIL import Image
-except ImportError:
-    Image = None
     
 import utils
 
@@ -76,14 +70,4 @@ class LoginReq:
         json_rsp = await user.other_session.orig_req_json('POST', url, json={"image": str_img})
         captcha = json_rsp['message']
         print(f"此次登录出现验证码,识别结果为{captcha}")
-        return captcha
-        
-    @staticmethod
-    async def input_captcha(_, content):
-        if Image is not None:
-            img = Image.open(BytesIO(content))
-            img.show()
-            captcha = input('请手动输入验证码:')
-        else:
-            captcha = input('您并没有安装pillow模块，但仍然选择了手动输入，那就输呀:')
         return captcha
