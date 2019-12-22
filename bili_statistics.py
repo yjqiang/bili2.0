@@ -1,4 +1,5 @@
 from typing import Optional
+from collections import deque
 
 import attr
 
@@ -42,25 +43,19 @@ class CoverChecker:
 @attr.s(slots=True)
 class DuplicateChecker:
     LIST_SIZE_LIMITED = 1500
-    CLEAN_LIST_CYCLE = 350
 
-    number = attr.ib(
-        default=0,
-        validator=attr.validators.instance_of(int))
-    ids = attr.ib(
-        factory=list,
-        validator=attr.validators.deep_iterable(
-            member_validator=attr.validators.instance_of(int),
-            iterable_validator=attr.validators.instance_of(list)))
+    number = attr.ib(default=0, init=False)
+    ids = attr.ib(init=False)
+
+    @ids.default
+    def _ids(self):
+        return deque(maxlen=DuplicateChecker.LIST_SIZE_LIMITED)
 
     def add2checker(self, new_id: int, need_check_duplicated=True) -> bool:
         if need_check_duplicated and self.is_duplicated(new_id):
             return False
         self.number += 1
         self.ids.append(new_id)
-        # 定期清理，防止炸掉
-        if len(self.ids) > self.CLEAN_LIST_CYCLE + self.LIST_SIZE_LIMITED:
-            del self.ids[:self.CLEAN_LIST_CYCLE]
         return True
 
     def is_duplicated(self, new_id: int):
