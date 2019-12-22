@@ -33,5 +33,4 @@ class StormRaffleHandlerReq:
         params = user.sort_and_sign(extra_params)
         url = f'{API_LIVE}/lottery/v1/Storm/join'
         json_rsp = await user.bililive_session.request_json('POST', url, headers=user.dict_bili['appheaders'], params=params)
-        print(json_rsp)
         return json_rsp
