@@ -37,7 +37,7 @@ class LoginReq:
         sign = user.calc_sign(temp_params)
         payload = f'{temp_params}&sign={sign}'
         url = "https://passport.bilibili.com/api/v3/oauth2/login"
-        json_rsp = await user.login_session.request_json('POST', url, params=payload, is_login=True)
+        json_rsp = await user.login_session.request_json('POST', url, headers=user.dict_bili['appheaders'], params=payload, is_login=True)
         return json_rsp
 
     @staticmethod
