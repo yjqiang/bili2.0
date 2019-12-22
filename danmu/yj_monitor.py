@@ -83,21 +83,17 @@ class TcpYjMonitorClient(Client):
 
     def handle_danmu(self, data: dict):
         raffle_type = data['raffle_type']
+        raffle_id = data['raffle_id']
+        raffle_roomid = data['room_id']
         if raffle_type == 'STORM':
-            raffle_id = data['raffle_id']
-            raffle_roomid = 0
             print(f'{self._area_id}号数据连接检测到{raffle_roomid:^9}的节奏风暴(id: {raffle_id})')
             raffle_handler.exec_at_once(StormRaffleJoinTask, 0, raffle_id)
             bili_statistics.add2pushed_raffles('Yj协同节奏风暴', 2)
         elif raffle_type == 'GUARD':
-            raffle_id = data['raffle_id']
-            raffle_roomid = data['room_id']
             print(f'{self._area_id}号数据连接检测到{raffle_roomid:^9}的大航海(id: {raffle_id})')
             raffle_handler.push2queue(GuardRafflJoinTask, raffle_roomid, raffle_id)
             bili_statistics.add2pushed_raffles('Yj协同大航海', 2)
         elif raffle_type == 'PK':
-            raffle_id = data['raffle_id']
-            raffle_roomid = data['room_id']
             print(f'{self._area_id}号数据连接检测到{raffle_roomid:^9}的大乱斗(id: {raffle_id})')
             raffle_handler.push2queue(PkRaffleJoinTask, raffle_roomid)
             bili_statistics.add2pushed_raffles('Yj协同大乱斗', 2)
