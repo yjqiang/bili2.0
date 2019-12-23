@@ -134,52 +134,52 @@ class BiliConsole(Cmd):
     def do_2(self, arg):
         user_id, = self.parse(arg, '-u:')
         self.exec_func_threads(
-            FuncCore(notifier.exec_task, PrintGiftbagsTask, user_id))
+            FuncCore(notifier.exec_task, PrintGiftbagsTask, 'cmd', user_id))
         
     def do_3(self, arg):
         user_id, = self.parse(arg, '-u:')
         self.exec_func_threads(
-            FuncCore(notifier.exec_task, PrintMedalsTask, user_id))
+            FuncCore(notifier.exec_task, PrintMedalsTask, 'cmd', user_id))
         
     def do_4(self, arg):
         user_id, = self.parse(arg, '-u:')
         self.exec_func_threads(
-            FuncCore(notifier.exec_task, PrintMainBiliDailyJobTask, user_id))
+            FuncCore(notifier.exec_task, PrintMainBiliDailyJobTask, 'cmd', user_id))
         
     def do_5(self, arg):
         user_id, = self.parse(arg, '-u:')
         self.exec_func_threads(
-            FuncCore(notifier.exec_task, PrintLiveBiliDailyJobTask, user_id))
+            FuncCore(notifier.exec_task, PrintLiveBiliDailyJobTask, 'cmd', user_id))
     
     def do_6(self, arg):
         user_id, = self.parse(arg, '-u:')
         self.exec_func_threads(
-            FuncCore(notifier.exec_task, PrintMainBiliUserInfoTask, user_id))
+            FuncCore(notifier.exec_task, PrintMainBiliUserInfoTask, 'cmd', user_id))
         
     def do_7(self, arg):
         user_id, = self.parse(arg, '-u:')
         self.exec_func_threads(
-            FuncCore(notifier.exec_task, PrintLiveBiliUserInfoTask, user_id))
+            FuncCore(notifier.exec_task, PrintLiveBiliUserInfoTask, 'cmd', user_id))
         
     def do_8(self, arg):
         user_id, = self.parse(arg, '-u:')
         self.exec_func_threads(
-            FuncCore(notifier.exec_task, PrintJudgeTask, user_id))
+            FuncCore(notifier.exec_task, PrintJudgeTask, 'cmd', user_id))
 
     def do_9(self, arg):
         user_id, = self.parse(arg, '-u:')
         self.exec_func_threads(
-            FuncCore(notifier.exec_task, PrintUserStatusTask, user_id))
+            FuncCore(notifier.exec_task, PrintUserStatusTask, 'cmd', user_id))
 
     def do_11(self, arg):
         user_id, = self.parse(arg, '-u:')
         self.exec_func_threads(
-            FuncCore(notifier.exec_task, PrintCapsuleTask, user_id))
+            FuncCore(notifier.exec_task, PrintCapsuleTask, 'cmd', user_id))
         
     def do_12(self, arg):
         user_id, num_opened = self.parse(arg, '-u:-n:')
         self.exec_func_threads(
-            FuncCore(notifier.exec_task, OpenCapsuleTask, user_id, num_opened))
+            FuncCore(notifier.exec_task, OpenCapsuleTask, 'cmd', user_id, num_opened))
 
     def do_13(self, arg):
         real_roomid, = self.parse(arg, '-p:')
@@ -189,7 +189,7 @@ class BiliConsole(Cmd):
     def do_14(self, arg):
         user_id, msg, real_roomid = self.parse(arg, '-u:-m:-p:')
         self.exec_func_threads(
-            FuncCore(notifier.exec_task, SendDanmuTask, user_id, msg, real_roomid))
+            FuncCore(notifier.exec_task, SendDanmuTask, 'cmd', user_id, msg, real_roomid))
         
     def do_15(self, arg):
         real_roomid, = self.parse(arg, '-p:', set_roomid=True)
@@ -209,17 +209,17 @@ class BiliConsole(Cmd):
     def do_21(self, arg):
         real_roomid, num_max = self.parse(arg, '-p:-n:')
         self.exec_func_threads(
-            FuncCore(notifier.exec_task, SendLatiaoTask, real_roomid, num_max))
+            FuncCore(notifier.exec_task, SendLatiaoTask, 'cmd', real_roomid, num_max))
         
     def do_22(self, arg):
         real_roomid, num_wanted = self.parse(arg, '-p:-n:')
         self.exec_func_threads(
-            FuncCore(notifier.exec_task, BuyLatiaoTask, real_roomid, num_wanted))
+            FuncCore(notifier.exec_task, BuyLatiaoTask, 'cmd', real_roomid, num_wanted))
         
     def do_23(self, arg):
         user_id, coin_type, real_roomid = self.parse(arg, '-u:-c:-p:')  # coin_type = 'silver' /  'metal'
         self.exec_func_threads(
-            FuncCore(notifier.exec_task, BuyMedalTask, user_id, real_roomid, coin_type))
+            FuncCore(notifier.exec_task, BuyMedalTask, 'cmd', user_id, real_roomid, coin_type))
             
     @staticmethod
     def fetch_real_roomid(room_id):

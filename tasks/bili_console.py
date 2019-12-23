@@ -8,8 +8,7 @@ import utils
 from reqs.utils import UtilsReq
 from .utils import UtilsTask
 from reqs.main_daily_job import JudgeCaseReq
-from .task_func_decorator import normal
-from .base_class import ForcedTask
+from .base_class import Console, Wait, Multi
 
 
 # 为了解决list打印问题，其实可以实现tasks都这样包裹，但感觉那样过于骚包了
@@ -20,15 +19,16 @@ async def infos_pure_print_func(func, *args, **kwargs):
     user.info(*list_results)
 
 
-class PrintGiftbagsTask(ForcedTask):
+class PrintGiftbagsTask(Console, Wait, Multi):
+    TASK_NAME = 'null'
+
     @staticmethod
     async def check(_, user_id):
         return (user_id, None),
 
     @staticmethod
-    @normal
     @infos_pure_print_func
-    async def work(user):
+    async def cmd_console_work(user):
         gift_bags = await UtilsTask.fetch_giftbags(user)
         yield '查询可用礼物'
         for _, _, gift_num, gift_name, left_time in gift_bags:
@@ -36,7 +36,9 @@ class PrintGiftbagsTask(ForcedTask):
             yield f'{gift_name:^3}X{gift_num:^4} (在{left_days:^6}天后过期)'
 
 
-class PrintMedalsTask(ForcedTask):
+class PrintMedalsTask(Console, Wait, Multi):
+    TASK_NAME = 'null'
+
     @staticmethod
     async def check(_, user_id):
         return (user_id, None),
@@ -45,9 +47,8 @@ class PrintMedalsTask(ForcedTask):
     # 这套对齐策略目前不完全对，而且看起来够恶心的
     # 如果对亲密度同样对齐，会导致输出过长
     @staticmethod
-    @normal
     @infos_pure_print_func
-    async def work(user):
+    async def cmd_console_work(user):
         json_rsp = await user.req_s(UtilsReq.fetch_medals, user)
         yield '查询勋章信息'
         medal_name = utils.hwid2fwid('勋章名字', 7)
@@ -71,15 +72,16 @@ class PrintMedalsTask(ForcedTask):
                 yield f'{medal_name} {uname} {room_id} {intimacy} {today_intimacy} {worn_status} {rank}'
 
 
-class PrintMainBiliDailyJobTask(ForcedTask):
+class PrintMainBiliDailyJobTask(Console, Wait, Multi):
+    TASK_NAME = 'null'
+
     @staticmethod
     async def check(_, user_id):
         return (user_id, None),
 
     @staticmethod
-    @normal
     @infos_pure_print_func
-    async def work(user):
+    async def cmd_console_work(user):
         yield '查询用户主站的日常任务情况'
         json_rsp = await user.req_s(UtilsReq.fetch_bilimain_tasks, user)
         data = json_rsp['data']
@@ -98,15 +100,16 @@ class PrintMainBiliDailyJobTask(ForcedTask):
             yield '主站每日分享视频任务未完成'
 
 
-class PrintLiveBiliDailyJobTask(ForcedTask):
+class PrintLiveBiliDailyJobTask(Console, Wait, Multi):
+    TASK_NAME = 'null'
+
     @staticmethod
     async def check(_, user_id):
         return (user_id, None),
 
     @staticmethod
-    @normal
     @infos_pure_print_func
-    async def work(user):
+    async def cmd_console_work(user):
         yield '查询用户直播分站的日常任务情况'
         json_rsp = await user.req_s(UtilsReq.fetch_livebili_tasks, user)
         # print(json_rsp)
@@ -157,16 +160,17 @@ class PrintLiveBiliDailyJobTask(ForcedTask):
                 yield '# 未完成(目前本项目未实现自动完成直播任务)'
 
 
-class PrintMainBiliUserInfoTask(ForcedTask):
+class PrintMainBiliUserInfoTask(Console, Wait, Multi):
+    TASK_NAME = 'null'
+
     @staticmethod
     async def check(_, user_id):
         return (user_id, None),
 
     # 这个api似乎是不全的，没有硬币这些
     @staticmethod
-    @normal
     @infos_pure_print_func
-    async def work(user):
+    async def cmd_console_work(user):
         yield '查询用户主站的信息'
         json_rsp = await user.req_s(UtilsReq.fetch_bilimain_userinfo, user)
         data = json_rsp['data']
@@ -183,15 +187,16 @@ class PrintMainBiliUserInfoTask(ForcedTask):
         yield f'主站经验值 {utils.print_progress(current_exp, next_exp)}'
 
 
-class PrintLiveBiliUserInfoTask(ForcedTask):
+class PrintLiveBiliUserInfoTask(Console, Wait, Multi):
+    TASK_NAME = 'null'
+
     @staticmethod
     async def check(_, user_id):
         return (user_id, None),
 
     @staticmethod
-    @normal
     @infos_pure_print_func
-    async def work(user):
+    async def cmd_console_work(user):
         yield '查询用户直播分站的信息'
         json_rsp_pc = await user.req_s(UtilsReq.fetch_livebili_userinfo_pc, user)
         json_rsp_ios = await user.req_s(UtilsReq.fetch_livebili_userinfo_ios, user)
@@ -235,14 +240,15 @@ class PrintLiveBiliUserInfoTask(ForcedTask):
             yield f'等级榜 {user_level_rank}'
 
 
-class PrintJudgeTask(ForcedTask):
+class PrintJudgeTask(Console, Wait, Multi):
+    TASK_NAME = 'null'
+
     @staticmethod
     async def check(_, user_id):
         return (user_id, None),
 
     @staticmethod
-    @normal
-    async def work(user):
+    async def cmd_console_work(user):
         json_rsp = await user.req_s(JudgeCaseReq.fetch_judged_cases, user)
         data = json_rsp['data']
         if data is None:
@@ -265,15 +271,16 @@ class PrintJudgeTask(ForcedTask):
         user.info(f'今日投票{sum_cases}（{valid_cases}票有效（非弃权），{judging_cases}票还在进行中）')
 
 
-class PrintCapsuleTask(ForcedTask):
+class PrintCapsuleTask(Console, Wait, Multi):
+    TASK_NAME = 'null'
+
     @staticmethod
     async def check(_, user_id):
         return (user_id, None),
 
     @staticmethod
-    @normal
     @infos_pure_print_func
-    async def work(user):
+    async def cmd_console_work(user):
         yield '查询用户扭蛋的信息'
         json_rsp = await user.req_s(UtilsReq.fetch_capsule_info, user)
         if not json_rsp['code']:
@@ -288,34 +295,37 @@ class PrintCapsuleTask(ForcedTask):
                 yield '普通扭蛋币暂不可用'
 
 
-class OpenCapsuleTask(ForcedTask):
+class OpenCapsuleTask(Console, Wait, Multi):
+    TASK_NAME = 'null'
+
     @staticmethod
     async def check(_, user_id, num_opened):
         return (user_id, None, num_opened),
 
     @staticmethod
-    @normal
-    async def work(user, num_opened):
+    async def cmd_console_work(user, num_opened):
         await UtilsTask.open_capsule(user, num_opened)
 
 
-class SendDanmuTask(ForcedTask):
+class SendDanmuTask(Console, Wait, Multi):
+    TASK_NAME = 'null'
+
     @staticmethod
     async def check(_, user_id, msg, room_id):
         return (user_id, None, msg, room_id),
 
     @staticmethod
-    @normal
-    async def work(user, msg, room_id):
+    async def cmd_console_work(user, msg, room_id):
         await UtilsTask.send_danmu(user, msg, room_id)
 
 
-class PrintUserStatusTask(ForcedTask):
+class PrintUserStatusTask(Console, Wait, Multi):
+    TASK_NAME = 'null'
+
     @staticmethod
     async def check(_, user_id):
         return (user_id, None),
 
     @staticmethod
-    @normal
-    async def work(user):
+    async def cmd_console_work(user):
         user.print_status()

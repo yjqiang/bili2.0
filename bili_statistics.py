@@ -3,6 +3,8 @@ from collections import deque
 
 import attr
 
+from utils import curr_time
+
 
 @attr.s(slots=True)
 class CoverChecker:
@@ -65,11 +67,87 @@ class DuplicateChecker:
         return f'一共 {self.number} 个几乎不重复的 id'
 
 
+@attr.s(slots=True)
+class UniqueTaskChecker:  # 准确的说是 task.work 的唯一性, task.check 不受控
+    # 可以发现,UniqueTaskChecker 初始化是 cancel 状态，即可以成功 restart
+    start_time = attr.ib(init=False, factory=curr_time)
+    end_time = attr.ib(init=False, default=-1)
+
+    # 已经 done 或 cancel 的 task，不需要删除该实例，下次用的时候 restart 一下就行
+    # 负责检查是否重复并且如不重复，restart
+    def restart(self) -> bool:
+        if self.is_unique():
+            self.start_time = curr_time()
+            self.end_time = 0
+            return True
+        return False
+
+    def cancel(self):
+        self.end_time = -1
+
+    def done(self):
+        self.end_time = curr_time()
+
+    def is_unique(self) -> bool:
+        return bool(self.end_time)  # 非0
+
+
+@attr.s(slots=True)
+class UniqueTaskCheckers:
+    records = attr.ib(init=False, factory=dict)
+
+    def start(self, user_id, task) -> bool:
+        records_of_user = self.records.setdefault(user_id, {})
+        if task not in records_of_user:
+            records_of_user[task] = UniqueTaskChecker()
+        unique_task_checker = records_of_user[task]
+        return unique_task_checker.restart()
+
+    def cancel(self, user_id, task):
+        self.records[user_id][task].cancel()
+
+    def done(self, user_id, task):
+        self.records[user_id][task].done()
+
+
+@attr.s(slots=True)
+class MaxTimeTaskChecker:  # 准确的说是task.work的唯一性, task.check不受控
+    num = attr.ib(init=False, default=0)
+
+    # 负责检查是否重复并且如不重复，restart
+    def add(self, max_time) -> bool:
+        if self.is_addable(max_time):
+            self.num += 1
+            return True
+        return False
+
+    def is_addable(self, max_time) -> bool:
+        if max_time == -1 or self.num < max_time:  # -1 特殊处理，表示无限参与
+            return True
+        return False
+
+
+@attr.s(slots=True)
+class MaxTimeTaskCheckers:
+    records = attr.ib(init=False, factory=dict)
+
+    def add(self, user_id, task, max_time) -> bool:
+        records_of_user = self.records.setdefault(user_id, {})
+        if task not in records_of_user:
+            records_of_user[task] = MaxTimeTaskChecker()
+        max_time_task_checker = records_of_user[task]
+        return max_time_task_checker.add(max_time)
+
+    def clear(self):
+        self.records.clear()
+
+
 class BiliStatistics:
     __slots__ = (
         'area_num', 'area_duplicated', 'pushed_raffles',
         'joined_raffles', 'raffle_results',
-        'danmu_raffleid_checker', 'cover_checker0', 'cover_checker1', 'tasks_records',
+        'danmu_raffleid_checker', 'cover_checker0', 'cover_checker1',
+        'max_time_task_checkers', 'unique_task_checkers'
     )
 
     def __init__(self, area_num=0):
@@ -86,8 +164,11 @@ class BiliStatistics:
         self.danmu_raffleid_checker = DuplicateChecker()
         self.cover_checker0 = CoverChecker()  # 舰队风暴遗漏统计
         self.cover_checker1 = CoverChecker()  # 小电视遗漏统计
+
         # 用于限制每天用户最多某个任务的最大参与次数
-        self.tasks_records = {}  # {use0: {task0: 1, task1: 2}, user1: {task1: 9}}
+        self.max_time_task_checkers = MaxTimeTaskCheckers()  # {use0: {task0: 1, task1: 2}, user1: {task1: 9}}
+        # 用于限制用户不可同时参加某任务
+        self.unique_task_checkers = UniqueTaskCheckers()
 
     def init(self, area_num: int, area_duplicated: bool):
         self.area_num = area_num
@@ -124,9 +205,8 @@ class BiliStatistics:
             print()
 
             print('当日参与任务统计（null类任务不计入；只是压入计划，不一定已经参与；整点清零）：')
-            results_of_id = self.tasks_records.get(user_id, {})
-            for k, v in results_of_id.items():
-                print(f'{v:^5} X {k}')
+            print(self.max_time_task_checkers)
+            print(self.unique_task_checkers)
             
     def add2pushed_raffles(self, raffle_name, broadcast_type, num):
         orig_num = self.pushed_raffles.get(raffle_name, 0)
@@ -164,20 +244,20 @@ class BiliStatistics:
     def is_raffleid_duplicate(self, raffle_id: int):
         return self.danmu_raffleid_checker.is_duplicated(raffle_id)
 
-    def add2tasks_records(self, task_name, user_id: int, max_time: int):
-        if not max_time:  # 0显然就是一直不参与的
-            return False
-        if user_id not in self.tasks_records:
-            self.tasks_records[user_id] = {}
-        records_of_user = self.tasks_records[user_id]
-        number = records_of_user.get(task_name, 0)
-        if max_time != -1 and number >= max_time:  # -1 特殊处理，表示无限参与
-            return False
-        records_of_user[task_name] = number + 1
-        return True
+    def add2max_time_task_checkers(self, user_id, task, max_time: int) -> bool:
+        return self.max_time_task_checkers.add(user_id, task, max_time)
 
     def start_new_day(self):
-        self.tasks_records.clear()
+        self.max_time_task_checkers.clear()
+
+    def start_unique_task(self, user_id, task) -> bool:
+        return self.unique_task_checkers.start(user_id, task)
+
+    def cancel_unique_task(self, user_id, task):
+        return self.unique_task_checkers.cancel(user_id, task)
+
+    def done_unique_task(self, user_id, task):
+        return self.unique_task_checkers.done(user_id, task)
 
                 
 var_bili_statistics = BiliStatistics()
@@ -201,10 +281,6 @@ def add2results(gift_name, user_id, num=1):
 
 def add2raffle_ids(raffle_id, raffle_type: Optional[str] = None):
     var_bili_statistics.add2raffle_ids(int(raffle_id), raffle_type)
-
-
-def add2tasks_records(task_name, user_id: int, max_time: int):
-    return var_bili_statistics.add2tasks_records(task_name, user_id, max_time)
     
     
 def is_raffleid_duplicate(raffle_id):
@@ -215,5 +291,21 @@ def print_statistics(user_id=None):
     var_bili_statistics.print_statistics(user_id)
 
 
+def add2max_time_task_checkers(user_id, task, max_time) -> bool:
+    return var_bili_statistics.add2max_time_task_checkers(user_id, task, max_time)
+
+
 def start_new_day():
     var_bili_statistics.start_new_day()
+
+
+def start_unique_task(user_id, task) -> bool:
+    return var_bili_statistics.start_unique_task(user_id, task)
+
+
+def cancel_unique_task(user_id, task):
+    var_bili_statistics.cancel_unique_task(user_id, task)
+
+
+def done_unique_task(user_id, task):
+    var_bili_statistics.done_unique_task(user_id, task)

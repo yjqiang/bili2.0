@@ -6,12 +6,12 @@ import aiojobs
 
 import bili_statistics
 from user import User
-from tasks.base_class import TaskType
+from tasks.base_class import TaskType, UniqueType, How2Call
 from printer import info as print
 
 
 class Users:
-    __slots__ = ('_users', )
+    __slots__ = ('_users',)
 
     def __init__(self, users: List[User]):
         self._users = users
@@ -25,7 +25,8 @@ class Users:
     def superuser(self) -> User:
         return self._users[0]
 
-    def gets_with_restrict(self, index: int, task_name: str):
+    def gets_with_restrict(self, index: int, task):
+        task_name = task.TASK_NAME
         for user in self.gets(index):
             if user.is_in_jail and task_name in (
                     'recv_heart_gift',
@@ -38,9 +39,9 @@ class Users:
                 if f'probability_{task_name}' in user.task_arrangement:  # 平均概率筛选
                     if not random.random() < user.task_arrangement[f'probability_{task_name}']:
                         continue
-                if not bili_statistics.add2tasks_records(  # 每日次数筛选
+                if not bili_statistics.add2max_time_task_checkers(  # 每日次数筛选
                         user_id=user.id,
-                        task_name=task_name,
+                        task=task,
                         max_time=user.task_arrangement.get(task_name, -1)):
                     continue
             yield user
@@ -82,70 +83,159 @@ class Notifier:
             self._scheduler = None
             await scheduler.close()
 
-    async def run_sched_func(self, user: User, func: Callable, *args, **kwargs):
+    @staticmethod
+    async def __unique_work(user: User, task, func: Callable, *args, **kwargs):
+        if bili_statistics.start_unique_task(user.id, task):
+            try:
+                result = await func(user, *args, **kwargs)
+                bili_statistics.done_unique_task(user.id, task)
+                return result
+            except asyncio.CancelledError:
+                print(f'❌取消正在进行的{func} {user.id}任务')
+                bili_statistics.cancel_unique_task(user.id, task)
+        else:
+            print(f'重复推送{func} {user.id}（此为debug信息忽略即可）')
+        return None
+
+    @staticmethod
+    async def __multi_work(user: User, _, func: Callable, *args, **kwargs):
+        try:
+            return await func(user, *args, **kwargs)
+        except asyncio.CancelledError:
+            return None
+
+    async def run_sched_func(self, func: Callable, *args, **kwargs):
         scheduler = self._scheduler
         if scheduler is not None and not scheduler.closed:
-            await scheduler.spawn(func(user, *args, **kwargs))
+            await scheduler.spawn(func(*args, **kwargs))
 
     # 这里是为了日常任务的check问题
-    async def run_sched_func_with_return(self, user: User, func: Callable, *args, **kwargs):
+    async def run_sched_func_with_return(self, func: Callable, *args, **kwargs):
         scheduler = self._scheduler
         if scheduler is not None and not scheduler.closed:
-            return await func(user, *args, **kwargs)
+            return await func(*args, **kwargs)
 
     def run_sched_func_bg(self, *args, **kwargs):
         self._loop.create_task(self.run_sched_func(*args, **kwargs))
 
-    # 那些间隔性推送的，推送型的task禁止使用wait until all done功能
-    async def exec_sched_task(self, task, *args, **kwargs):
-        check_results = await self.run_sched_func_with_return(
-            self._users.superuser, task.check, *args, **kwargs)
-        print('check_results:', task, check_results)
-        if check_results is None:
-            return
-        for user_id, delay_range, *args in check_results:
-            if delay_range is not None:
-                for user in self._users.gets_with_restrict(user_id, task.TASK_NAME):
-                    delay = random.uniform(*delay_range)
-                    self._loop.call_later(
-                        delay, self.run_sched_func_bg, user, task.work, *args)
-
     @staticmethod
-    async def run_forced_func(user: User, func: Callable, *args, **kwargs):
-        return await func(user, *args, **kwargs)
+    async def run_forced_func(func: Callable, *args, **kwargs):
+        return await func(*args, **kwargs)
 
     def run_forced_func_bg(self, *args, **kwargs):
         self._loop.create_task(self.run_forced_func(*args, **kwargs))
 
-    # 普通task,执行就完事了,不会受scheduler影响（不被cancel，一直执行到结束)
-    async def exec_forced_task(self, task, *args, **kwargs):
-        check_results = await self.run_forced_func(
-            self._users.superuser, task.check, *args, **kwargs)
-        print('check_results:', task, check_results)
-        if check_results is None:
-            return
+    async def __dont_wait(self, task,
+                          handle_work: Callable,
+                          handle_unique: Callable,
+                          func_work: Callable,
+                          check_results,
+                          _):
         for user_id, delay_range, *args in check_results:
-            if delay_range is not None:
-                for user in self._users.gets_with_restrict(user_id, task.TASK_NAME):
-                    delay = random.uniform(*delay_range)
-                    self._loop.call_later(
-                        delay, self.run_forced_func_bg, user, task.work, *args)
-            else:  # 这里是特殊处理为None的时候，去依次执行，且wait untill all done
-                result = None
-                for user in self._users.gets_with_restrict(user_id, task.TASK_NAME):
-                    if result is None:
-                        result = await self.run_forced_func(
-                            user, task.work, *args)
-                    else:  # 不为None表示每个用户之间参数互传
-                        result = await self.run_forced_func(
-                            user, task.work, *args, result)
-                return result
+            for user in self._users.gets_with_restrict(user_id, task):
+                delay = random.uniform(*delay_range)
+                self._loop.call_later(
+                    delay, handle_work, handle_unique, user, task, func_work, *args)
 
+    async def __wait(self, task,
+                     handle_work: Callable,
+                     handle_unique: Callable,
+                     func_work: Callable,
+                     check_results,
+                     return_results: bool):
+        if not return_results:
+            for user_id, _, *args in check_results:
+                for user in self._users.gets_with_restrict(user_id, task):
+                    await handle_work(handle_unique, user, task, func_work, *args)
+            return None
+
+        results = []
+        for user_id, _, *args in check_results:
+            for user in self._users.gets_with_restrict(user_id, task):
+                results.append(await handle_work(handle_unique, user, task, func_work, *args))
+        return results
+
+    async def __wait_and_pass(self, task,
+                              handle_work: Callable,
+                              handle_unique: Callable,
+                              func_work: Callable,
+                              check_results,
+                              return_results: bool):
+        if not return_results:
+            for user_id, _, *args in check_results:
+                result = args
+                for user in self._users.gets_with_restrict(user_id, task):
+                    result = await handle_work(handle_unique, user, task, func_work, result)
+            return None
+
+        results = []
+        for user_id, _, *args in check_results:
+            result = args
+            for user in self._users.gets_with_restrict(user_id, task):
+                result = await handle_work(handle_unique, user, task, func_work, *(result[-1]))
+                results.append(result[:-1])
+        return results
+
+    '''
+    设有 task 参数传入。是传一个类，而不是实例对象！
+    class Task:
+        async def check()
+
+        async def 工作函数()  # work / webconsole_work / cmdconsole_work
+    '''
+    # handle_check notifier 执行 task.check 函数时的包裹函数
+    # handle_works notifier 执行 task 的"工作函数"时的包裹函数
+    # handle_work 执行具体每个 user 的"工作函数"时外层包裹函数，WAIT WAIT_AND_PASS 时无效,一定是forced的
+    # handle_unique 执行具体每个 user 的"工作函数时"时内层包裹函数  __unique_work / __multi_work
+    # func_work "工作函数" eg: task.work
     async def exec_task(self, task, *args, **kwargs):
-        if task.TASK_TYPE == TaskType.SCHED_TASK:
-            return await self.exec_sched_task(task, *args, **kwargs)
-        if task.TASK_TYPE == TaskType.FORCED_TASK:
-            return await self.exec_forced_task(task, *args, **kwargs)
+        handle_check = None
+        handle_works = None
+        handle_work = None
+        func_work = None
+        handle_unique = None
+        need_results = None
+
+        if task.TASK_TYPE == TaskType.SCHED:
+            handle_check = self.run_sched_func_with_return
+            func_work = task.work
+            need_results = False
+        elif task.TASK_TYPE == TaskType.FORCED:
+            handle_check = self.run_forced_func
+            func_work = task.work
+            need_results = False
+        elif task.TASK_TYPE == TaskType.CONSOLE:
+            handle_check = self.run_forced_func
+            ctrl, *args = args  # 此时ctrl隐含在args中
+            if ctrl == 'web':
+                func_work = task.web_console_work
+                need_results = True
+            elif ctrl == 'cmd':
+                func_work = task.cmd_console_work
+                need_results = False
+
+        if task.HOW2CALL == How2Call.DONT_WAIT:
+            handle_works = self.__dont_wait
+            if task.TASK_TYPE == TaskType.SCHED:
+                handle_work = self.run_sched_func_bg
+            else:
+                handle_work = self.run_forced_func_bg
+        elif task.HOW2CALL == How2Call.WAIT:
+            handle_works = self.__wait
+            handle_work = self.run_forced_func
+        elif task.HOW2CALL == How2Call.WAIT_AND_PASS:
+            handle_works = self.__wait_and_pass
+            handle_work = self.run_forced_func
+
+        if task.UNIQUE_TYPE == UniqueType.MULTI:
+            handle_unique = self.__multi_work
+        elif task.UNIQUE_TYPE == UniqueType.UNIQUE:
+            handle_unique = self.__unique_work
+
+        check_results = await handle_check(task.check, self._users.superuser, *args, **kwargs)
+        print('check_results:', task, check_results)
+        if check_results is not None:
+            return await handle_works(task, handle_work, handle_unique, func_work, check_results, need_results)
 
     async def exec_func(self, func: Callable, *args, **kwargs):
         return await func(self._users.superuser, *args, **kwargs)

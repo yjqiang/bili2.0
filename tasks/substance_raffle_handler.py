@@ -9,8 +9,7 @@ from substance.bili_data_types import (
     SubstanceRaffleResults,
     SubstanceRaffleLuckydog,
 )
-from .task_func_decorator import normal
-from .base_class import ForcedTask
+from .base_class import Forced, Wait, Multi
 
 
 class SubstanceRaffleUtilsTask:
@@ -75,14 +74,14 @@ class SubstanceRaffleUtilsTask:
         return False
 
 
-class SubstanceRaffleJoinTask(ForcedTask):
+class SubstanceRaffleJoinTask(Forced, Wait, Multi):
     TASK_NAME = 'join_substance_raffle'
-    @staticmethod
-    async def check(_, *args):
-        return (-2, None, *args),  # 参见notifier的特殊处理，为None就会依次处理，整个过程awaitable
 
     @staticmethod
-    @normal
+    async def check(_, *args):
+        return (-2, None, *args),
+
+    @staticmethod
     async def work(user, substance_raffle_status: SubstanceRaffleStatus):
         if substance_raffle_status.join_end_time - utils.curr_time() < 10:
             user.info(f'实物{substance_raffle_status.aid}马上或已经开奖，放弃参与')
@@ -100,13 +99,14 @@ class SubstanceRaffleJoinTask(ForcedTask):
             substance_raffle_sql.insert_substanceraffle_joined_table(substance_raffle_joined)
 
 
-class SubstanceRaffleNoticeTask(ForcedTask):
-    @staticmethod
-    async def check(_, *args):
-        return (-2, None, *args),  # 参见notifier的特殊处理，为None就会依次处理，整个过程awaitable
+class SubstanceRaffleNoticeTask(Forced, Wait, Multi):
+    TASK_NAME = 'null'
 
     @staticmethod
-    @normal
+    async def check(_, *args):
+        return (-2, None, *args),
+
+    @staticmethod
     async def work(
             user, substance_raffle_status: SubstanceRaffleStatus,
             substance_raffle_result: Optional[SubstanceRaffleResults]):

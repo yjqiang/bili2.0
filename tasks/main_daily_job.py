@@ -5,12 +5,12 @@ from typing import Optional
 
 from reqs.utils import UtilsReq
 from reqs.main_daily_job import JudgeCaseReq, BiliMainReq
-from .task_func_decorator import unique
-from .base_class import SchedTask
+from .base_class import Sched, DontWait, Unique
 
 
-class JudgeCaseTask(SchedTask):
+class JudgeCaseTask(Sched, DontWait, Unique):
     TASK_NAME = 'judge_case'
+
     @staticmethod
     async def check(_):
         return (-2, (0, 30)),
@@ -95,7 +95,6 @@ class JudgeCaseTask(SchedTask):
             return
                    
     @staticmethod
-    @unique
     async def work(user):
         while True:
             json_rsp = await user.req_s(JudgeCaseReq.fetch_case, user)
@@ -107,8 +106,9 @@ class JudgeCaseTask(SchedTask):
                 return
             
 
-class BiliMainTask(SchedTask):
+class BiliMainTask(Sched, DontWait, Unique):
     TASK_NAME = 'bili_main'
+
     @staticmethod
     async def check(user):
         aids = await BiliMainTask.fetch_top_videos(user)
@@ -213,7 +213,6 @@ class BiliMainTask(SchedTask):
         print(await user.req_s(BiliMainReq.share_video, user, aid))
 
     @staticmethod
-    @unique
     async def work(user, top_video_aids):
         login, watch_av, num, share_av = await BiliMainTask.fetch_bilimain_tasks(user)
         if user.task_ctrl['fetchrule'] == 'bilitop':

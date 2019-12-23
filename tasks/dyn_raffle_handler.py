@@ -8,8 +8,7 @@ from dyn import dyn_raffle_sql
 from dyn.bili_data_types import DynRaffleStatus, DynRaffleJoined, DynRaffleResults, DynRaffleLuckydog
 from reqs.dyn_raffle_handler import DynRaffleHandlerReq
 from .utils import UtilsTask
-from .task_func_decorator import normal
-from .base_class import ForcedTask
+from .base_class import Forced, Wait, Multi
 
 
 class DynRaffleUtilsTask:
@@ -193,8 +192,9 @@ class DynRaffleUtilsTask:
         return False
 
 
-class DynRaffleJoinTask(ForcedTask):
+class DynRaffleJoinTask(Forced, Wait, Multi):
     TASK_NAME = 'join_dyn_raffle'
+
     @staticmethod
     async def check(_, *args):
         return (-2, None, *args),  # 参见notifier的特殊处理，为None就会依次处理，整个过程awaitable
@@ -262,7 +262,6 @@ class DynRaffleJoinTask(ForcedTask):
             offset = cards[-1]['desc']['dynamic_id']
 
     @staticmethod
-    @normal
     async def work(user, dyn_raffle_status: DynRaffleStatus):
         if dyn_raffle_status.lottery_time - utils.curr_time() < 15:
             user.info(f'动态{dyn_raffle_status.dyn_id}马上或已经开奖，放弃参与')
@@ -290,7 +289,9 @@ class DynRaffleJoinTask(ForcedTask):
             return
 
 
-class DynRaffleNoticeTask(ForcedTask):
+class DynRaffleNoticeTask(Forced, Wait, Multi):
+    TASK_NAME = 'null'
+
     @staticmethod
     async def check(_, *args):
         return (-2, None, *args),
@@ -304,7 +305,6 @@ class DynRaffleNoticeTask(ForcedTask):
             await UtilsTask.unfollow(user, uid)
 
     @staticmethod
-    @normal
     async def work(user, dyn_raffle_status: DynRaffleStatus, dyn_raffle_results: Optional[DynRaffleResults]):
         int_user_uid = int(user.dict_bili['uid'])
         async with user.repost_del_lock:

@@ -1,12 +1,12 @@
 import bili_statistics
 from reqs.pk_raffle_handler import PkRaffleHandlerReq
 from tasks.utils import UtilsTask
-from .task_func_decorator import normal
-from .base_class import ForcedTask
+from .base_class import Forced, DontWait, Multi
 
 
-class PkRaffleJoinTask(ForcedTask):
+class PkRaffleJoinTask(Forced, DontWait, Multi):
     TASK_NAME = 'join_pk_raffle'
+
     # 这是superuser做的,做完之后就broadcast
     @staticmethod
     async def check(user, real_roomid):
@@ -28,7 +28,6 @@ class PkRaffleJoinTask(ForcedTask):
         return next_step_settings
         
     @staticmethod
-    @normal
     async def work(user, real_roomid, raffleid):
         # print('参与', raffleid)
         # await UtilsTask.enter_room(user, real_roomid)

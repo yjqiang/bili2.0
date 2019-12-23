@@ -1,12 +1,12 @@
 import bili_statistics
 from reqs.storm_raffle_handler import StormRaffleHandlerReq
 from tasks.utils import UtilsTask
-from .task_func_decorator import normal
-from .base_class import ForcedTask
+from .base_class import Forced, DontWait, Multi
 
 
-class StormRaffleJoinTask(ForcedTask):
+class StormRaffleJoinTask(Forced, DontWait, Multi):
     TASK_NAME = 'join_storm_raffle'
+
     # 为了速度，有时不用等room_id验证就参加,置room_id为0，is_normal_room自然会返回固定值true
     @staticmethod
     async def check(user, room_id, raffle_id=None):
@@ -32,7 +32,6 @@ class StormRaffleJoinTask(ForcedTask):
         return next_step_settings
             
     @staticmethod
-    @normal
     async def work(user, room_id, raffle_id):
         # await UtilsTask.enter_room(user, room_id)
         json_rsp = await user.req_s(StormRaffleHandlerReq.join, user, raffle_id)

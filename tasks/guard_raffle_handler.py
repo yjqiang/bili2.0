@@ -3,12 +3,12 @@ import asyncio
 import bili_statistics
 from reqs.guard_raffle_handler import GuardRaffleHandlerReq
 from tasks.utils import UtilsTask
-from .task_func_decorator import normal
-from .base_class import ForcedTask
+from .base_class import Forced, DontWait, Multi
 
 
-class GuardRafflJoinTask(ForcedTask):
+class GuardRafflJoinTask(Forced, DontWait, Multi):
     TASK_NAME = 'join_guard_raffle'
+
     @staticmethod
     async def check(user, real_roomid, raffle_id=None):
         if not await UtilsTask.is_normal_room(user, real_roomid):
@@ -32,7 +32,6 @@ class GuardRafflJoinTask(ForcedTask):
         return next_step_settings
         
     @staticmethod
-    @normal
     async def work(user, real_roomid, raffle_id):
         json_rsp = await user.req_s(GuardRaffleHandlerReq.join, user, real_roomid, raffle_id)
         bili_statistics.add2joined_raffles('大航海(合计)', user.id)
