@@ -165,7 +165,7 @@ class Notifier:
             for user_id, _, *args in check_results:
                 result = args
                 for user in self._users.gets_with_restrict(user_id, task):
-                    result = await handle_work(handle_unique, user, task, func_work, result)
+                    result = await handle_work(handle_unique, user, task, func_work, *result)
             return None
 
         results = []

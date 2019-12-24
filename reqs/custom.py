@@ -14,6 +14,13 @@ class BuyLatiaoReq:
 class BuyMedalReq:
     @staticmethod
     async def buy_medal(user, uid, coin_type):
-        url = f'https://api.vc.bilibili.com/link_group/v1/member/buy_medal?coin_type={coin_type}&master_uid={uid}&platform=android'
-        json_rsp = await user.other_session.request_json('GET', url, headers=user.dict_bili['pcheaders'])
+        url = f'https://api.vc.bilibili.com/link_group/v1/member/buy_medal'
+        data = {
+            'coin_type': coin_type,
+            'master_uid': uid,
+            'platform': 'android',
+            'csrf_token': user.dict_bili['csrf'],
+            'csrf': user.dict_bili['csrf']
+        }
+        json_rsp = await user.other_session.request_json('POST', url, data=data, headers=user.dict_bili['pcheaders'])
         return json_rsp
