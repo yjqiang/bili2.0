@@ -119,7 +119,7 @@ class BiliConsole(Cmd):
     def parse(arg: str, parser: ThrowingArgumentParser):
         try:
             result = parser.parse_args(arg.split())
-            print('parse_result', result, parser)
+            # print('parse_result', result, parser)
             return tuple(vars(result).values())
         except ArgumentParserError as e:
             print('解析错误', e)
@@ -175,11 +175,11 @@ class BiliConsole(Cmd):
         try:
             return super().onecmd(*args, **kwargs)
         except ArgumentParserError:
-            print('test_onecmd', args, kwargs)
+            # print('test_onecmd', args, kwargs)
             pass
 
     def postcmd(self, stop, line):
-        print('test_post_cmd', stop, line)
+        # print('test_post_cmd', stop, line)
         if line == 'EOF':
             return True
         # 永远不退出
