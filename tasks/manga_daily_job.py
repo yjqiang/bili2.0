@@ -10,7 +10,7 @@ class MangaSignTask(Sched, DontWait, Unique):
 
     @staticmethod
     async def check(_):
-        return (-2, (0, 3)),
+        return (-2, (0, 30)),
 
     @staticmethod
     async def work(user):
@@ -26,7 +26,7 @@ class ShareComicTask(Sched, DontWait, Unique):
 
     @staticmethod
     async def check(_):
-        return (-2, (0, 3)),
+        return (-2, (0, 30)),
 
     @staticmethod
     async def work(user):
