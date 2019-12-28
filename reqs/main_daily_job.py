@@ -109,4 +109,16 @@ class BiliMainReq:
         url = 'https://www.bilibili.com/ranking/all/0/0/1/'
         text_tsp = await user.other_session.request_text('GET', url, headers=user.dict_bili['pcheaders'])
         return text_tsp
-    
+
+
+class DahuiyuanReq:
+    # b 币
+    @staticmethod
+    async def recv_privilege_1(user):
+        url = f'https://api.bilibili.com/x/vip/privilege/receive'
+        data = {
+            'type': 1,
+            'csrf': user.dict_bili['csrf'],
+        }
+        json_rsp = await user.other_session.request_json('POST', url, headers=user.dict_bili['pcheaders'], data=data)
+        return json_rsp

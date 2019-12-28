@@ -4,7 +4,7 @@ import asyncio
 from typing import Optional
 
 from reqs.utils import UtilsReq
-from reqs.main_daily_job import JudgeCaseReq, BiliMainReq
+from reqs.main_daily_job import JudgeCaseReq, BiliMainReq, DahuiyuanReq
 from .base_class import Sched, DontWait, Unique
 
 
@@ -232,3 +232,19 @@ class BiliMainTask(Sched, DontWait, Unique):
         num_coin = coin_set - num / 10
         if num_coin:
             await BiliMainTask.send_coin(user, num_coin, aids)
+
+
+class DahuiyuanTask(Sched, DontWait, Unique):
+    TASK_NAME = 'dahuiyuan'
+
+    @staticmethod
+    async def check(_):
+        return (-2, (0, 30)),
+
+    @staticmethod
+    async def work(user):
+        json_rsp = await DahuiyuanReq.recv_privilege_1(user)
+        if not json_rsp['code']:
+            user.info('领取b币成功')
+        else:
+            user.info(f'领取b币可能重复 {json_rsp}')
