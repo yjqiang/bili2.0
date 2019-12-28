@@ -44,7 +44,7 @@ BASE_CTRL = (
     {'message': In('服务繁忙')}, JsonRspType.IGNORE,
 
     {'msg': In('登录')}, JsonRspType.LOGOUT,
-    {'msg': In('no login')}, JsonRspType.LOGOUT,
+    {'msg': In('login')}, JsonRspType.LOGOUT,
 )
 
 
