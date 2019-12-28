@@ -89,7 +89,6 @@ class WebSession:
     async def request_json(self,
                            method,
                            url,
-                           is_login=False,
                            ctrl: Ctrl = DEFAULT_CTRL,
                            **kwargs) -> dict:
         while True:
@@ -104,10 +103,7 @@ class WebSession:
             elif json_rsp_type == JsonRspType.LOGOUT:
                 print('api提示没有登录')
                 print(body)
-                if not is_login:
-                    raise LogoutError(msg='提示没有登陆')
-                else:
-                    return body
+                raise LogoutError(msg='提示没有登陆')
 
     async def request_binary(self,
                              method,
