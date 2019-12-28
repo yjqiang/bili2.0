@@ -96,7 +96,7 @@ class BiliConsole(Cmd):
         result = ThrowingArgumentParser(prog=entries[0], add_help=False)
         for entry in entries[1:]:
             long_ctrl, short_ctrl, str_value_type, default = self.PARSE_RE.fullmatch(entry).groups()
-            print(f'{long_ctrl}, {short_ctrl}, {str_value_type}, {default}')
+            # print(f'{long_ctrl}, {short_ctrl}, {str_value_type}, {default}')
             if default is None:
                 required = True
                 help_msg = f'(必填: 类型 {str_value_type})'
