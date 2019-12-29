@@ -20,7 +20,7 @@ class User:
         'bililive_session', 'login_session', 'other_session',
 
         'dict_bili', 'app_params', 'repost_del_lock',
-        'dyn_lottery_friends', 'storm_lock', 'recording_tasks',
+        'dyn_lottery_friends', 'storm_lock',
         '_waiting_login', '_loop'
     )
 
@@ -58,7 +58,6 @@ class User:
         dyn_lottery_friends = [(str(uid), name) for uid, name in task_ctrl['dyn_lottery_friends'].items()]
         self.dyn_lottery_friends = dyn_lottery_friends  # list (uid, name)
         self.storm_lock = asyncio.Semaphore(1)  # 用于控制同时进行的风暴数目(注意是单个用户的)
-        self.recording_tasks = {}
 
     def update_login_data(self, login_data):
         for i, value in login_data.items():
@@ -134,6 +133,5 @@ class User:
         self.info(f'抽奖脚本尝试性设置用户已出小黑屋（如果实际没出还会再判定进去）')
 
     def print_status(self):
-        self.info('当前用户的RECORDING_TAKS：', self.recording_tasks)
         jail_status = '恭喜中奖' if self.is_in_jail else '自由之身'
         self.info('当前用户的状态：', jail_status)
