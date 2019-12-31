@@ -39,10 +39,10 @@ BASE_CTRL = (
 
     {'code': 1024}, JsonRspType.IGNORE,
     {'msg': In('操作太快')}, JsonRspType.IGNORE,
-    {'msg': In('系统繁忙')}, JsonRspType.IGNORE,
-    {'msg': In('过于频繁')}, JsonRspType.IGNORE,
-    {'message': In('服务繁忙')}, JsonRspType.IGNORE,
-    {'message': In('网络繁忙')}, JsonRspType.IGNORE,
+    {'msg': In('繁忙')}, JsonRspType.IGNORE,
+    {'msg': In('频繁')}, JsonRspType.IGNORE,
+    {'message': In('繁忙')}, JsonRspType.IGNORE,
+    {'message': In('频繁')}, JsonRspType.IGNORE,
 
     {'msg': In('登录')}, JsonRspType.LOGOUT,
     {'msg': In('login')}, JsonRspType.LOGOUT,
