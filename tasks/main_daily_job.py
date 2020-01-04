@@ -243,6 +243,7 @@ class DahuiyuanTask(Sched, DontWait, Unique):
 
     @staticmethod
     async def work(user):
+        return None
         json_rsp = await DahuiyuanReq.recv_privilege_1(user)
         if not json_rsp['code']:
             user.info('领取b币成功')
