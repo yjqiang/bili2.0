@@ -38,7 +38,7 @@ class LoginReq:
     @staticmethod
     async def fetch_capcha(user):
         url = "https://passport.bilibili.com/captcha"
-        binary_rsp = await user.login_session.request_binary('GET', url, ctrl=LOGIN_CTRL)
+        binary_rsp = await user.login_session.request_binary('GET', url)
         return binary_rsp
 
     @staticmethod
