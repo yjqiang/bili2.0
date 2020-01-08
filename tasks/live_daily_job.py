@@ -25,11 +25,9 @@ class HeartBeatTask(Sched, DontWait, Unique):
     @staticmethod
     async def work(user):
         while True:
-            json_rsp = await user.req_s(HeartBeatReq.pc_heartbeat, user)
-            # print(json_rsp)
-            user.info('心跳包(5分钟左右间隔)')
-            json_rsp = await user.req_s(HeartBeatReq.app_heartbeat, user)
-            print(json_rsp)
+            json_rsp0 = await user.req_s(HeartBeatReq.pc_heartbeat, user)
+            json_rsp1 = await user.req_s(HeartBeatReq.app_heartbeat, user)
+            user.info(f'心跳包(5分钟左右间隔){json_rsp0} {json_rsp1}')
             await asyncio.sleep(300)
 
                 
@@ -118,13 +116,8 @@ class SignTask(Sched, DontWait, Unique):
         
     @staticmethod
     async def work(user):
-        while True:
-            json_rsp = await user.req_s(SignReq.sign, user)
-            user.info(f'签到状态: {json_rsp["message"]}')
-            if '已' in json_rsp['message']:
-                return
-            sleeptime = 350
-            await asyncio.sleep(sleeptime)
+        json_rsp = await user.req_s(SignReq.sign, user)
+        user.info(f'签到状态: {json_rsp["message"]}')
         
         
 class WatchTvTask(Sched, DontWait, Unique):
@@ -303,16 +296,7 @@ class ExchangeSilverCoinTask(Sched, DontWait, Unique):
      
     @staticmethod
     async def work(user):
-        while True:
-            if not user.task_ctrl['silver2coin']:
-                return
-            json_rsp = await user.req_s(ExchangeSilverCoinReq.silver2coin_web, user)
-            user.info(f'{json_rsp["msg"]}')
-            if json_rsp['code'] == 403 and '最多' in json_rsp['msg']:
-                finish_web = True
-            else:
-                finish_web = False
-            if finish_web:
-                return
-            sleeptime = 350
-            await asyncio.sleep(sleeptime)
+        if not user.task_ctrl['silver2coin']:
+            return
+        json_rsp = await user.req_s(ExchangeSilverCoinReq.silver2coin_web, user)
+        user.info(f'银瓜子兑换为硬币：{json_rsp["msg"]}')
