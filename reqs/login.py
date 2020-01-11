@@ -50,8 +50,15 @@ class LoginReq:
 
         ]
         params = user.sort_and_sign(extra_params)
-        url = "https://passport.bilibili.com/api/v3/oauth2/login"
-        json_rsp = await user.login_session.request_json('POST', url, headers=user.dict_bili['appheaders'], params=params, ctrl=LOGIN_CTRL)
+        url = "https://passport.bilibili.com/api/v2/oauth2/login"
+        header = {
+            'Accept': "application/json, text/plain, */*",
+            'Accept-Language': "zh-CN,zh;q=0.9",
+            'accept-encoding': "gzip, deflate",
+            'User-Agent': 'Mozilla/5.0 BilidDroid/5.51.1(bbcallen@gmail.com)'
+        }
+
+        json_rsp = await user.login_session.request_json('POST', url, headers=header, params=params, ctrl=LOGIN_CTRL)
         return json_rsp
 
     @staticmethod
