@@ -1,6 +1,6 @@
 import asyncio
 import random
-from typing import Optional, List, Callable
+from typing import Optional, Callable
 
 import aiojobs
 
@@ -11,15 +11,16 @@ from printer import info as print
 
 
 class Users:
-    __slots__ = ('_users',)
+    __slots__ = ('_users', '_global_task_control', '_global_task_arrangement', '_dict_bili', '_force_sleep')
 
-    def __init__(self, users: List[User]):
-        self._users = users
-
-    def __getitem__(self, key):
-        if isinstance(key, int):
-            return self._users[key]
-        return None
+    def __init__(self,
+                 global_task_control: dict, global_task_arrangement: dict,
+                 dict_bili: dict, force_sleep: Callable):
+        self._users = []
+        self._global_task_control = global_task_control
+        self._global_task_arrangement = global_task_arrangement
+        self._dict_bili = dict_bili
+        self._force_sleep = force_sleep
 
     @property
     def superuser(self) -> User:
@@ -46,6 +47,19 @@ class Users:
                     continue
             yield user
 
+    # async 只是为了 User 里面的 aiohttp 的 session;即使切了也没啥吧，append 的时候不切换协程，对 notifier 运行中不会造成什么影响
+    async def add_user(self, user_info: dict, custom_task_control: dict, custom_task_arrangement: dict):
+        task_control = {**self._global_task_control, **custom_task_control}
+        task_arrangement = {**self._global_task_arrangement, **custom_task_arrangement}
+
+        user = User(
+            dict_user=user_info,
+            task_ctrl=task_control,
+            task_arrangement=task_arrangement,
+            dict_bili=self._dict_bili,
+            force_sleep=self._force_sleep)
+        self._users.append(user)
+
     def gets(self, index: int):
         if index == -2:
             for user in self._users:
@@ -69,8 +83,11 @@ class Notifier:
         self._users: Optional[Users] = None
         self._scheduler: Optional[aiojobs.Scheduler] = None
 
-    def init(self, users: List[User]):
-        self._users = Users(users)
+    def init(self, users: Users):
+        self._users = users
+
+    async def add_user(self, **kwargs):
+        await self._users.add_user(**kwargs)
 
     # pause 和 resume 必须在同一个循环里面用，否则可能发生类似线程不安全的东西
     async def resume(self):
@@ -250,8 +267,8 @@ class Notifier:
 var_notifier = Notifier()
 
 
-def init(*args, **kwargs):
-    var_notifier.init(*args, **kwargs)
+def init(**kwargs):
+    var_notifier.init(**kwargs)
 
 
 async def exec_task(task, *args, **kwargs):
@@ -272,6 +289,10 @@ async def pause():
 
 async def resume():
     await var_notifier.resume()
+
+
+async def add_user(**kwargs):
+    await var_notifier.add_user(**kwargs)
 
 
 def get_users(user_id: int):
