@@ -117,6 +117,13 @@ class UtilsReq:
         url = f'{API_LIVE}/i/api/taskInfo'
         json_rsp = await user.bililive_session.request_json('GET', url, headers=user.dict_bili['pcheaders'])
         return json_rsp
+
+    @staticmethod
+    async def fetch_livebili_sign_tasks(user):
+        url = f'{API_LIVE}/sign/GetSignInfo'
+        # {"code":-101,"message":"账号未登录","ttl":1}
+        json_rsp = await user.bililive_session.request_json('GET', url, headers=user.dict_bili['pcheaders'])
+        return json_rsp
         
     # 有个其他的api，主页那里，但是类似于judge查询那样，json隐藏在text里面，恶心
     @staticmethod

@@ -112,8 +112,8 @@ class PrintLiveBiliDailyJobTask(Console, Wait, Multi):
     async def cmd_console_work(user):
         yield '查询用户直播分站的日常任务情况'
         json_rsp = await user.req_s(UtilsReq.fetch_livebili_tasks, user)
-        # print(json_rsp)
-        if not json_rsp['code']:
+        json_rsp_sign = await user.req_s(UtilsReq.fetch_livebili_sign_tasks, user)
+        if not json_rsp['code'] and not json_rsp_sign['code']:
             data = json_rsp['data']
             yield '双端观看直播:'
             double_watch_info = data['double_watch_info']
@@ -142,7 +142,7 @@ class PrintLiveBiliDailyJobTask(Console, Wait, Multi):
                     f'第{box_info["freeSilverTimes"]}次第{box_info["type"]}个礼包(每次3个礼包)'
 
             yield '每日签到：'
-            sign_info = data['sign_info']
+            sign_info = json_rsp_sign['data']
             if sign_info['status'] == 1:
                 yield '# 该任务已完成'
             else:
