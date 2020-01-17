@@ -12,27 +12,27 @@ sem = asyncio.Semaphore(3)
 
 
 class WebSession:
-    __slots__ = ('var_session',)
+    __slots__ = ('session',)
 
     DEFAULT_OK_STATUS_CODES = (200,)
 
     def __init__(self):
-        self.var_session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=4))
+        self.session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=4))
 
     @staticmethod
-    async def __receive_json(rsp: aiohttp.ClientResponse):
+    async def _recv_json(rsp: aiohttp.ClientResponse):
         return await rsp.json(content_type=None)
 
     @staticmethod
-    async def __receive_str(rsp: aiohttp.ClientResponse):
+    async def _recv_str(rsp: aiohttp.ClientResponse):
         return await rsp.text()
 
     @staticmethod
-    async def __receive_bytes(rsp: aiohttp.ClientResponse):
+    async def _recv_bytes(rsp: aiohttp.ClientResponse):
         return await rsp.read()
 
     # 基本就是通用的 request
-    async def __orig_req(self, parse_rsp, method, url, **kwargs):
+    async def _orig_req(self, parse_rsp, method, url, **kwargs):
         i = 0
         while True:
             i += 1
@@ -40,7 +40,7 @@ class WebSession:
                 printer.warn(f'反复请求多次未成功, {url}, {kwargs}')
                 await asyncio.sleep(0.75)
             try:
-                async with self.var_session.request(method, url, **kwargs) as rsp:
+                async with self.session.request(method, url, **kwargs) as rsp:
                     if rsp.status == 200:
                         body = await parse_rsp(rsp)
                         if body:
@@ -55,10 +55,10 @@ class WebSession:
                             method,
                             url,
                             **kwargs) -> Any:
-        return await self.__orig_req(self.__receive_json, method, url, **kwargs)
+        return await self._orig_req(self._recv_json, method, url, **kwargs)
 
     # 为 bilibili 这边加了一些东西的 request
-    async def __req(self, parse_rsp, method, url, ok_status_codes=None, **kwargs):
+    async def _req(self, parse_rsp, method, url, ok_status_codes=None, **kwargs):
         if ok_status_codes is None:
             ok_status_codes = self.DEFAULT_OK_STATUS_CODES
         async with sem:
@@ -69,7 +69,7 @@ class WebSession:
                     printer.warn(f'反复请求多次未成功, {url}, {kwargs}')
                     await asyncio.sleep(0.75)
                 try:
-                    async with self.var_session.request(method, url, **kwargs) as rsp:
+                    async with self.session.request(method, url, **kwargs) as rsp:
                         if rsp.status in ok_status_codes:
                             body = await parse_rsp(rsp)
                             if body:  # 有时候是 None 或空，直接屏蔽。read 或 text 类似，禁止返回空的东西
@@ -91,7 +91,7 @@ class WebSession:
                            ctrl: Ctrl = DEFAULT_CTRL,
                            **kwargs) -> dict:
         while True:
-            body = await self.__req(self.__receive_json, method, url, **kwargs)
+            body = await self._req(self._recv_json, method, url, **kwargs)
             if not isinstance(body, dict):  # 这里是强制定制的，与b站配合的！！！！
                 continue
             json_rsp_type = ctrl.verify(body)
@@ -108,10 +108,10 @@ class WebSession:
                              method,
                              url,
                              **kwargs) -> bytes:
-        return await self.__req(self.__receive_bytes, method, url, **kwargs)
+        return await self._req(self._recv_bytes, method, url, **kwargs)
 
     async def request_text(self,
                            method,
                            url,
                            **kwargs) -> str:
-        return await self.__req(self.__receive_str, method, url, **kwargs)
+        return await self._req(self._recv_str, method, url, **kwargs)
