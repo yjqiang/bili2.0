@@ -65,9 +65,6 @@ class Users:
             for user in self._users:
                 yield user
             return
-        # TODO: 废除，统一为0
-        if index == -1:
-            index = 0
         user = self._users[index]
         yield user
 
@@ -101,7 +98,7 @@ class Notifier:
             await scheduler.close()
 
     @staticmethod
-    async def __unique_work(user: User, task, func: Callable, *args, **kwargs):
+    async def _unique_work(user: User, task, func: Callable, *args, **kwargs):
         if bili_statistics.start_unique_task(user.id, task):
             try:
                 result = await func(user, *args, **kwargs)
@@ -115,7 +112,7 @@ class Notifier:
         return None
 
     @staticmethod
-    async def __multi_work(user: User, _, func: Callable, *args, **kwargs):
+    async def _multi_work(user: User, _, func: Callable, *args, **kwargs):
         try:
             return await func(user, *args, **kwargs)
         except asyncio.CancelledError:
@@ -142,24 +139,24 @@ class Notifier:
     def run_forced_func_bg(self, *args, **kwargs):
         self._loop.create_task(self.run_forced_func(*args, **kwargs))
 
-    async def __dont_wait(self, task,
-                          handle_work: Callable,
-                          handle_unique: Callable,
-                          func_work: Callable,
-                          check_results,
-                          _):
+    async def _dont_wait(self, task,
+                         handle_work: Callable,
+                         handle_unique: Callable,
+                         func_work: Callable,
+                         check_results,
+                         _):
         for user_id, delay_range, *args in check_results:
             for user in self._users.gets_with_restrict(user_id, task):
                 delay = random.uniform(*delay_range)
                 self._loop.call_later(
                     delay, handle_work, handle_unique, user, task, func_work, *args)
 
-    async def __wait(self, task,
-                     handle_work: Callable,
-                     handle_unique: Callable,
-                     func_work: Callable,
-                     check_results,
-                     return_results: bool):
+    async def _wait(self, task,
+                    handle_work: Callable,
+                    handle_unique: Callable,
+                    func_work: Callable,
+                    check_results,
+                    return_results: bool):
         if not return_results:
             for user_id, _, *args in check_results:
                 for user in self._users.gets_with_restrict(user_id, task):
@@ -172,12 +169,12 @@ class Notifier:
                 results.append(await handle_work(handle_unique, user, task, func_work, *args))
         return results
 
-    async def __wait_and_pass(self, task,
-                              handle_work: Callable,
-                              handle_unique: Callable,
-                              func_work: Callable,
-                              check_results,
-                              return_results: bool):
+    async def _wait_and_pass(self, task,
+                             handle_work: Callable,
+                             handle_unique: Callable,
+                             func_work: Callable,
+                             check_results,
+                             return_results: bool):
         if not return_results:
             for user_id, _, *args in check_results:
                 result = args
@@ -200,10 +197,11 @@ class Notifier:
 
         async def 工作函数()  # work / webconsole_work / cmdconsole_work
     '''
+
     # handle_check notifier 执行 task.check 函数时的包裹函数
     # handle_works notifier 执行 task 的"工作函数"时的包裹函数
     # handle_work 执行具体每个 user 的"工作函数"时外层包裹函数，WAIT WAIT_AND_PASS 时无效,一定是forced的
-    # handle_unique 执行具体每个 user 的"工作函数时"时内层包裹函数  __unique_work / __multi_work
+    # handle_unique 执行具体每个 user 的"工作函数时"时内层包裹函数  _unique_work / _multi_work
     # func_work "工作函数" eg: task.work
     async def exec_task(self, task, *args, **kwargs):
         handle_check = None
@@ -232,22 +230,22 @@ class Notifier:
                 need_results = False
 
         if task.HOW2CALL == How2Call.DONT_WAIT:
-            handle_works = self.__dont_wait
+            handle_works = self._dont_wait
             if task.TASK_TYPE == TaskType.SCHED:
                 handle_work = self.run_sched_func_bg
             else:
                 handle_work = self.run_forced_func_bg
         elif task.HOW2CALL == How2Call.WAIT:
-            handle_works = self.__wait
+            handle_works = self._wait
             handle_work = self.run_forced_func
         elif task.HOW2CALL == How2Call.WAIT_AND_PASS:
-            handle_works = self.__wait_and_pass
+            handle_works = self._wait_and_pass
             handle_work = self.run_forced_func
 
         if task.UNIQUE_TYPE == UniqueType.MULTI:
-            handle_unique = self.__multi_work
+            handle_unique = self._multi_work
         elif task.UNIQUE_TYPE == UniqueType.UNIQUE:
-            handle_unique = self.__unique_work
+            handle_unique = self._unique_work
 
         check_results = await handle_check(task.check, self._users.superuser, *args, **kwargs)
         print('check_results:', task, check_results)
