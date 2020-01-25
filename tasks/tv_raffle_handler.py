@@ -30,7 +30,7 @@ class TvRaffleJoinTask(Forced, DontWait, Multi):
         
     @staticmethod
     async def work(user, real_roomid, raffle_id, raffle_type):
-        json_rsp = await user.req_s(TvRaffleHandlerReq.join, user, real_roomid, raffle_id, raffle_type)
+        json_rsp = await user.req_s(TvRaffleHandlerReq.join, user, real_roomid, raffle_id, raffle_type, timeout=5)
         bili_statistics.add2joined_raffles('小电视(合计)', user.id)
         code = json_rsp['code']
         if not code:

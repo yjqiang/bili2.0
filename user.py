@@ -98,11 +98,14 @@ class User:
         sign = hashlib.md5(text_with_appsecret.encode('utf-8')).hexdigest()
         return f'{text}&sign={sign}'
 
-    async def req_s(self, func, *args):
+    async def req_s(self, func, *args, timeout=None):
         while True:
             if self._waiting_login is None:
                 try:
-                    return await func(*args)
+                    return await asyncio.wait_for(func(*args), timeout=timeout)
+                except asyncio.TimeoutError:
+                    self.info(f'TASK {func} 请求超时，即将 CANCEL')
+                    raise asyncio.CancelledError()
                 except exceptions.LogoutError:  # logout
                     if self._waiting_login is None:  # 当前没有处理的运行
                         self.info('判定出现了登陆失败，且未处理')

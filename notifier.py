@@ -105,7 +105,7 @@ class Notifier:
                 bili_statistics.done_unique_task(user.id, task)
                 return result
             except asyncio.CancelledError:
-                print(f'❌取消正在进行的{func} {user.id}任务')
+                print(f'CONFIRMED CANCEL {user} {func}')
                 bili_statistics.cancel_unique_task(user.id, task)
         else:
             print(f'重复推送{func} {user.id}（此为debug信息忽略即可）')
@@ -116,6 +116,7 @@ class Notifier:
         try:
             return await func(user, *args, **kwargs)
         except asyncio.CancelledError:
+            print(f'CONFIRMED CANCEL {user} {func}')
             return None
 
     async def run_sched_func(self, func: Callable, *args, **kwargs):
