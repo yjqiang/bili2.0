@@ -14,17 +14,16 @@ class MangaSignReq:
     @staticmethod
     async def sign(user):
         url = 'https://manga.bilibili.com/twirp/activity.v1.Activity/ClockIn'
-        extra_params = [
-            f'access_key={user.dict_bili["access_key"]}',
-            f'ts={utils.curr_time()}'
-        ]
+        extra_params = {
+            'access_key': user.dict_bili['access_key'],
+            'ts': utils.curr_time(),
+        }
         params = user.sort_and_sign(extra_params)
 
         json_rsp = await user.other_session.request_json(
             'POST', url,
-            # 不知道为啥必须这么做2333
-            headers={**user.dict_bili['appheaders'], 'Content-Type': "application/x-www-form-urlencoded"},
-            params=params,
+            headers=user.dict_bili['appheaders'],
+            data=params,
             ctrl=MANGA_SIGN_CTRL, ok_status_codes=(200, 400,)
         )
         return json_rsp
@@ -34,18 +33,17 @@ class ShareComicReq:
     @staticmethod
     async def share_comic(user):
         url = f'https://manga.bilibili.com/twirp/activity.v1.Activity/ShareComic'
-        extra_params = [
-            f'access_key={user.dict_bili["access_key"]}',
-            f'ts={utils.curr_time()}'
-        ]
+        extra_params = {
+            'access_key': user.dict_bili['access_key'],
+            'ts': utils.curr_time(),
+        }
         params = user.sort_and_sign(extra_params)
 
         json_rsp = await user.other_session.request_json(
             'POST',
             url,
-            # 不知道为啥必须这么做2333
-            headers={**user.dict_bili['appheaders'], 'Content-Type': "application/x-www-form-urlencoded"},
-            params=params,
+            headers=user.dict_bili['appheaders'],
+            data=params,
             ok_status_codes=(200, 401,)
         )
         return json_rsp

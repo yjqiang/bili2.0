@@ -25,11 +25,11 @@ class StormRaffleHandlerReq:
    
     @staticmethod
     async def join(user, raffle_id):
-        extra_params = [
-            f'access_key={user.dict_bili["access_key"]}',
-            f'id={raffle_id}',
-            f'ts={utils.curr_time()}'
-        ]
+        extra_params = {
+            'access_key': user.dict_bili['access_key'],
+            'ts': utils.curr_time(),
+            'id': raffle_id,
+        }
         params = user.sort_and_sign(extra_params)
         url = f'{API_LIVE}/lottery/v1/Storm/join'
         json_rsp = await user.bililive_session.request_json('POST', url, headers=user.dict_bili['appheaders'], params=params)
