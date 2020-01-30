@@ -19,7 +19,7 @@ accept-encoding = "gzip, deflate"
 cookie = ""
 
 [appheaders]
-User-Agent = "Mozilla/5.0 BilidDroid/5.51.1(bbcallen@gmail.com)"
+User-Agent = "Mozilla/5.0 BiliDroid/5.53.1 (bbcallen@gmail.com)"
 Accept-encoding = "gzip"
 Buvid = "000ce0b9b9b4e342ad4f421bcae5e0ce"
 Display-ID = "146771405-1521008435"
