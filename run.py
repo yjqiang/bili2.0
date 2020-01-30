@@ -14,7 +14,6 @@ from console_cmd import ConsoleCmd
 from tasks.login import LoginTask
 from tasks.live_daily_job import (
     HeartBeatTask,
-    RecvHeartGiftTask,
     OpenSilverBoxTask,
     RecvDailyBagTask,
     SignTask,
@@ -84,7 +83,6 @@ loop.run_until_complete(init_users())
 # 下面表示每隔多少小时执行一次
 def add_daily_jobs():
     bili_sched.add_daily_jobs(HeartBeatTask, every_hours=6)
-    bili_sched.add_daily_jobs(RecvHeartGiftTask, every_hours=6)
     bili_sched.add_daily_jobs(OpenSilverBoxTask, every_hours=6)
     bili_sched.add_daily_jobs(RecvDailyBagTask, every_hours=3)
     bili_sched.add_daily_jobs(SignTask, every_hours=6)

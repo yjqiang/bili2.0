@@ -27,14 +27,6 @@ class HeartBeatReq:
         return json_rsp
 
                 
-class RecvHeartGiftReq:
-    @staticmethod
-    async def recv_heartgift(user):
-        url = f"{API_LIVE}/gift/v2/live/heart_gift_receive?roomid=3&area_v2_id=34"
-        json_rsp = await user.bililive_session.request_json('GET', url, headers=user.dict_bili['pcheaders'])
-        return json_rsp
-
-                
 class OpenSilverBoxReq:
     @staticmethod
     async def check(user):
