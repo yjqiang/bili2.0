@@ -2,8 +2,6 @@
 """
 from datetime import datetime
 
-from decorator import decorator
-
 import utils
 from reqs.utils import UtilsReq
 from .utils import UtilsTask
@@ -12,11 +10,11 @@ from .base_class import Console, Wait, Multi
 
 
 # 为了解决list打印问题，其实可以实现tasks都这样包裹，但感觉那样过于骚包了
-@decorator
-async def infos_pure_print_func(func, *args, **kwargs):
-    list_results = [i async for i in func(*args, **kwargs)]
-    user = args[0]
-    user.info(*list_results)
+def infos_pure_print_func(func):
+    async def wrapper(user, *args, **kwargs):
+        list_results = [i async for i in func(user, *args, **kwargs)]
+        user.info(*list_results)
+    return wrapper
 
 
 class PrintGiftbagsTask(Console, Wait, Multi):
