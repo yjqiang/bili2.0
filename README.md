@@ -36,7 +36,7 @@
 docker run --rm -it \
   -v $(pwd)/user.sample.toml:/app/conf/user.toml \
   -v $(pwd)/ctrl.sample.toml:/app/conf/ctrl.toml \
-  -v $(pwd)/run.py:/app/run.py \
+  -v $(pwd)/task.sample.toml:/app/conf/task.toml \
   zsnmwy/bili2.0
 ```
 
@@ -51,7 +51,7 @@ docker run --rm -it \
 docker run --rm -it `
   -v D:\python\user.sample.toml:/app/conf/user.toml `
   -v D:\python\ctrl.sample.toml:/app/conf/ctrl.toml `
-  -v D:\python\run.py:/app/run.py `
+  -v D:\python\task.sample.toml:/app/conf/task.toml `
   zsnmwy/bili2.0
 ```
 
