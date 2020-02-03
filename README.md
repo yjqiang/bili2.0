@@ -42,20 +42,7 @@ docker run --rm -it \
 
 `$(pwd)` 获取当前目录路径。
 
-##### Docker in Windows
-
-假设下载的文件都在 `D:\python`。
-下面命令需要在 powershell 上面执行。
-
-```bash
-docker run --rm -it `
-  -v D:\python\user.sample.toml:/app/conf/user.toml `
-  -v D:\python\ctrl.sample.toml:/app/conf/ctrl.toml `
-  -v D:\python\task.sample.toml:/app/conf/task.toml `
-  zsnmwy/bili2.0
-```
-
-##### 下面的指令都是 docker 本身的指令，适用于 Windows 以及 Linux
+##### 下面的指令都是 Docker 本身的指令
 
     `--rm` 退出的时候，会把容器删除。
     `-i` 让容器的标准输入保持打开。
