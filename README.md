@@ -28,7 +28,7 @@
 1. 安装好 [Docker](https://yeasy.gitbooks.io/docker_practice/content/install/)
 2. 如果你需要对应的功能，就下载对应的功能文件。参照看上面的[使用方法](#使用方法)。
 3. 在本地修改好文件。
-4. docker 镜像启动时，把文件挂载到容器即可。
+4. Docker 镜像启动时，把文件挂载到容器即可。
 
 ##### Docker in Linux
 
@@ -38,29 +38,4 @@ docker run --rm -it \
   -v $(pwd)/ctrl.sample.toml:/app/conf/ctrl.toml \
   -v $(pwd)/task.sample.toml:/app/conf/task.toml \
   zsnmwy/bili2.0
-```
-
-`$(pwd)` 获取当前目录路径。
-
-##### 下面的指令都是 Docker 本身的指令
-
-    `--rm` 退出的时候，会把容器删除。
-    `-i` 让容器的标准输入保持打开。
-    `-t` 让Docker分配一个伪终端（pseudo-tty）并绑定到容器的标准输入上。
-    `-d` 让容器后台运行。如果你想后台，加个在 `-it` 后面加个 `d` 就行。
-    `-v` 可以把本机的(目录/文件)挂载到容器里面，起到加入/替换的作用。如果你使用的是项目的默认值，则不用 `-v` 来指定文件替换。但是用户文件 user.toml 是一定要的，不然程序找不到用户的。
-
-如果有什么奇葩问题，或者需要更新镜像，使用 `docker pull zsnmwy/bili2.0` 进行更新。
-
-##### Docker 已知问题
-
-在 `-it` 交互模式下，在容器运行着的 Python 直接用 `Ctrl+C` 无法正常退出容器。需要使用 `docker rm -f` 强制结束。
-
-```bash
-$docker ps
-CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
-a746fb0325fb        zsnmwy/bili2.0      "/bin/sh -c 'git pul…"   44 seconds ago      Up 42 seconds                           frosty_mccarthy
-
-$docker rm -f a7
-a7
 ```
