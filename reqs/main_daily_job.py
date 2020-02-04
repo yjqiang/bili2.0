@@ -69,7 +69,7 @@ class BiliMainReq:
 
     @staticmethod
     async def heartbeat(user, aid, cid):
-        url = 'https://api.bilibili.com/x/report/web/heartbeat'
+        url = 'https://api.bilibili.com/x/click-interface/web/heartbeat'
         data = {
             'aid': aid,
             'cid': cid,
