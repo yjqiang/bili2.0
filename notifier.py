@@ -34,7 +34,9 @@ class Users:
                     'open_silver_box',
                     'join_storm_raffle',
                     'join_guard_raffle',
-                    'join_tv_raffle'):
+                    'join_tv_raffle',
+                    'join_pk_raffle'
+            ):
                 continue
             if task_name != 'null':  # null 就忽略过滤，直接参与
                 if f'probability_{task_name}' in user.task_arrangement:  # 平均概率筛选
