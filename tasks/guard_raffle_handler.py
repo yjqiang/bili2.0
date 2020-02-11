@@ -10,12 +10,10 @@ class GuardRafflJoinTask(Forced, DontWait, Multi):
     TASK_NAME = 'join_guard_raffle'
 
     @staticmethod
-    async def check(user, real_roomid, raffle_id=None):
+    async def check(user, real_roomid, json_rsp=None):
         if not await UtilsTask.is_normal_room(user, real_roomid):
             return
-        if raffle_id is not None:
-            json_rsp = {'data': {'guard': [{'id': raffle_id, 'time': 65}]}}
-        else:
+        if json_rsp is None:
             await asyncio.sleep(5)  # 人为延迟
             json_rsp = await user.req_s(GuardRaffleHandlerReq.check, user, real_roomid)
 

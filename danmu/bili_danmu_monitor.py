@@ -8,17 +8,18 @@ from printer import print_danmu
 from printer import info as print
 import notifier
 import bili_statistics
-from .bili_danmu import WsDanmuClient
+from danmu.bili_abc import bili_danmu
 from tasks.tv_raffle_handler import TvRaffleJoinTask
 from tasks.guard_raffle_handler import GuardRafflJoinTask
 from tasks.storm_raffle_handler import StormRaffleJoinTask
 from tasks.utils import UtilsTask
-from . import raffle_handler
+from danmu import raffle_handler
 from utils import clear_whitespace
-import printer
 
 
-class DanmuPrinter(WsDanmuClient):
+class DanmuPrinter(bili_danmu.WsDanmuClient):
+    __slots__ = ()
+
     def handle_danmu(self, data: dict):
         cmd = data['cmd']
         if cmd == 'DANMU_MSG':
@@ -26,7 +27,9 @@ class DanmuPrinter(WsDanmuClient):
         return True
 
 
-class DanmuRaffleMonitor(WsDanmuClient):
+class DanmuRaffleMonitor(bili_danmu.WsDanmuClient):
+    __slots__ = ()
+
     # clear_whitespace之后
     # 全区广播:<%生而为人要温柔%>送给<%岛岛子%>1个应援喵，点击前往TA的房间去抽奖吧
     # 全区广播:主播<%咩咩想喝甜奶盖%>的直播间得到了偶像恋人的回应，快去前往抽奖吧！
@@ -61,16 +64,16 @@ class DanmuRaffleMonitor(WsDanmuClient):
             while await asyncio.shield(
                     notifier.exec_func(UtilsTask.is_ok_as_monitor, self._room_id, self._area_id)):
                 await asyncio.sleep(300)
-            print(f'{self._room_id}不再适合作为监控房间，即将切换')
+            print(f'{self._room_id} 不再适合作为监控房间，即将切换')
         except asyncio.CancelledError:
-            pass
+            return
 
     async def _prepare_client(self) -> bool:
         # 1566786363: 把room_id删了，否则导致下播后又选择几率过高（b站api有延迟）
         self._room_id = await notifier.exec_func(
             UtilsTask.get_room_by_area,
             self._area_id)
-        print(f'{self._area_id}号数据连接选择房间（{self._room_id}）')
+        print(f'{self._area_id} 号数据连接选择房间（{self._room_id}）')
         return self._room_id is not None
 
     def handle_danmu(self, data: dict) -> bool:
@@ -83,7 +86,7 @@ class DanmuRaffleMonitor(WsDanmuClient):
             return True  # 预防未来sbb站
 
         if cmd == 'PREPARING':
-            print(f'{self._area_id}号数据连接房间下播({self._room_id})')
+            print(f'{self._area_id} 号数据连接房间下播({self._room_id})')
             return False
 
         elif cmd == 'NOTICE_MSG':
@@ -102,19 +105,19 @@ class DanmuRaffleMonitor(WsDanmuClient):
                     broadcast = 'nmb'
                     raffle_num = 1
                     raffle_name = '小电视'
-                    print(f'{self._area_id}号数据连接检测到{real_roomid:^9}的{raffle_name}')
+                    print(f'{self._area_id} 号数据连接检测到{real_roomid:^9}的{raffle_name}')
                     raffle_handler.push2queue(TvRaffleJoinTask, real_roomid)
                     broadcast_type = 0 if broadcast == '全区' else 1
                     bili_statistics.add2pushed_raffles(raffle_name, broadcast_type, raffle_num)
             elif msg_type == 3:
                 raffle_name = self.NOTICE_MSG_GUARD_PATTERN.match(msg_common).group(1)
-                print(f'{self._area_id}号数据连接检测到{real_roomid:^9}的{raffle_name}')
+                print(f'{self._area_id} 号数据连接检测到{real_roomid:^9}的{raffle_name}')
                 raffle_handler.push2queue(GuardRafflJoinTask, real_roomid)
                 broadcast_type = 0 if raffle_name == '总督' else 2
                 bili_statistics.add2pushed_raffles(raffle_name, broadcast_type)
             elif msg_type == 6:
                 raffle_name = '二十倍节奏风暴'
-                print(f'{self._area_id}号数据连接检测到{real_roomid:^9}的{raffle_name}')
+                print(f'{self._area_id} 号数据连接检测到{real_roomid:^9}的{raffle_name}')
                 raffle_handler.push2queue(StormRaffleJoinTask, real_roomid)
                 bili_statistics.add2pushed_raffles(raffle_name)
         return True
