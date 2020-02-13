@@ -1,7 +1,12 @@
+import asyncio
+
 import bili_statistics
 from reqs.storm_raffle_handler import StormRaffleHandlerReq
 from tasks.utils import UtilsTask
 from .base_class import Forced, DontWait, Multi
+
+
+storm_lock = asyncio.Semaphore(1)  # 用于控制同时进行的风暴数目
 
 
 class StormRaffleJoinTask(Forced, DontWait, Multi):

@@ -20,7 +20,7 @@ class User:
         'bililive_session', 'login_session', 'other_session',
 
         'dict_bili', 'app_params', 'repost_del_lock',
-        'dyn_lottery_friends', 'storm_lock',
+        'dyn_lottery_friends',
         '_waiting_login', '_loop'
     )
 
@@ -57,7 +57,6 @@ class User:
         self.repost_del_lock = asyncio.Lock()  # 在follow与unfollow过程中必须保证安全(repost和del整个过程加锁)
         dyn_lottery_friends = [(str(uid), name) for uid, name in task_ctrl['dyn_lottery_friends'].items()]
         self.dyn_lottery_friends = dyn_lottery_friends  # list (uid, name)
-        self.storm_lock = asyncio.Semaphore(1)  # 用于控制同时进行的风暴数目(注意是单个用户的)
 
     def update_login_data(self, login_data):
         for i, value in login_data.items():
