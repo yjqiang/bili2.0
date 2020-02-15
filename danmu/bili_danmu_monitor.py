@@ -1,8 +1,5 @@
 import asyncio
-from typing import Optional
 import re
-
-from aiohttp import ClientSession
 
 from printer import print_danmu
 from printer import info as print
@@ -20,8 +17,15 @@ from utils import clear_whitespace
 class DanmuPrinter(bili_danmu.WsDanmuClient):
     __slots__ = ()
 
-    def handle_danmu(self, data: dict):
-        cmd = data['cmd']
+    def handle_danmu(self, data: dict) -> bool:
+        if 'cmd' in data:
+            cmd = data['cmd']
+        elif 'msg' in data:
+            data = data['msg']
+            cmd = data['cmd']
+        else:
+            return True  # 预防未来sbb站
+
         if cmd == 'DANMU_MSG':
             print_danmu(data)
         return True
@@ -47,15 +51,8 @@ class DanmuRaffleMonitor(bili_danmu.WsDanmuClient):
     NOTICE_MSG_GUARD_PATTERN = re.compile(r'.+%>(?!.*%>)'  # 匹配最后一个 %>
                                           r'[^，,了]+了(.{2})', re.DOTALL)
 
-    def __init__(
-            self, room_id: int, area_id: int,
-            session: Optional[ClientSession] = None, loop=None):
-        super().__init__(
-            room_id=room_id,
-            area_id=area_id,
-            session=session,
-            loop=loop
-        )
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._funcs_task.append(self._check_area)  # 比正常的监控多了一个分区定时查看
 
     async def _check_area(self):
