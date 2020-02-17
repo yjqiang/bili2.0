@@ -163,10 +163,11 @@ class BiliMainTask(Sched, DontWait, Unique):
             # 避免一堆videos，只取前几页
             for page in range(1, 5):
                 json_rsp = await user.req_s(BiliMainReq.fetch_uper_videos, user, uid, page)
-                videos = json_rsp['data']['item']
+                videos = json_rsp['data']['list']['vlist']
                 if not videos:
                     break
-                aids += [int(video['param']) for video in videos]
+                for video in videos:
+                    aids.append(video['aid'])
         return aids
         
     @staticmethod

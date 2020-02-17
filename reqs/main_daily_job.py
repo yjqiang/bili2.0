@@ -100,7 +100,8 @@ class BiliMainReq:
     
     @staticmethod
     async def fetch_uper_videos(user, mid, page):
-        url = f'https://app.bilibili.com/x/v2/space/archive?build=1&pn={page}&ps=20&vmid={mid}'
+        url = f'https://api.bilibili.com/x/space/arc/search?' \
+              f'mid={mid}&ps=30&tid=0&pn={page}&keyword=&order=pubdate&jsonp=jsonp'
         json_rsp = await user.other_session.request_json('GET', url)
         return json_rsp
                 
