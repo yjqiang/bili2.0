@@ -5,4 +5,4 @@ pampy==0.3.0
 rsa==4.0
 schedule==0.6.0
 toml==0.10.0
-danmu-abc==0.1.2
+danmu-abc==0.1.3
