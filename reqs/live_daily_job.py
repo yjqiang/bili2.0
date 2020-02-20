@@ -77,6 +77,27 @@ class WatchTvReq:
         json_rsp = await user.bililive_session.request_json('POST', url, data=data, headers=user.dict_bili['appheaders'])
         return json_rsp
 
+    @staticmethod
+    async def get_info_by_user_pc(user):
+        url = f'{API_LIVE}/xlive/web-room/v1/index/getInfoByUser?room_id=23058'
+        # {"code": -101, "message": "账号未登录", "ttl": 1}
+        json_rsp = await user.bililive_session.request_json('GET', url, headers=user.dict_bili['pcheaders'])
+        return json_rsp
+
+    @staticmethod
+    async def get_info_by_user_app(user):
+        url = f'{API_LIVE}/xlive/app-room/v1/index/getInfoByUser'
+        # {"code": -101, "message": "账号未登录", "ttl": 1}
+        extra_params = {
+            'access_key': user.dict_bili['access_key'],
+            'ts': utils.curr_time(),
+            'room_id': '23058'
+        }
+        params = user.sort_and_sign(extra_params)
+        json_rsp = await user.bililive_session.request_json('GET', url, params=params,
+                                                            headers=user.dict_bili['appheaders'])
+        return json_rsp
+
                 
 class SignFansGroupsReq:
     @staticmethod

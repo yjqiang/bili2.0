@@ -111,6 +111,9 @@ class WatchTvTask(Sched, DontWait, Unique):
    
     @staticmethod
     async def work(user):
+        await user.req_s(WatchTvReq.get_info_by_user_app, user)
+        await user.req_s(WatchTvReq.get_info_by_user_pc, user)
+
         while True:
             # -400 done/not yet
             json_rsp = await user.req_s(WatchTvReq.watch_tv, user)
