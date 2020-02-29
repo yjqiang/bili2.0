@@ -71,7 +71,11 @@ class DanmuRaffleMonitor(bili_danmu.WsDanmuClient):
             UtilsTask.get_room_by_area,
             self._area_id)
         print(f'{self._area_id} 号数据连接选择房间（{self._room_id}）')
-        return self._room_id is not None
+        if self._room_id is None:
+            print(f'{self._area_id} 号数据连接准备部分发生致命错误')
+            self._closed = True  # 内部关闭，不再重连
+            return False
+        return True
 
     def handle_danmu(self, data: dict) -> bool:
         if 'cmd' in data:
