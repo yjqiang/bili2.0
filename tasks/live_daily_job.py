@@ -269,7 +269,7 @@ class SendGiftTask(Sched, DontWait, Unique):
     @staticmethod
     async def work(user, gift_intimacy: dict):
         await SendGiftTask.send_medal_gift(user, gift_intimacy)
-        await asyncio.sleep(10)
+        await asyncio.sleep(7)
         await SendGiftTask.send_expiring_gift(user, gift_intimacy)
 
                 
