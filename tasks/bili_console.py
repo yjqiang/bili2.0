@@ -210,7 +210,7 @@ class PrintLiveBiliUserInfoTask(Console, Wait, Multi):
             user_level = user_coin_info['user_level']
             silver = user_coin_info['silver']
             gold = user_coin_info['gold']
-            # identification = bool(user_info['identification'])
+            identification = bool(user_info['identification'])
             mobile_verify = bool(user_info['mobile_verify'])
             user_next_level = user_coin_info['user_next_level']
             user_intimacy = user_coin_info['user_intimacy']
@@ -224,7 +224,7 @@ class PrintLiveBiliUserInfoTask(Console, Wait, Multi):
             is_vip = bool(user_coin_info['vip'])
             vip_time = user_coin_info['vip_time']
             yield f'用户名 {uname}'
-            yield f'手机认证状况 {mobile_verify} | 实名认证状况 null'
+            yield f'手机认证状况 {mobile_verify} | 实名认证状况 {identification}'
             yield f'月费老爷 {str(is_vip):^5} | 过期时间 {vip_time}'
             yield f'年费老爷 {str(is_svip):^5} | 过期时间 {svip_time}'
             yield f'银瓜子 {silver}'
