@@ -53,7 +53,7 @@ class DynRaffleUtilsTask:
         if not code:
             data = json_rsp['data']
             item = data['item']
-            str_ext = item['extension']
+            str_ext = item.get('extension')
             print(doc_id, str_ext)
             if str_ext:
                 try:
