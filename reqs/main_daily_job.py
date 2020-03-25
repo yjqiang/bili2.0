@@ -61,6 +61,7 @@ class BiliMainReq:
         data = {
             'aid': aid,
             'multiply': num_sent,
+            'select_like': 0,
             'cross_domain': 'true',
             'csrf': user.dict_bili['csrf']
         }
@@ -68,11 +69,11 @@ class BiliMainReq:
         return json_rsp
 
     @staticmethod
-    async def heartbeat(user, aid, cid):
+    async def heartbeat(user, bvid, cid):
         url = 'https://api.bilibili.com/x/click-interface/web/heartbeat'
         data = {
-            'aid': aid,
             'cid': cid,
+            'bvid': bvid,
             'mid': user.dict_bili['uid'],
             'csrf': user.dict_bili['csrf'],
             'played_time': 0,
@@ -107,9 +108,10 @@ class BiliMainReq:
                 
     @staticmethod
     async def fetch_top_videos(user):
-        url = 'https://www.bilibili.com/ranking/all/0/0/1/'
-        text_tsp = await user.other_session.request_text('GET', url, headers=user.dict_bili['pcheaders'])
-        return text_tsp
+        # 一个av对应多cid时候，就挑选了一个视频作为cid
+        url = 'https://api.bilibili.com/x/web-interface/ranking?rid=0&day=1&type=1&arc_type=0&jsonp=jsonp'
+        json_rsp = await user.other_session.request_json('GET', url, headers=user.dict_bili['pcheaders'])
+        return json_rsp
 
 
 class DahuiyuanReq:

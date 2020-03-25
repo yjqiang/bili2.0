@@ -1,4 +1,3 @@
-import re
 import random
 import asyncio
 from typing import Optional
@@ -148,13 +147,11 @@ class BiliMainTask(Sched, DontWait, Unique):
     
     @staticmethod
     async def fetch_top_videos(user):
-        text_rsp = await user.req_s(BiliMainReq.fetch_top_videos, user)
-        aids = [i.group(1) for i in re.finditer(r'www.bilibili.com/video/av(\d+)', text_rsp)]
-        if not aids:
-            user.warn(f'{text_rsp}, aid这里')
-        # print(aids)
-        aids = list(set(aids))
-        return aids
+        json_rsp = await user.req_s(BiliMainReq.fetch_top_videos, user)
+        videos = [(av['aid'], av['bvid'], av['cid']) for av in json_rsp['data']['list']]
+        if not videos:
+            user.warn(f'{json_rsp}, aid这里')
+        return videos
     
     @staticmethod
     async def fetch_uper_videos(user, uids):
@@ -189,18 +186,18 @@ class BiliMainTask(Sched, DontWait, Unique):
         return None
         
     @staticmethod
-    async def heartbeat(user, aid, cid):
+    async def heartbeat(user, bvid, cid):
         print('开始获取视频观看经验')
-        json_rsp = await user.req_s(BiliMainReq.heartbeat, user, aid, cid)
+        json_rsp = await user.req_s(BiliMainReq.heartbeat, user, bvid, cid)
         print('获取视频观看', json_rsp)
     
     @staticmethod
-    async def send_coin(user, num_coin, aids):
+    async def send_coin(user, num_coin, videos):
         print('开始赠送硬币')
         for _ in range(user.task_ctrl['givecoin_max_try_times']):
             if num_coin <= 0:
                 return
-            aid = random.choice(aids)
+            aid = random.choice(videos)[0]
             result = await BiliMainTask.send_coin2video(user, aid, 1)
             if result == -1:
                 return
@@ -213,26 +210,28 @@ class BiliMainTask(Sched, DontWait, Unique):
         print('开始获取视频分享经验')
         print(await user.req_s(BiliMainReq.share_video, user, aid))
 
+    # top_videos来自BiliMainTask.fetch_top_videos
+    # [(av['aid'], av['bvid'], av['cid']), (av['aid'], av['bvid'], av['cid']), ...]
     @staticmethod
-    async def work(user, top_video_aids):
+    async def work(user, top_videos):
         login, watch_av, num, share_av = await BiliMainTask.fetch_bilimain_tasks(user)
         if user.task_ctrl['fetchrule'] == 'bilitop':
-            aids = top_video_aids
+            videos = top_videos
         else:
-            aids = await BiliMainTask.fetch_uper_videos(user, user.task_ctrl['mid'])
-        while True:
-            aid = random.choice(aids)
-            cid = await BiliMainTask.aid2cid(user, aid)
-            if cid is not None:
-                break
+            print('暂不支持 up 主 list，即将跳过本次主站任务')
+            return
+            # aids = await BiliMainTask.fetch_uper_videos(user, user.task_ctrl['mid'])
+
+        video = random.choice(videos)
+
         if (not login) or not watch_av:
-            await BiliMainTask.heartbeat(user, aid, cid)
+            await BiliMainTask.heartbeat(user, video[1], video[2])
         if not share_av:
-            await BiliMainTask.share_video(user, aid)
+            await BiliMainTask.share_video(user, video[0])
         coin_set = min(user.task_ctrl['givecoin'], 5)
         num_coin = coin_set - num / 10
         if num_coin:
-            await BiliMainTask.send_coin(user, num_coin, aids)
+            await BiliMainTask.send_coin(user, num_coin, videos)
 
 
 class DahuiyuanTask(Sched, DontWait, Unique):
