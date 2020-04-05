@@ -67,7 +67,7 @@ class DynRaffleHandlerReq:
         return json_rsp
 
     @staticmethod
-    async def is_dyn_raffle(user, doc_id):
+    async def check_dyn_detail(user, doc_id):
         url = f'https://api.vc.bilibili.com/link_draw/v1/doc/detail?doc_id={doc_id}'
         json_rsp = await user.other_session.request_json('GET', url)
         return json_rsp
