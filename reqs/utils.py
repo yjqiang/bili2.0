@@ -22,7 +22,9 @@ class UtilsReq:
     async def post_watching_history(user, room_id):
         data = {
             "room_id": room_id,
-            "csrf_token": user.dict_bili['csrf']
+            "csrf_token": user.dict_bili['csrf'],
+            "csrf": user.dict_bili['csrf'],
+            "platform": "pc",
         }
         url = f"{API_LIVE}/room/v1/Room/room_entry_action"
         response = await user.bililive_session.request_json('POST', url, data=data, headers=user.dict_bili['pcheaders'])
