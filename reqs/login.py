@@ -49,7 +49,7 @@ class LoginReq:
             'username': url_name,
         }
         params = user.sort_and_sign(extra_params)
-        url = "https://passport.bilibili.com/api/v2/oauth2/login"
+        url = "https://passport.bilibili.com/api/v3/oauth2/login"
 
         json_rsp = await user.login_session.request_json('POST', url, headers=user.dict_bili['appheaders'], params=params, ctrl=LOGIN_CTRL)
         return json_rsp
