@@ -1,11 +1,12 @@
 import json
 from typing import Optional
+import zlib
 
 from aiohttp import ClientSession
 from danmu_abc import WsConn, Client
 
 from printer import info as print
-from danmu.bili_abc.utils import Pack, Opt
+from danmu.bili_abc.utils import Pack, Opt, Header
 
 
 class WsDanmuClient(Client):
@@ -28,7 +29,7 @@ class WsDanmuClient(Client):
         )
         self._room_id = room_id
 
-        self._pack_heartbeat = Pack.pack('', opt=Opt.HEARTBEAT, ver=1, seq=1)
+        self._pack_heartbeat = Pack.pack('', opt=Opt.HEARTBEAT, ver=2, seq=1)
 
     @property
     def room_id(self):
@@ -38,12 +39,12 @@ class WsDanmuClient(Client):
         dict_enter = {
             'uid': 0,
             'roomid': self._room_id,
-            'protover': 1,
+            'protover': 2,
             'platform': 'web',
-            'clientver': '1.3.3'
+            'clientver': '1.7.3'
         }
         str_enter = json.dumps(dict_enter)
-        return await self._conn.send_bytes(Pack.pack(str_enter, opt=Opt.AUTH, ver=1, seq=1))
+        return await self._conn.send_bytes(Pack.pack(str_enter, opt=Opt.AUTH, ver=2, seq=1))
 
     async def _one_heartbeat(self) -> bool:
         return await self._conn.send_bytes(self._pack_heartbeat)
@@ -54,10 +55,17 @@ class WsDanmuClient(Client):
         if packs is None:
             return False
 
-        for opt, body in Pack.unpack(packs):
-            if not self.parse_body(body, opt):
-                return False
-        return True
+        len_pack, len_header, ver, opt, _ = Header.unpack(packs)
+        body = packs[len_header:]
+
+        if ver == 2 and opt == Opt.SEND_MSG_REPLY:  # v2 协议有混合，可能不成熟吧
+            packs = zlib.decompress(body)
+            for opt, body in Pack.unpack(packs):
+                if not self.parse_body(body, opt):
+                    return False
+            return True
+        else:
+            return self.parse_body(body, opt)
 
     def parse_body(self, body: bytes, opt: int) -> bool:
         # 人气值(或者在线人数或者类似)以及心跳
