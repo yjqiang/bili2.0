@@ -10,7 +10,7 @@
 2. [Coderx for GitHub](https://apps.apple.com/app/apple-store/id1371929193) 的作者 <https://github.com/CoderxforGitHub> 对用户任务设计等的帮助以及其开发的 Github 软件的便利
 
 ### 支持与打赏
-![](support.jpeg)
+无
 
 ### 使用方法
 
