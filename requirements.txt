@@ -4,5 +4,5 @@ attrs==19.3.0
 pampy==0.3.0
 rsa==4.0
 schedule==0.6.0
-toml==0.10.0
+toml==0.10.1
 danmu-abc==0.1.3
