@@ -33,7 +33,12 @@ class TcpYjMonitorClient(yj_monitor.TcpDanmuClient):
             bili_statistics.add2pushed_raffles('Yj协同大航海', 2)
         elif raffle_type == 'PK':
             print(f'{self._area_id} 号数据连接检测到{raffle_roomid:^9}的大乱斗(id: {raffle_id})')
-            raffle_handler.push2queue(PkRaffleJoinTask, raffle_roomid)
+            json_rsp = {
+                'data': {
+                    'pk': [data['other_raffle_data']]
+                }
+            }
+            raffle_handler.exec_at_once(PkRaffleJoinTask, raffle_roomid, json_rsp)
             bili_statistics.add2pushed_raffles('Yj协同大乱斗', 2)
         elif raffle_type == 'TV':
             print(f'{self._area_id} 号数据连接检测到{raffle_roomid:^9}的小电视(id: {raffle_id})')

@@ -253,11 +253,11 @@ class DynRaffleJoinTask(Forced, Wait, Multi):
                 for i in range(5):  # 经常不能及时刷新
                     await asyncio.sleep(3)
                     dyn_id = await DynRaffleJoinTask.fetch_reposted_dynid(
-                        user, user.dict_bili['uid'], dyn_raffle_status.dyn_id)
+                        user, user.dict_user['uid'], dyn_raffle_status.dyn_id)
                     if dyn_id is not None:
                         user.info(f'查找转发动态{dyn_raffle_status.dyn_id}生成{dyn_id}')
                         dyn_raffle_joined = DynRaffleJoined(
-                            dyn_id=dyn_id, orig_dynid=dyn_raffle_status.dyn_id, uid=user.dict_bili['uid'])
+                            dyn_id=dyn_id, orig_dynid=dyn_raffle_status.dyn_id, uid=user.dict_user['uid'])
                         print(dyn_raffle_joined)
                         dyn_raffle_sql.insert_dynraffle_joined_table(dyn_raffle_joined)
                         return
@@ -284,7 +284,7 @@ class DynRaffleNoticeTask(Forced, Wait, Multi):
 
     @staticmethod
     async def work(user, dyn_raffle_status: DynRaffleStatus, dyn_raffle_results: Optional[DynRaffleResults]):
-        int_user_uid = int(user.dict_bili['uid'])
+        int_user_uid = int(user.dict_user['uid'])
         async with user.repost_del_lock:
             dyn_raffle_joined = dyn_raffle_sql.select_by_primary_key_from_dynraffle_joined_table(
                 uid=int_user_uid, orig_dynid=dyn_raffle_status.dyn_id)

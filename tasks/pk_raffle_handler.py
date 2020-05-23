@@ -9,10 +9,11 @@ class PkRaffleJoinTask(Forced, DontWait, Multi):
 
     # 这是superuser做的,做完之后就broadcast
     @staticmethod
-    async def check(user, real_roomid):
+    async def check(user, real_roomid, json_rsp=None):
         if not await UtilsTask.is_normal_room(user, real_roomid):
             return None
-        json_rsp = await user.req_s(PkRaffleHandlerReq.check, user, real_roomid)
+        if json_rsp is None:
+            json_rsp = await user.req_s(PkRaffleHandlerReq.check, user, real_roomid)
 
         next_step_settings = []
         for raffle in json_rsp['data']['pk']:
@@ -21,7 +22,7 @@ class PkRaffleJoinTask(Forced, DontWait, Multi):
             # 处理一些重复
             if not bili_statistics.is_raffleid_duplicate(raffle_id):
                 user.info(f'确认获取到大乱斗抽奖 {raffle_id}', with_userid=False)
-                next_step_setting = (-2, (raffle['time_wait'], max_wait), real_roomid, raffle_id)
+                next_step_setting = (-2, (0, max_wait), real_roomid, raffle_id)
                 next_step_settings.append(next_step_setting)
                 bili_statistics.add2raffle_ids(raffle_id, 'PK')
                 
@@ -32,6 +33,7 @@ class PkRaffleJoinTask(Forced, DontWait, Multi):
         # print('参与', raffleid)
         # await UtilsTask.enter_room(user, real_roomid)
         json_rsp = await user.req_s(PkRaffleHandlerReq.join, user, real_roomid, raffleid)
+        print(json_rsp)
         bili_statistics.add2joined_raffles('大乱斗(合计)', user.id)
         code = json_rsp['code']
         if not code:

@@ -7,7 +7,7 @@ class BuyLatiaoReq:
     @staticmethod
     async def fetch_livebili_userinfo_pc(user):
         url = f'{API_LIVE}/xlive/web-ucenter/user/get_user_info'
-        json_rsp = await user.bililive_session.request_json('GET', url, headers=user.dict_bili['pcheaders'])
+        json_rsp = await user.bililive_session.request_json('GET', url, headers=user.pc.headers)
         return json_rsp
 
 
@@ -19,10 +19,10 @@ class BuyMedalReq:
             'coin_type': coin_type,
             'master_uid': uid,
             'platform': 'android',
-            'csrf_token': user.dict_bili['csrf'],
-            'csrf': user.dict_bili['csrf']
+            'csrf_token': user.dict_user['csrf'],
+            'csrf': user.dict_user['csrf']
         }
-        json_rsp = await user.other_session.request_json('POST', url, data=data, headers=user.dict_bili['pcheaders'])
+        json_rsp = await user.other_session.request_json('POST', url, data=data, headers=user.pc.headers)
         return json_rsp
 
 
@@ -34,8 +34,8 @@ class BanUserReq:
             'roomid': room_id,
             'block_uid': uid,
             'hour': hour,
-            'csrf_token': user.dict_bili['csrf'],
-            'csrf': user.dict_bili['csrf'],
+            'csrf_token': user.dict_user['csrf'],
+            'csrf': user.dict_user['csrf'],
         }
-        json_rsp = await user.other_session.request_json('POST', url, data=data, headers=user.dict_bili['pcheaders'])
+        json_rsp = await user.other_session.request_json('POST', url, data=data, headers=user.pc.headers)
         return json_rsp

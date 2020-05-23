@@ -15,14 +15,14 @@ class MangaSignReq:
     async def sign(user):
         url = 'https://manga.bilibili.com/twirp/activity.v1.Activity/ClockIn'
         extra_params = {
-            'access_key': user.dict_bili['access_key'],
+            'access_key': user.dict_user['access_key'],
             'ts': utils.curr_time(),
         }
-        params = user.sort_and_sign(extra_params)
+        params = user.app_sign(extra_params)
 
         json_rsp = await user.other_session.request_json(
             'POST', url,
-            headers=user.dict_bili['appheaders'],
+            headers=user.app.headers,
             data=params,
             ctrl=MANGA_SIGN_CTRL, ok_status_codes=(200, 400,)
         )
@@ -34,15 +34,15 @@ class ShareComicReq:
     async def share_comic(user):
         url = f'https://manga.bilibili.com/twirp/activity.v1.Activity/ShareComic'
         extra_params = {
-            'access_key': user.dict_bili['access_key'],
+            'access_key': user.dict_user['access_key'],
             'ts': utils.curr_time(),
         }
-        params = user.sort_and_sign(extra_params)
+        params = user.app_sign(extra_params)
 
         json_rsp = await user.other_session.request_json(
             'POST',
             url,
-            headers=user.dict_bili['appheaders'],
+            headers=user.app.headers,
             data=params,
             ok_status_codes=(200, 401,)
         )

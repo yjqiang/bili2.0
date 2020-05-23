@@ -91,7 +91,7 @@ class SubstanceRaffleJoinTask(Forced, Wait, Multi):
         # 如果返回小黑屋，假设小黑屋可能持续较久，所以不会再尝试了
         if not json_rsp['code']:
             substance_raffle_joined = SubstanceRaffleJoined(
-                uid=user.dict_bili['uid'],
+                uid=user.dict_user['uid'],
                 aid=substance_raffle_status.aid,
                 number=substance_raffle_status.number
             )
@@ -110,7 +110,7 @@ class SubstanceRaffleNoticeTask(Forced, Wait, Multi):
     async def work(
             user, substance_raffle_status: SubstanceRaffleStatus,
             substance_raffle_result: Optional[SubstanceRaffleResults]):
-        int_user_uid = int(user.dict_bili['uid'])
+        int_user_uid = int(user.dict_user['uid'])
         dyn_raffle_joined = substance_raffle_sql.select_by_primary_key_from_substanceraffle_joined_table(
             uid=int_user_uid, aid=substance_raffle_status.aid, number=substance_raffle_status.number)
 

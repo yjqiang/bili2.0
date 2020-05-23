@@ -25,13 +25,13 @@ class LoginReq:
     @staticmethod
     async def logout(user):
         url = 'https://passport.bilibili.com/login?act=exit'
-        json_rsp = await user.login_session.request_json('GET', url, headers=user.dict_bili['pcheaders'], ctrl=LOGIN_CTRL)
+        json_rsp = await user.login_session.request_json('GET', url, headers=user.pc.headers, ctrl=LOGIN_CTRL)
         return json_rsp
         
     @staticmethod
     async def fetch_key(user):
         url = 'https://passport.bilibili.com/api/oauth2/getKey'
-        params = user.sort_and_sign()
+        params = user.app_sign()
         json_rsp = await user.login_session.request_json('POST', url, params=params, ctrl=LOGIN_CTRL)
         return json_rsp
 
@@ -48,46 +48,47 @@ class LoginReq:
             'password': url_password,
             'username': url_name,
         }
-        params = user.sort_and_sign(extra_params)
+        params = user.app_sign(extra_params)
         url = "https://passport.bilibili.com/api/v3/oauth2/login"
 
-        json_rsp = await user.login_session.request_json('POST', url, headers=user.dict_bili['appheaders'], params=params, ctrl=LOGIN_CTRL)
+        json_rsp = await user.login_session.request_json('POST', url, headers=user.app.headers, params=params, ctrl=LOGIN_CTRL)
         return json_rsp
 
     @staticmethod
     async def is_token_usable(user):
         dict_cookie = dict()
-        for param in user.dict_bili['cookie'].split(';'):
+        for param in user.dict_user['cookie'].split(';'):
             key, value = param.split('=')
             dict_cookie[key] = value
 
         extra_params = {
-            'access_key': user.dict_bili['access_key'],
+            'access_key': user.dict_user['access_key'],
+            'access_token': user.dict_user['access_key'],
             'ts': utils.curr_time(),
             ** dict_cookie
         }
-        params = user.sort_and_sign(extra_params)
+        params = user.app_sign(extra_params)
         true_url = f'https://passport.bilibili.com/api/v3/oauth2/info'
-        json_rsp = await user.login_session.request_json('GET', true_url, params=params, headers=user.dict_bili['appheaders'], ctrl=LOGIN_CTRL)
+        json_rsp = await user.login_session.request_json('GET', true_url, params=params, headers=user.app.headers, ctrl=LOGIN_CTRL)
         return json_rsp
 
     @staticmethod
     async def refresh_token(user):
         dict_cookie = dict()
-        for param in user.dict_bili['cookie'].split(';'):
+        for param in user.dict_user['cookie'].split(';'):
             key, value = param.split('=')
             dict_cookie[key] = value
 
         extra_params = {
-            'access_key': user.dict_bili['access_key'],
-            'access_token': user.dict_bili['access_key'],
-            'refresh_token': user.dict_bili['refresh_token'],
+            'access_key': user.dict_user['access_key'],
+            'access_token': user.dict_user['access_key'],
+            'refresh_token': user.dict_user['refresh_token'],
             'ts': utils.curr_time(),
             ** dict_cookie
         }
-        params = user.sort_and_sign(extra_params)
+        params = user.app_sign(extra_params)
         url = f'https://passport.bilibili.com/api/v2/oauth2/refresh_token'
-        json_rsp = await user.login_session.request_json('POST', url, headers=user.dict_bili['appheaders'], params=params, ctrl=LOGIN_CTRL)
+        json_rsp = await user.login_session.request_json('POST', url, headers=user.app.headers, params=params, ctrl=LOGIN_CTRL)
         print('json_rsp', json_rsp)
         return json_rsp
         

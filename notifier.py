@@ -5,7 +5,7 @@ from typing import Optional, Callable
 import aiojobs
 
 import bili_statistics
-from user import User
+from user.user import User
 from tasks.base_class import TaskType, UniqueType, How2Call
 from printer import info as print
 

@@ -14,9 +14,9 @@ class JudgeCaseReq:
             "likes": "",
             "hates": "",
             "attr": "1",
-            "csrf": user.dict_bili['csrf']
+            "csrf": user.dict_user['csrf']
         }
-        json_rsp = await user.other_session.request_json('POST', url, headers=user.dict_bili['pcheaders'], data=payload)
+        json_rsp = await user.other_session.request_json('POST', url, headers=user.pc.headers, data=payload)
         return json_rsp
      
     @staticmethod
@@ -24,15 +24,15 @@ class JudgeCaseReq:
         url = 'http://api.bilibili.com/x/credit/jury/caseObtain'
         data = {
             "jsonp": "jsonp",
-            "csrf": user.dict_bili['csrf']
+            "csrf": user.dict_user['csrf']
         }
-        json_rsp = await user.other_session.request_json('POST', url, headers=user.dict_bili['pcheaders'], data=data)
+        json_rsp = await user.other_session.request_json('POST', url, headers=user.pc.headers, data=data)
         return json_rsp
         
     @staticmethod
     async def check_case_status(user, case_id):
         headers = {
-            **(user.dict_bili['pcheaders']),
+            **(user.pc.headers),
             'Referer': f'https://www.bilibili.com/judgement/vote/{case_id}',
         }
         url = f'https://api.bilibili.com/x/credit/jury/juryCase?callback=jQuery1720{UtilsReq.randomint()}_{utils.curr_time()}&cid={case_id}&_={utils.curr_time()}'
@@ -42,7 +42,7 @@ class JudgeCaseReq:
     @staticmethod
     async def fetch_judged_cases(user):
         headers = {
-            **(user.dict_bili['pcheaders']),
+            **(user.pc.headers),
             'Referer': 'https://www.bilibili.com/judgement/index',
         }
         url = f'https://api.bilibili.com/x/credit/jury/caseList?callback=jQuery1720{UtilsReq.randomint()}_{utils.curr_time()}&pn=1&ps=25&_={utils.curr_time()}'
@@ -55,7 +55,7 @@ class BiliMainReq:
     async def send_coin2video(user, aid, num_sent):
         url = 'https://api.bilibili.com/x/web-interface/coin/add'
         pcheaders = {
-            **(user.dict_bili['pcheaders']),
+            **(user.pc.headers),
             'referer': f'https://www.bilibili.com/video/av{aid}'
             }
         data = {
@@ -63,7 +63,7 @@ class BiliMainReq:
             'multiply': num_sent,
             'select_like': 0,
             'cross_domain': 'true',
-            'csrf': user.dict_bili['csrf']
+            'csrf': user.dict_user['csrf']
         }
         json_rsp = await user.other_session.request_json('POST', url, headers=pcheaders, data=data)
         return json_rsp
@@ -74,8 +74,8 @@ class BiliMainReq:
         data = {
             'cid': cid,
             'bvid': bvid,
-            'mid': user.dict_bili['uid'],
-            'csrf': user.dict_bili['csrf'],
+            'mid': user.dict_user['uid'],
+            'csrf': user.dict_user['csrf'],
             'played_time': 0,
             'realtime': 0,
             'start_ts': utils.curr_time(),
@@ -83,14 +83,14 @@ class BiliMainReq:
             'dt': 2,
             'play_type': 1
             }
-        json_rsp = await user.other_session.request_json('POST', url, data=data, headers=user.dict_bili['pcheaders'])
+        json_rsp = await user.other_session.request_json('POST', url, data=data, headers=user.pc.headers)
         return json_rsp
 
     @staticmethod
     async def share_video(user, aid):
         url = 'https://api.bilibili.com/x/web-interface/share/add'
-        data = {'aid': aid, 'jsonp': 'jsonp', 'csrf': user.dict_bili['csrf']}
-        json_rsp = await user.other_session.request_json('POST', url, data=data, headers=user.dict_bili['pcheaders'])
+        data = {'aid': aid, 'jsonp': 'jsonp', 'csrf': user.dict_user['csrf']}
+        json_rsp = await user.other_session.request_json('POST', url, data=data, headers=user.pc.headers)
         return json_rsp
         
     @staticmethod
@@ -110,7 +110,7 @@ class BiliMainReq:
     async def fetch_top_videos(user):
         # 一个av对应多cid时候，就挑选了一个视频作为cid
         url = 'https://api.bilibili.com/x/web-interface/ranking?rid=0&day=1&type=1&arc_type=0&jsonp=jsonp'
-        json_rsp = await user.other_session.request_json('GET', url, headers=user.dict_bili['pcheaders'])
+        json_rsp = await user.other_session.request_json('GET', url, headers=user.pc.headers)
         return json_rsp
 
 
@@ -121,7 +121,7 @@ class DahuiyuanReq:
         url = f'https://api.bilibili.com/x/vip/privilege/receive'
         data = {
             'type': 1,
-            'csrf': user.dict_bili['csrf'],
+            'csrf': user.dict_user['csrf'],
         }
-        json_rsp = await user.other_session.request_json('POST', url, headers=user.dict_bili['pcheaders'], data=data)
+        json_rsp = await user.other_session.request_json('POST', url, headers=user.pc.headers, data=data)
         return json_rsp
