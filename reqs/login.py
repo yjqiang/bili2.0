@@ -51,6 +51,10 @@ class LoginReq:
         params = user.app_sign(extra_params)
         url = "https://passport.bilibili.com/api/v3/oauth2/login"
 
+        # str with preferably url-encoded content (Warning: content will not be encoded by aiohttp)
+        # password 可能有特殊字符
+        params = "&".join(f'{key}={value}' for key, value in params.items())
+
         json_rsp = await user.login_session.request_json('POST', url, headers=user.app.headers, params=params, ctrl=LOGIN_CTRL)
         return json_rsp
 
