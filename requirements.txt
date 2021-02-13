@@ -1,8 +1,8 @@
 aiohttp==3.6.2
-aiojobs==0.2.2
+aiojobs==0.3.0
 attrs==19.3.0
 pampy==0.3.0
 rsa==4.7
 schedule==1.0.0
-toml==0.10.1
+toml==0.10.2
 danmu-abc==0.1.4
