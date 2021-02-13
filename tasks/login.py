@@ -93,7 +93,7 @@ class LoginTask(Forced, Wait, Multi):
                 'access_key': access_key,
                 'refresh_token': refresh_token,
                 'cookie': cookie,
-                'uid': cookies[1]['value']
+                'uid': data['token_info']['mid']
                 }
             
             user.update_login_data(login_data)
