@@ -1,6 +1,6 @@
 aiohttp==3.6.2
 aiojobs==0.3.0
-attrs==19.3.0
+attrs==20.3.0
 pampy==0.3.0
 rsa==4.7
 schedule==1.0.0
