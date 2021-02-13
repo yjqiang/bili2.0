@@ -1,6 +1,6 @@
 import time
 import string
-from typing import Callable
+from typing import Callable, Dict
 
 
 # 半角字符Printable characters(' '-'~')
@@ -40,3 +40,7 @@ def print_progress(finished_exp, sum_exp, num_sum=30) -> str:
     
 def curr_time() -> int:
     return int(time.time())
+
+
+def prepare_params(dict_params: Dict[str, str]):
+    return "&".join(f'{key}={value}' for key, value in dict_params.items())
