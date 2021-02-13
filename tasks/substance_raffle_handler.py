@@ -65,10 +65,10 @@ class SubstanceRaffleUtilsTask:
     @staticmethod
     async def check(user, aid):
         json_rsp = await user.req_s(SubstanceRaffleHandlerReq.check, user, aid)
-        code = json_rsp['code']
-        if not code:
+        data = json_rsp['data']
+        if data:
             return True
-        elif code == -400:
+        else:
             return False
         user.warn([f'实物抽奖, {json_rsp}'], True)
         return False
