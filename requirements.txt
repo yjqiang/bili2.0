@@ -1,4 +1,4 @@
-aiohttp==3.7.3
+aiohttp==3.7.4
 aiojobs==0.3.0
 attrs==20.3.0
 pampy==0.3.0
