@@ -1,11 +1,18 @@
 import sqlite3  # sqlite是个很灵活的东西，会自动转换，但是如果错误type且无法转换那么也不报错,传说中的沙雕feature https://www.sqlite.org/faq.html#q3
-from os import path
+import os
+import sys
 
 from .bili_data_types import \
     SubstanceRaffleStatus, SubstanceRaffleJoined, SubstanceRaffleResults, SubstanceRaffleLuckydog
-
+appPath = ""
+if hasattr(sys, '_MEIPASS'):
+    # PyInstaller会创建临时文件夹temp
+    # 并把路径存储在_MEIPASS中
+    appPath = os.path.dirname(os.path.realpath(sys.executable))
+else:
+    appPath, filename = os.path.split(os.path.abspath(__file__))
 # 设计理由是execute script from another directory时，保证仍然可以正确执行（与conf读取设计一致，后续config读取也将自己控制，不再由main控制）
-conn = sqlite3.connect(f'{path.dirname(path.realpath(__file__))}/data.db')
+conn = sqlite3.connect(f'{appPath}/data.db')
 
 
 class OthersTable:
